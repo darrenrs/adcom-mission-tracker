@@ -3166,15 +3166,26 @@ function getEta(timeSeconds) {
   /* From https://stackoverflow.com/questions/1322732/convert-seconds-to-hh-mm-ss-with-javascript */
   let eta = '';
   let offset;
+<<<<<<< HEAD
 
   if (timeSeconds >= 253402300800) {
     offset = 14; // if the Date object has an ISO-8601 representation greater than 9999-12-31T23:59:59Z, substr needs to be adjusted
+=======
+  let years;
+
+  if (timeSeconds >= 253402300800) {
+    offset = 14; // If the date > 9999-12-31T23:59:59Z, substr needs to be adjusted
+>>>>>>> d1499da017e15a7b5e3588882ad8e012a9938253
   } else {
     offset = 11;
   }
 
   try {
+<<<<<<< HEAD
     let years = Math.floor(timeSeconds / (60 * 60 * 24 * 365));
+=======
+    years = Math.floor(timeSeconds / (60 * 60 * 24 * 365));
+>>>>>>> d1499da017e15a7b5e3588882ad8e012a9938253
     let days = Math.floor(timeSeconds / (60 * 60 * 24)) % 365;
     let [hours, minutes, seconds] = new Date(timeSeconds * 1000).toISOString().substr(offset, 8).split(':');
 
@@ -3200,7 +3211,11 @@ function getEta(timeSeconds) {
     return eta.replace(/^0*/, '');
   } catch (error) {
     if (error instanceof RangeError) {
+<<<<<<< HEAD
       // can't represent h:m:s with a date object, only years are significant at this point
+=======
+      // Can't represent h:m:s with a date object, only years are significant at this point
+>>>>>>> d1499da017e15a7b5e3588882ad8e012a9938253
       return `${shortBigNum(years)} years`;
     }
   }
@@ -3562,6 +3577,7 @@ function calcOffline(simData) {
   of [2^0, 2^63] seconds, and calls the actual offline simulation method as needed.
 */
 function calcOfflineProduction(simData) {
+<<<<<<< HEAD
   const DEFAULT_LOW_BOUND = Math.pow(2, 0);
   const DEFAULT_HIGH_BOUND = Math.pow(2, 63);
 
@@ -3603,6 +3619,40 @@ function calcOfflineProduction(simData) {
 }
 
 // actual offline simulation, given mission data and duration
+=======
+  const INITIAL_LOW_BOUND = 0;
+  const INITIAL_HIGH_BOUND = Math.pow(2, 63);
+  const ACCURACY = 1;  // Final result will be within ACCURACY of correct answer.
+
+  let requirement = getOfflineResourceGoal(simData);
+  let currentBounds = [
+    INITIAL_LOW_BOUND,
+    INITIAL_HIGH_BOUND
+  ];
+
+  if (requirement > calcOfflineProductionResult(simData, INITIAL_HIGH_BOUND)) {
+    // Won't finish within INITIAL_HIGH_BOUND
+    return -1;
+  }
+  
+  while (currentBounds[1] - currentBounds[0] > ACCURACY) {
+    let currentMidpoint = (currentBounds[1] - currentBounds[0]) / 2 + currentBounds[0];
+    let midpointResult = calcOfflineProductionResult(simData, currentMidpoint);
+
+    if (midpointResult < requirement) {
+      // Increase LOWER bound
+      currentBounds[0] = currentMidpoint;
+    } else {
+      // Increase UPPER bound
+      currentBounds[1] = currentMidpoint;
+    }
+  }
+
+  return Math.floor(currentBounds[0]); // A teensy underestimation, but accurately reports 0 (Instant)
+}
+
+// Actual offline simulation, given mission data and duration.  Returns # of resources at the end of duration.
+>>>>>>> d1499da017e15a7b5e3588882ad8e012a9938253
 function calcOfflineProductionResult(simData, duration) {
   let generatorOutput = {};
   let hasDeepestGenerator = false;
@@ -3611,6 +3661,7 @@ function calcOfflineProductionResult(simData, duration) {
   }
 
   for (let genIndex = simData.Generators.length - 1; genIndex > 0; genIndex--) {
+<<<<<<< HEAD
     let generatorReference = simData.Generators[genIndex]; // current generator that we're looking at
     let preExistingResources = 0;
 
@@ -3623,6 +3674,20 @@ function calcOfflineProductionResult(simData, duration) {
 
     let resourcesGeneratedInPeriod = generatorReference.QtyPerSec * duration * preExistingResources; // all resources generated in a period
     generatorOutput[generatorReference.Resource] = Boolean(generatorReference.QtyPerSec) * (resourcesGeneratedInPeriod + preExistingResources); // adds the values together
+=======
+    let generatorReference = simData.Generators[genIndex]; // Current generator that we're looking at
+    let preExistingResources = 0;
+
+    if (simData.Counts[generatorReference.Id] > 0 && !hasDeepestGenerator) {
+      preExistingResources = simData.Counts[generatorReference.Id]; // Initial state for deepest generator
+      hasDeepestGenerator = true;
+    } else {
+      preExistingResources = simData.Counts[generatorReference.Id] + generatorOutput[generatorReference.Id]; // Adds what has already been generated in deeper generators
+    }
+
+    let resourcesGeneratedInPeriod = generatorReference.QtyPerSec * duration * preExistingResources; // All resources generated in a period
+    generatorOutput[generatorReference.Resource] = Boolean(generatorReference.QtyPerSec) * (resourcesGeneratedInPeriod + preExistingResources); // Adds the values together
+>>>>>>> d1499da017e15a7b5e3588882ad8e012a9938253
   }
 
   return generatorOutput[simData.Generators[1].Resource];
@@ -3730,7 +3795,7 @@ function simulateProductionMission(simData, deltaTime = 1.0) {
     if (now >= nextTimeCheck) {
         if (now >= maxSimTime) {
           // Simulation took longer than MaxSimSeconds, cancelling.
-          return -time + 1;
+          return -time;
           
         } else if (now >= nextIncreaseTime) {
           // Gradually increase deltaTime to simulate further without losing much precision
@@ -3746,7 +3811,7 @@ function simulateProductionMission(simData, deltaTime = 1.0) {
       let generator = simData.Generators[genIndex];
       simData.Counts[generator.Resource] += simData.Counts[generator.Id] * generator.QtyPerSec * deltaTime;
       
-      // index 0 & 1 make comrades & resources, so they also counts toward "comradeProgress" & "resourceProgress"
+      // Index 0 & 1 make comrades & resources, so they also counts toward "comradeProgress" & "resourceProgress"
       if (genIndex == 0) {
         simData.Counts["comradeProgress"] += simData.Counts[generator.Id] * generator.QtyPerSec * deltaTime;
       } else if (genIndex == 1) {
@@ -3769,7 +3834,7 @@ function simulateProductionMission(simData, deltaTime = 1.0) {
         simData.Counts[autobuyGenerator.Id] = 1;
         
         let autobuyGeneratorIndex = simData.Generators.indexOf(autobuyGenerator);
-        nextAutobuyGenerator = simData.Generators[autobuyGeneratorIndex + 1]; // may be undefined if at the last tier
+        nextAutobuyGenerator = simData.Generators[autobuyGeneratorIndex + 1]; // May be undefined if at the last tier
         
         // If the next generator won't produce anything, don't switch to it.
         if (nextAutobuyGenerator && nextAutobuyGenerator.QtyPerSec == 0) {
@@ -3780,7 +3845,7 @@ function simulateProductionMission(simData, deltaTime = 1.0) {
     
   }
   
-  return time - 1; // subtract 1 second from this value (insta-complete missions are now accurately marked as instant)
+  return time;
 }
 
 function metGoals(simData, goals) {
