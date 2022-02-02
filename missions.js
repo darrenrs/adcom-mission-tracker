@@ -3166,26 +3166,16 @@ function getEta(timeSeconds) {
   /* From https://stackoverflow.com/questions/1322732/convert-seconds-to-hh-mm-ss-with-javascript */
   let eta = '';
   let offset;
-<<<<<<< HEAD
-
-  if (timeSeconds >= 253402300800) {
-    offset = 14; // if the Date object has an ISO-8601 representation greater than 9999-12-31T23:59:59Z, substr needs to be adjusted
-=======
   let years;
 
   if (timeSeconds >= 253402300800) {
     offset = 14; // If the date > 9999-12-31T23:59:59Z, substr needs to be adjusted
->>>>>>> d1499da017e15a7b5e3588882ad8e012a9938253
   } else {
     offset = 11;
   }
 
   try {
-<<<<<<< HEAD
-    let years = Math.floor(timeSeconds / (60 * 60 * 24 * 365));
-=======
     years = Math.floor(timeSeconds / (60 * 60 * 24 * 365));
->>>>>>> d1499da017e15a7b5e3588882ad8e012a9938253
     let days = Math.floor(timeSeconds / (60 * 60 * 24)) % 365;
     let [hours, minutes, seconds] = new Date(timeSeconds * 1000).toISOString().substr(offset, 8).split(':');
 
@@ -3211,11 +3201,7 @@ function getEta(timeSeconds) {
     return eta.replace(/^0*/, '');
   } catch (error) {
     if (error instanceof RangeError) {
-<<<<<<< HEAD
-      // can't represent h:m:s with a date object, only years are significant at this point
-=======
       // Can't represent h:m:s with a date object, only years are significant at this point
->>>>>>> d1499da017e15a7b5e3588882ad8e012a9938253
       return `${shortBigNum(years)} years`;
     }
   }
@@ -3577,49 +3563,6 @@ function calcOffline(simData) {
   of [2^0, 2^63] seconds, and calls the actual offline simulation method as needed.
 */
 function calcOfflineProduction(simData) {
-<<<<<<< HEAD
-  const DEFAULT_LOW_BOUND = Math.pow(2, 0);
-  const DEFAULT_HIGH_BOUND = Math.pow(2, 63);
-
-  let requirement = simData.Mission.Condition.Threshold;
-  let currentBounds = [
-    DEFAULT_LOW_BOUND,
-    DEFAULT_HIGH_BOUND
-  ];
-  let currentMidpoint = (currentBounds[1] - currentBounds[0] + 1) / 2 + currentBounds[0];
-
-  if (requirement > calcOfflineProductionResult(simData, DEFAULT_HIGH_BOUND)) {
-    // too long
-    return -1;
-  } else {
-    while (currentBounds[1] - currentBounds[0] >= DEFAULT_LOW_BOUND) {
-      let midpointResult = calcOfflineProductionResult(simData, currentMidpoint);
-
-      if (midpointResult < requirement) {
-        // increase LOWER bound
-        currentBounds[0] += (currentBounds[1] - currentBounds[0] + 1) / 2;
-      } else {
-        // increase UPPER bound
-        currentBounds[1] -= (currentBounds[1] - currentBounds[0] + 1) / 2;
-      }
-
-      currentMidpoint = (currentBounds[1] - currentBounds[0] + 1) / 2 + currentBounds[0];
-    }
-
-    let final1sCheck = calcOfflineProductionResult(simData, currentBounds[1]); // this check prevents 1s from showing as "Instant"
-
-    if (currentBounds[1] === DEFAULT_LOW_BOUND && final1sCheck > requirement) {
-      // we have reached the lowest bound, assume "instant"
-      return 0;
-    } else {
-      // return upper-bound (worst case) value, although it shouldn't really be that significant of a difference
-      return currentBounds[1]; 
-    }
-  }
-}
-
-// actual offline simulation, given mission data and duration
-=======
   const INITIAL_LOW_BOUND = 0;
   const INITIAL_HIGH_BOUND = Math.pow(2, 63);
   const ACCURACY = 1;  // Final result will be within ACCURACY of correct answer.
@@ -3652,7 +3595,6 @@ function calcOfflineProduction(simData) {
 }
 
 // Actual offline simulation, given mission data and duration.  Returns # of resources at the end of duration.
->>>>>>> d1499da017e15a7b5e3588882ad8e012a9938253
 function calcOfflineProductionResult(simData, duration) {
   let generatorOutput = {};
   let hasDeepestGenerator = false;
@@ -3661,20 +3603,6 @@ function calcOfflineProductionResult(simData, duration) {
   }
 
   for (let genIndex = simData.Generators.length - 1; genIndex > 0; genIndex--) {
-<<<<<<< HEAD
-    let generatorReference = simData.Generators[genIndex]; // current generator that we're looking at
-    let preExistingResources = 0;
-
-    if (simData.Counts[generatorReference.Id] > 0 && !hasDeepestGenerator) {
-      preExistingResources = simData.Counts[generatorReference.Id]; // initial state for deepest generator
-      hasDeepestGenerator = true;
-    } else {
-      preExistingResources = simData.Counts[generatorReference.Id] + generatorOutput[generatorReference.Id]; // adds what has already been generated in deeper generators
-    }
-
-    let resourcesGeneratedInPeriod = generatorReference.QtyPerSec * duration * preExistingResources; // all resources generated in a period
-    generatorOutput[generatorReference.Resource] = Boolean(generatorReference.QtyPerSec) * (resourcesGeneratedInPeriod + preExistingResources); // adds the values together
-=======
     let generatorReference = simData.Generators[genIndex]; // Current generator that we're looking at
     let preExistingResources = 0;
 
@@ -3687,7 +3615,6 @@ function calcOfflineProductionResult(simData, duration) {
 
     let resourcesGeneratedInPeriod = generatorReference.QtyPerSec * duration * preExistingResources; // All resources generated in a period
     generatorOutput[generatorReference.Resource] = Boolean(generatorReference.QtyPerSec) * (resourcesGeneratedInPeriod + preExistingResources); // Adds the values together
->>>>>>> d1499da017e15a7b5e3588882ad8e012a9938253
   }
 
   return generatorOutput[simData.Generators[1].Resource];
