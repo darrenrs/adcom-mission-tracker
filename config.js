@@ -7,14 +7,15 @@ var POWERS = ['K', 'M', 'B', 'T', 'AA', 'BB', 'CC', 'DD', 'EE', 'FF', 'GG', 'HH'
 var THEME_ID_TITLE_OVERRIDES = {
   "main": "Motherland",
   "attack": "Oil",
-  "defense": "Shield"
+  "defense": "Shield",
+  "potatofactory": "Factory"
 };
 
 // For game-specific documentation and social channels
 var SOCIAL_HELP_URLS = {
-  "faq": "https://docs.google.com/document/d/1a314ZQM1f4ggFCtsC__Nb3B_1Hrc02cS0ZhY7_T08v8/",
+  "faq": "https://docs.google.com/document/d/1lCa0GNHjXOSpeCgMtqESU7i1UA8LUmObh1s0EfuUPHU/",
   "discord": "https://discord.gg/VPa4WTM",
-  "reddit": "https://reddit.com/r/AdventureCommunist/",
+  "reddit": "https://reddit.com/r/AdventureCommunist/"
 }
 
 // So that AdCom can have "CurrentMode" and Ages can have "Ages-CurrentMode"

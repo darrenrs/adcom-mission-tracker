@@ -14,9 +14,9 @@ var THEME_ID_TITLE_OVERRIDES = {
 
 // For game-specific documentation and social channels
 var SOCIAL_HELP_URLS = {
-  "faq": "https://docs.google.com/document/d/1CVjPm2FAcCThtZyfwguFIj8ICpmOr8tLA_fANXOdtmU/",
+  "faq": "https://docs.google.com/document/d/1ioNAqUrwWRGMuPFyctSU7dP5lT-H0h4iBtoigi7fgwg/",
   "discord": "https://discord.gg/XCnZKvBdVf",
-  "reddit": "https://reddit.com/r/AdventureAges/",
+  "reddit": "https://reddit.com/r/AdventureAges/"
 }
 
 // So that AdCom can have "CurrentMode" and Ages can have "Ages-CurrentMode"

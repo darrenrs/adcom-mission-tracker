@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>AdVenture Guides</title>
+<script>
+  const url = new URL(window.location.href);
+  const productId = url.searchParams.get("product");
+
+  switch (productId) {
+    case "adcom":
+      window.location.href = "https://docs.google.com/document/d/1lCa0GNHjXOSpeCgMtqESU7i1UA8LUmObh1s0EfuUPHU/";
+      break;
+    case "ages":
+      window.location.href = "https://docs.google.com/document/d/1ioNAqUrwWRGMuPFyctSU7dP5lT-H0h4iBtoigi7fgwg/";
+      break;
+  }
+</script>
+</head>
+<body>
+  <h1>Unofficial AdVenture Guides</h1>
+  <ul>
+    <li>AdVenture Communist: <a href="https://docs.google.com/document/d/1lCa0GNHjXOSpeCgMtqESU7i1UA8LUmObh1s0EfuUPHU/">click here.</a></li>
+    <li>AdVenture Ages: <a href="https://docs.google.com/document/d/1ioNAqUrwWRGMuPFyctSU7dP5lT-H0h4iBtoigi7fgwg/">click here.</a></li>
+  </ul>
+</body>
+</html>
