@@ -26,7 +26,7 @@ function loadModeSettings() {
   // + ?rank=X
   //   -  X can be "event" (for current event), "main", or a motherland rank (1-MAX_RANK)
   // + ?mode=X
-  //   -  X can be "event", "main", or "schedule" (intended to depricate rank=X for these values)
+  //   -  X can be "event", "main", or "schedule" (intended to deprecate rank=X for these values)
   // + ?event=X
   //   -  X is any event's EndTime, in milliseconds from epoch UTC.
   // + ?eventOverride=X
@@ -105,6 +105,9 @@ function loadModeSettings() {
           EndTimeMillis: now,
           Rewards: Array(20) // empty values, which the tracker handles gracefully
         };
+        if (THEME_ID_OVERRIDES[keyValue[1]]) {
+          eventScheduleInfo['ThemeId'] = THEME_ID_OVERRIDES[keyValue[1]];
+        }
         $('#overrideWarning').addClass("show");
         $('#alertReset').remove(); // don't show the Reset Alert ever in this mode.  Hacky.
       }
@@ -151,6 +154,8 @@ function loadModeSettings() {
   $(`#mode-select-main,#mode-select-event`).removeClass("active");
   if (currentMode == "main" || trueCurrentEvent.EndTimeMillis == eventScheduleInfo.EndTimeMillis) {
     $(`#mode-select-${currentMode}`).addClass("active");
+  } else if (window.location.href.search('eventOverride') !== -1) {
+    $('#mode-select-eventbal').addClass("active");
   } else {
     $('#mode-select-schedule').addClass("active");
   }
@@ -215,6 +220,61 @@ function getSchedulePopupEvent(eventInfo) {
         </div>
       </div>
     </div>`;
+}
+
+// get HTML for all balances
+function getAllEventBalanceHtml() {
+  let data = `
+  <div class="card">
+    <div class="card-header scheduleHeader" data-toggle="collapse" data-target="#scheduleBody-main" aria-controls="scheduleBody-main">
+      <img src='img/main/schedule.png' class="scheduleIconLarge">
+      ${THEME_ID_TITLE_OVERRIDES["main"]}
+      <span class="float-right"><span class="ml-2">(+)</span></span>
+    </div>
+    <div class="collapse" id="scheduleBody-main">
+      <div class="card-body">
+        <div><span class="float-right"><a href="?mode=main">View in Tracker</a></span></div>
+        <div><strong>Last Update: </strong>${BALANCE_UPDATE_VERSION['main']}</div>
+      </div>
+    </div>
+  </div>
+`;
+
+  for (i of Object.keys(DATA)) {
+    const lteId = i;
+
+    if (i === "event" || i === "main") {
+      continue;
+    }
+
+    let themeId = lteId.split('-')[0];
+    
+    if (THEME_ID_OVERRIDES[lteId]) {
+      themeId = THEME_ID_OVERRIDES[lteId];
+    }
+
+    let balanceLastUpdate = BALANCE_UPDATE_VERSION[lteId] ? BALANCE_UPDATE_VERSION[lteId] : "unknown";
+
+    const name = ENGLISH_MAP[`lte.${themeId}.name`];
+
+    data += `
+      <div class="card">
+        <div class="card-header scheduleHeader" data-toggle="collapse" data-target="#scheduleBody-${themeId}" aria-controls="scheduleBody-${themeId}">
+          <img src='img/event/${themeId}/schedule.png' class="scheduleIconLarge">
+          ${name}
+          <span class="float-right"><span class="ml-2">(+)</span></span>
+        </div>
+        <div class="collapse" id="scheduleBody-${themeId}">
+          <div class="card-body">
+            <div><span class="float-right"><a href="?mode=event&eventOverride=${lteId}">View in Tracker</a></span></div>
+            <div><strong>Last Update: </strong>${balanceLastUpdate}</div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  return data;
 }
 
 // Returns the current event info based on the time and the schedule's cycles
@@ -656,6 +716,16 @@ function initializePopups() {
     // Fill in the body
     let modal = $(this);
     modal.find('#schedulePopupBody').html(getSchedulePopup());
+    
+    $(function () {
+      $('[data-toggle="popover"]').popover();
+    });
+  });
+  
+  $('#eventBalancePopup').on('show.bs.modal', function (event) {
+    // Fill in the body
+    let modal = $(this);
+    modal.find('#eventBalanceBody').html(getAllEventBalanceHtml());
     
     $(function () {
       $('[data-toggle="popover"]').popover();
@@ -1482,7 +1552,7 @@ function researcherName(researcherIdOrObj) {
     id = researcherIdOrObj.Id;
   }
   
-  return ENGLISH_MAP[`researcher.${id}.name`]
+  return ENGLISH_MAP[`researcher.${id}.name`].replaceAll('"', "'")
 }
 
 function upperCaseFirstLetter(name) {

@@ -27,6 +27,7 @@
         <a href="?mode=event" class="dropdown-item" id="mode-select-event" title="Switch to Current Event"><img class="scheduleIcon" src="img/event/space/schedule.png"> Event</a>
         <div class="dropdown-divider"></div>
         <a href="#" class="dropdown-item" id="mode-select-schedule" data-toggle="modal" data-target="#schedulePopup" title="View Schedule"><img class="scheduleIcon" src="img/shared/calendar.png"> Schedule</a>
+        <a href="#" class="dropdown-item" id="mode-select-eventbal" data-toggle="modal" data-target="#eventBalancePopup" title="View All Events"><img class="scheduleIcon" src="img/shared/calendar.png"> All Events</a>
       </ul>
     </span>
     <ul class="navbar-nav ml-auto">
@@ -117,6 +118,21 @@
           <div class="alert alert-info mb-4 collapse">This is where I would put any schedule notifcations and remove collapse.</div>
           <div class="alert alert-info mb-4 collapse">The following schedule is from an unreleased version and subject to change.</div>
           <div id="schedulePopupBody"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="modal fade" id="eventBalancePopup" tabindex="-1" role="dialog" aria-labelledby="eventBalancePopupTitle" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="eventBalanceTitle">All Balances</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div id="eventBalanceBody"></div>
         </div>
       </div>
     </div>
