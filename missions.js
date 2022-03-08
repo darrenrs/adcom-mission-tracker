@@ -3697,8 +3697,7 @@ function getOfflineResourceGoal(simData) {
   
   if (condition.ConditionType == "ResourcesEarnedSinceSubscription") {
     let resourceProgress = simData.Counts["resourceProgress"] || 0;
-    let currentResource = simData.Counts[condition.ConditionId] || 0;
-    return condition.Threshold - resourceProgress + currentResource;
+    return condition.Threshold - resourceProgress;
     
   } else if (condition.ConditionType == "ResourceQuantity") {
     let generator = simData.Generators.find(g => g.Id == condition.ConditionId);
