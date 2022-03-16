@@ -162,7 +162,8 @@ function loadModeSettings() {
   
   // Set up the icon for the "All Generators" button in the navbar
   let firstResourceId = getData().Resources[0].Id;
-  $('#viewAllGeneratorsButton').attr('style', `background-image:url('${getImageDirectory()}/${firstResourceId}.png`);
+  $('#viewAllGeneratorsButton').attr('style', `background-image:url('${getImageDirectory()}/${firstResourceId}.png')`);
+  $('#viewBalanceInfoButton').attr('style', `background-image:url('${getImageDirectory()}/schedule.png')`);
   
   // Show a "datamined" warning for future ranks that aren't in the current version
   if ((DATAMINE_WARNING_MIN_RANK && currentMode == "main" && currentMainRank >= DATAMINE_WARNING_MIN_RANK) ||
@@ -690,6 +691,12 @@ function initializePopups() {
       $('[data-toggle="popover"]').popover();
       updateImportButton();
     });
+  });
+  
+  $('#balanceInfoPopup').on('show.bs.modal', function () {
+    // Fill in the body
+    let modal = $(this);
+    modal.find('#balanceInfoPopupBody').html(getBalanceInfoPopup());
   });
   
   $('#allInfoPopup').on('show.bs.modal', function (event) {
@@ -2303,6 +2310,132 @@ function updateImportButton() {
   } else {
     $('#importButton').addClass('collapse');
   }
+}
+
+function getBalanceInfoPopup() {
+  const themeId = eventScheduleInfo['ThemeId'];
+  const lteId = eventScheduleInfo['BalanceId'];
+  let name;
+  let description;
+
+  if (currentMode === 'event') {
+    name = ENGLISH_MAP[`lte.${themeId}.name`];
+    description = ENGLISH_MAP[`lte.${themeId}.desc`];
+  } else {
+    if ((window.location.href).includes('/ages')) {
+      name = 'Ages';
+      description = 'The main environment of AdVenture Ages!';
+    } else {
+      name = 'Motherland';
+      description = 'The main environment of AdVenture Communist!';
+    }
+  }
+
+  let lastUpdate = BALANCE_UPDATE_VERSION[lteId] ? BALANCE_UPDATE_VERSION[lteId] : "unknown";
+  let airdrops = "";
+  let packs = "";
+  let totalPrice = 0;
+
+  // airdrop totals (ad and non-ad)
+  for (let i of getData()['AirDrops']) {
+    let airdropType;
+    let adStatus;
+
+    switch (i['AirDropRewardType']) {
+      case 'CoreResource':
+        airdropType = "Random Resource";
+        break;
+      case 'PrimaryCurrency':
+        airdropType = resourceName('comrade');
+        break;
+      case 'SoftCurrency':
+        airdropType = resourceName('darkscience');
+        break;
+      case 'HardCurrency':
+        airdropType = resourceName('gold');
+        break;
+    }
+
+    if (i['IsAd']) {
+      adStatus = `${i['MaxAdsPerInterval']} ads per cycle`;
+    } else {
+      adStatus = 'non-ad';
+    }
+
+    let weight = `${i['Weight']}%`;
+
+    let airdropLine = `<li>${airdropType} (${adStatus}; ${weight} weight)</li>`;
+    airdrops += airdropLine;
+  }
+
+  // get information about packs
+  for (let i of getData()['Store']) {
+    if (i['ItemClass'] === 'VirtualCurrencyBundle') {
+      let name = i['Name'];
+      let price = `US$${(i['Price'] / 100).toFixed(2)}`;
+      totalPrice += i['Price'];
+      let rewardsString = "";
+
+      for (let j of i['Rewards']) {
+        // three reward types: "Gacha" (capsule), "Resources", and "Researcher"
+        let rewardContent = "";
+
+        switch (j['Reward']) {
+          case "Gacha":
+            rewardContent = `x${bigNum(j['Value'])} ${ENGLISH_MAP[`gacha.${j['RewardId']}.name`]} Capsule`;
+            break;
+          case "Resources":
+            let resourceImageUrl = "";
+            if (j['RewardId'] === 'darkscience') {
+              resourceImageUrl = "<img class='rewardIcon' src='img/event/darkscience.png'>";
+            } else if (j['RewardId'] === 'gold') {
+              resourceImageUrl = "<img class='rewardIcon' src='img/main/gold.png'>";
+            }
+
+            if (j['Value'] === 1) {
+              rewardContent = `x${bigNum(j['Value'])} ${resourceImageUrl} ${ENGLISH_MAP[`resource.${j['RewardId']}.singular`]}`;
+            } else {
+              rewardContent = `x${bigNum(j['Value'])} ${resourceImageUrl} ${ENGLISH_MAP[`resource.${j['RewardId']}.plural`]}`;
+            }
+            break;
+          case "Researcher":
+            let researcherInfo = getResearcherBasicDetails(getData().Researchers.filter(r => r.Id == j['RewardId'])[0]);
+            rewardContent = `x${bigNum(j['Value'])} <div class='resourceIcon cardIcon'>&nbsp;</div> ${ENGLISH_MAP[`researcher.${j['RewardId']}.name`]} (${researcherInfo})`;
+            break;
+          default:
+            rewardContent = 'Unknown Reward Type (please report this or check console for more information)';
+            console.warn(`Unknown Reward Type: ${JSON.stringify(j)}`);
+            break;
+        }
+
+        rewardsString += `<li>${rewardContent}</li>`
+      }
+      packs += `<li>${name} (${price})<ul>${rewardsString}</ul></li>`;
+    }
+  }
+
+  return `
+    <fieldset>
+      <legend>${name}</legend>
+      <p><em>${description}</em></p>
+      <p>Balance Last Updated: ${lastUpdate}</p>
+    </fieldset>
+    <hr>
+    <fieldset>
+      <legend>Airdrops</legend>
+      <ul>
+        ${airdrops}
+      </ul>
+    </fieldset>
+    <hr>
+    <fieldset>
+      <legend>Packs</legend>
+      <ul>
+        ${packs}
+      </ul>
+      <p>Total Price: US$${(totalPrice / 100).toFixed(2)}</p>
+    </fieldset>
+  `
 }
 
 function getAllIndustryPopup() {
