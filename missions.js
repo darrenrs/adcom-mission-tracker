@@ -2317,6 +2317,7 @@ function getBalanceInfoPopup() {
   const lteId = eventScheduleInfo['BalanceId'];
   let name;
   let description;
+  let lastUpdate = BALANCE_UPDATE_VERSION[lteId] ? BALANCE_UPDATE_VERSION[lteId] : "unknown";
 
   if (currentMode === 'event') {
     name = ENGLISH_MAP[`lte.${themeId}.name`];
@@ -2325,16 +2326,18 @@ function getBalanceInfoPopup() {
     if ((window.location.href).includes('/ages')) {
       name = 'Ages';
       description = 'The main environment of AdVenture Ages!';
+      lastUpdate = BALANCE_UPDATE_VERSION['main'];
     } else {
       name = 'Motherland';
       description = 'The main environment of AdVenture Communist!';
+      lastUpdate = BALANCE_UPDATE_VERSION['main'];
     }
   }
 
-  let lastUpdate = BALANCE_UPDATE_VERSION[lteId] ? BALANCE_UPDATE_VERSION[lteId] : "unknown";
   let airdrops = "";
   let packs = "";
   let totalPrice = 0;
+  let adRemovalString = "Not available for this balance";
 
   // airdrop totals (ad and non-ad)
   for (let i of getData()['AirDrops']) {
@@ -2411,6 +2414,10 @@ function getBalanceInfoPopup() {
         rewardsString += `<li>${rewardContent}</li>`
       }
       packs += `<li>${name} (${price})<ul>${rewardsString}</ul></li>`;
+    } else if (i['ItemClass'] === 'AdFreeAirdrop') {
+      // ad free airdrops with a price added in 6.11.
+      let adRemovalPrice = i['Price'];
+      adRemovalString = `US$${(adRemovalPrice / 100).toFixed(2)}`;
     }
   }
 
@@ -2418,7 +2425,7 @@ function getBalanceInfoPopup() {
     <fieldset>
       <legend>${name}</legend>
       <p><em>${description}</em></p>
-      <p>Balance Last Updated: ${lastUpdate}</p>
+      <p><strong>Balance Last Updated: </strong>${lastUpdate}</p>
     </fieldset>
     <hr>
     <fieldset>
@@ -2426,6 +2433,7 @@ function getBalanceInfoPopup() {
       <ul>
         ${airdrops}
       </ul>
+      <p><strong>Golden Airdrop Boost:</strong> ${adRemovalString}</p>
     </fieldset>
     <hr>
     <fieldset>
@@ -2433,7 +2441,7 @@ function getBalanceInfoPopup() {
       <ul>
         ${packs}
       </ul>
-      <p>Total Price: US$${(totalPrice / 100).toFixed(2)}</p>
+      <p>Total Cost: US$${(totalPrice / 100).toFixed(2)}</p>
     </fieldset>
   `
 }

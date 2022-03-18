@@ -33,7 +33,7 @@ var BALANCE_UPDATE_VERSION = {
   "stone-bal-4": "6.1",
   "winter-bal-3": "6.10",
   "zombie-bal-5": "6.8",
-  "main": "6.5"
+  "main": "6.11"
 };
 
 // For game-specific documentation and social channels
