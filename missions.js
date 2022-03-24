@@ -2433,7 +2433,7 @@ function getBalanceInfoPopup() {
       <ul>
         ${airdrops}
       </ul>
-      <p><strong>Golden Airdrop Boost:</strong> ${adRemovalString}</p>
+      <p><strong>Golden Airdrop Boost: </strong>${adRemovalString}</p>
     </fieldset>
     <hr>
     <fieldset>
@@ -2441,7 +2441,7 @@ function getBalanceInfoPopup() {
       <ul>
         ${packs}
       </ul>
-      <p>Total Cost: US$${(totalPrice / 100).toFixed(2)}</p>
+      <p><strong>Total Cost: </strong>US$${(totalPrice / 100).toFixed(2)}</p>
     </fieldset>
   `
 }
