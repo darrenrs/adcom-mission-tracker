@@ -36,7 +36,7 @@ var BALANCE_UPDATE_VERSION = {
   "mexico-bal-2": "1.17",
   "monster-bal-13": "1.12",
   "music-bal-6": "1.17",
-  "scandinavia-bal-5": "1.17",
+  "scandinavia-bal-21": "1.17",
   "timetravel-bal-15": "1.16"
 };
 
