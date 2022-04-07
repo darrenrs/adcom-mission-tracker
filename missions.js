@@ -2415,7 +2415,7 @@ function getBalanceInfoPopup() {
       }
       packs += `<li>${name} (${price})<ul>${rewardsString}</ul></li>`;
     } else if (i['ItemClass'] === 'AdFreeAirdrop') {
-      // ad free airdrops with a price added in 6.11.
+      // ad free airdrops with a price added in 6.11. (todo: don't show this for ages)
       let adRemovalPrice = i['Price'];
       adRemovalString = `US$${(adRemovalPrice / 100).toFixed(2)}`;
     }
@@ -2433,7 +2433,7 @@ function getBalanceInfoPopup() {
       <ul>
         ${airdrops}
       </ul>
-      <p><strong>Golden Airdrop Boost: </strong>${adRemovalString}</p>
+      <p id="goldenAirdrop"><strong>Golden Airdrop Boost: </strong>${adRemovalString}</p>
     </fieldset>
     <hr>
     <fieldset>

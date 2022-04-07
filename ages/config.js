@@ -33,10 +33,10 @@ var BALANCE_UPDATE_VERSION = {
   "infrastructure-bal-17": "1.14",
   "innovation-bal-1": "1.14",
   "japan-bal-2": "1.15",
-  "mexico-bal-2": "1.7",
+  "mexico-bal-2": "1.17",
   "monster-bal-13": "1.12",
-  "music-bal-6": "1.14",
-  "scandinavia-bal-5": "1.11",
+  "music-bal-6": "1.17",
+  "scandinavia-bal-5": "1.17",
   "timetravel-bal-15": "1.16"
 };
 
