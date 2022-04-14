@@ -21,7 +21,7 @@ var BALANCE_UPDATE_VERSION = {
   "atlantis-bal-3": "5.3",
   "attack-bal-20": "5.3",
   "cowboy-bal-2": "6.10",
-  "crusade-bal-1": "5.3",
+  "crusade-bal-1": "6.12",
   "defense-bal-21": "6.10",
   "export-bal-21": "5.3",
   "ninja-bal-1": "6.10",
