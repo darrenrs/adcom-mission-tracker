@@ -57,6 +57,10 @@
           <button class="dropdown-item" data-toggle="modal" data-target="#rankPopup" onclick='focusRankSelectPrompt()'>Advance To Rank</button>
           <button class="dropdown-item" data-toggle="modal" data-target="#dataPopup">Reset Data</button>
           <div class="dropdown-divider"></div>
+          <h6 class="dropdown-header text-center">Tables</h6>
+          <button class="dropdown-item" data-toggle="modal" data-target="#airdropTablePopup">Airdrops by Rank</button>
+          <button class="dropdown-item" data-toggle="modal" data-target="#capsuleTablePopup">Capsules by Rank</button>
+          <div class="dropdown-divider"></div>
           <h6 class="dropdown-header text-center">Help</h6>
           <button class="dropdown-item" data-toggle="modal" data-target="#helpPopup">General Help</button>
           <button class="dropdown-item" data-toggle="modal" data-target="#keyboardPopup">Keyboard Shortcuts</button>
@@ -159,7 +163,7 @@
     <div class="modal-dialog" role="document">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title" id="helpPopupTitle">Select Rank</h5>
+          <h5 class="modal-title" id="rankPopupTitle">Select Rank</h5>
           <button type="button" class="close" data-dismiss="modal" aria-label="Close">
             <span aria-hidden="true">&times;</span>
           </button>
@@ -174,13 +178,43 @@
     <div class="modal-dialog" role="document">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title" id="helpPopupTitle">Reset Data</h5>
+          <h5 class="modal-title" id="dataPopupTitle">Reset Data</h5>
           <button type="button" class="close" data-dismiss="modal" aria-label="Close">
             <span aria-hidden="true">&times;</span>
           </button>
         </div>
         <div class="modal-body">
           <div id="dataPopupBody"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="modal fade" id="airdropTablePopup" tabindex="-1" role="dialog" aria-labelledby="airdropTablePopupTitle" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="airdropTablePopupTitle">Airdrop Tables</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div id="airdropTablePopupBody"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="modal fade" id="capsuleTablePopup" tabindex="-1" role="dialog" aria-labelledby="capsuleTablePopupTitle" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="capsuleTableTitle">Capsule Tables</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div id="capsuleTablePopupBody"></div>
         </div>
       </div>
     </div>

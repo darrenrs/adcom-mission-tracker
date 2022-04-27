@@ -699,6 +699,18 @@ function initializePopups() {
     modal.find('#balanceInfoPopupBody').html(getBalanceInfoPopup());
   });
   
+  $('#airdropTablePopup').on('show.bs.modal', function () {
+    // Fill in the body
+    let modal = $(this);
+    modal.find('#airdropTablePopupBody').html(getAirdropTablePopup());
+  });
+  
+  $('#capsuleTablePopup').on('show.bs.modal', function () {
+    // Fill in the body
+    let modal = $(this);
+    modal.find('#capsuleTablePopupBody').html(getCapsuleTablePopup());
+  });
+  
   $('#allInfoPopup').on('show.bs.modal', function (event) {
     let button = $(event.relatedTarget); // Button that triggered the modal
     let activeTabId = button.data('tab'); // Extract info from data-* attributes
@@ -2338,6 +2350,7 @@ function getBalanceInfoPopup() {
   let packs = "";
   let totalPrice = 0;
   let adRemovalString = "Not available for this balance";
+  let goldenAirdrop = "";
 
   // airdrop totals (ad and non-ad)
   for (let i of getData()['AirDrops']) {
@@ -2415,10 +2428,14 @@ function getBalanceInfoPopup() {
       }
       packs += `<li>${name} (${price})<ul>${rewardsString}</ul></li>`;
     } else if (i['ItemClass'] === 'AdFreeAirdrop') {
-      // ad free airdrops with a price added in 6.11. (todo: don't show this for ages)
+      // ad free airdrops with a price added in 6.11. (only for AdCom as of 25 April 2022)
       let adRemovalPrice = i['Price'];
       adRemovalString = `US$${(adRemovalPrice / 100).toFixed(2)}`;
     }
+  }
+
+  if (GAME_SAVE_KEY_PREFIX !== "Ages-") {
+    goldenAirdrop = `<p id="goldenAirdrop"><strong>Golden Airdrop Boost: </strong>${adRemovalString}</p>`
   }
 
   return `
@@ -2433,7 +2450,10 @@ function getBalanceInfoPopup() {
       <ul>
         ${airdrops}
       </ul>
-      <p id="goldenAirdrop"><strong>Golden Airdrop Boost: </strong>${adRemovalString}</p>
+      <p>The primary cycle for airdrops lasts: ${getEta(getData()['AirDropsConfig'][0]['ClaimCountResetInterval'])}
+      <br>The ad cycle for airdrops lasts: ${getEta(getData()['AirDropsConfig'][0]['AdCountResetInterval'])}
+      </p>
+      ${goldenAirdrop}
     </fieldset>
     <hr>
     <fieldset>
@@ -2468,6 +2488,177 @@ function getAllIndustryPopup() {
       <div class="tab-pane fade" id="all-researchers" role="tabpanel" aria-labelledby="all-researchers-tab">${getResearchersTab()}</div>
       <div class="tab-pane fade" id="all-trades" role="tabpanel" aria-labelledby="all-trades-tab">${getTradesTab()}</div>
     </div>`;
+}
+
+function getAirdropTablePopup() {
+  return `<div class="keyboardShortcutHolder"><table class="table">${getAirdropTable(getData()['AirDrops'], getData()['Ranks'].length)}</table></div>`
+}
+
+function getAirdropTable(airdrops, ranks) {
+  let rows = [];
+  let minimumRankDeploy = getData()['AirDropsConfig'][0]['StartCondition']['Threshold'];
+
+  for (let i = 0; i <= ranks; i++) {
+    let cols = [];
+    if (i <= 0) {
+      // header
+      cols.push(`<th>Rank</th>`);
+
+      let airdropType;
+      
+      for (let j = 0; j < airdrops.length; j++) {
+        switch (airdrops[j]['AirDropRewardType']) {
+          case 'CoreResource':
+            airdropType = "Resource";
+            break;
+          case 'PrimaryCurrency':
+            airdropType = resourceName('comrade');
+            break;
+          case 'SoftCurrency':
+            airdropType = resourceName('darkscience');
+            break;
+          case 'HardCurrency':
+            airdropType = resourceName('gold');
+            break;
+        }
+        if (airdrops[j]['IsAd']) {
+          airdropType += " Ad"
+        }
+
+        cols.push(`<th>${airdropType}</th>`);
+      }
+    } else if (i < minimumRankDeploy) {
+      // don't display ranks without Airdrops
+      continue;
+    } else {
+      // iterate through possible airdrops
+      cols.push(`<td>${i}</td>`);
+      for (let j = 0; j < airdrops.length; j++) {
+        if (airdrops[j]['AirDropRewardType'] === 'SoftCurrency' || airdrops[j]['AirDropRewardType'] === 'HardCurrency') {
+          cols.push(`<td>${getAirdropValue(airdrops[j], i)}</td>`);
+        } else {
+          cols.push(`<td>${getEta(getAirdropValue(airdrops[j], i))}</td>`);
+        }
+      }
+    }
+
+    let row = cols.join('');
+    rows.push(`<tr>${row}</tr>`);
+  }
+
+  return rows.join('');
+}
+
+function getAirdropValue(airdrops, rank) {
+  // Thanks to Alyce for deriving this formula.
+  let A = airdrops['RewardCalculation']['A'];
+  let B = airdrops['RewardCalculation']['B'];
+  let C = airdrops['RewardCalculation']['C'];
+  let D = airdrops['RewardCalculation']['D'];
+  let computedRaw = -A * Math.pow(B, (-C * rank)) + D + A;
+  let computedGame = Math.round(computedRaw / 5) * 5; // the game rounds to the nearest multiple of 5
+
+  return computedGame;
+}
+
+function getCapsuleTablePopup() {
+  if (currentMode !== 'event') {
+    return "<p>Coming soon for this mode!</p>"
+  }
+  let capsuleRoot = getData()['GachaLootTable'];
+  let output = [];
+
+  for (let i = 0; i < capsuleRoot.length; i++) {
+    if (capsuleRoot[i]['Type'] === 'Normal') {
+      // capsule has rank-variable rewards, so we are interested in reporting its contents
+      let gachaName = `gacha.${capsuleRoot[i]['Id']}.name.simple`;
+      output.push(`<h6>${ENGLISH_MAP[gachaName]} Capsule</h6><div class="keyboardShortcutHolder"><table class="table">${getCapsuleTable(capsuleRoot[i], getData()['Ranks'].length)}</table></div>`)
+    }
+  }
+
+  return output.join('');
+}
+
+function getCapsuleTable(capsule, ranks) {
+  let rows = [];
+  let mode = currentMode; // we need different behavior if it's an Event or Evergreen
+  let ranksRoot = getData()['Ranks'];
+
+  for (let i = 0; i <= ranks; i++) {
+    let cols = [];
+    if (i <= 0) {
+      // header
+      let jsonKeys = Object.keys(capsule);
+
+      cols.push(`<th>Rank</th>`);
+      cols.push(`<th>Cards</th>`);
+      cols.push(`<th>Common</th>`);
+      
+      for (let j = 0; j < jsonKeys.length; j++) {
+        if (jsonKeys[j].endsWith("Weight") && jsonKeys[j].indexOf("CardWeight") === -1 && capsule[jsonKeys[j]] !== -1) {
+          // possible candidate for weight rarity
+          let replacedName = jsonKeys[j].replace('Weight', '').replace('Lte', '');
+          cols.push(`<th>${replacedName}</th>`);
+        }
+      }
+
+      if (mode === "event") {
+        cols.push(`<th>${resourceName('darkscience')}</th>`);
+        cols.push(`<th>${resourceName('trophy')}</th>`);
+      } else {
+        cols.push(`<th>${resourceName('science')}</th>`);
+      }
+    } else {
+      // iterate through capsule rewards
+      cols.push(`<td>${i}</td>`);
+      cols.push(`<td>${Math.round(capsule['CardWeight'] * ranksRoot[i - 1]['NormalGachaMultiplier'])}</td>`);
+      cols.push(`<td>${getCapsuleDistribution(capsule, ranksRoot[i - 1], "LteCommon")}</td>`);
+      cols.push(`<td>${getCapsuleDistribution(capsule, ranksRoot[i - 1], "LteRare")}</td>`);
+      cols.push(`<td>${Math.ceil(capsule['ScienceMin'] * ranksRoot[i - 1]['NormalGachaMultiplierScience'])}&#8211;${Math.ceil(capsule['ScienceMax'] * ranksRoot[i - 1]['NormalGachaMultiplierScience'])}</td>`);
+      cols.push(`<td>${capsule['TrophyMin'] * ranksRoot[i - 1]['GachaMultiplierTrophy']}</td>`);
+    }
+
+    let row = cols.join('');
+    rows.push(`<tr>${row}</tr>`);
+  }
+
+  return rows.join('');
+}
+
+// Very bad code that only works for Events so far. Todo: analyze Evergreen capsule rewards and implement a symbiotic solution.
+function getCapsuleDistribution(capsule, rank, rarity) {
+  let n = Math.round(capsule['CardWeight'] * rank['NormalGachaMultiplier']);
+  let rareCountBase = Math.round(Math.floor(n / capsule['LteRareWeight']));
+  let rareCountOneUp = (n % capsule['LteRareWeight']) / capsule['LteRareWeight'];
+  let excludeNextOneUp = false;
+  let lineOther = '';
+
+  if (n % capsule['LteRareWeight'] === 0) {
+    excludeNextOneUp = true;
+  }
+
+  if (rarity.indexOf("Common") !== -1) {
+    // common
+    if (!excludeNextOneUp) {
+      lineOther = `<br>${n - rareCountBase} (${percentageConversion(rareCountOneUp)})`;
+    }
+    return `${n - rareCountBase - 1} (${percentageConversion(1 - rareCountOneUp)})${lineOther}`;
+  } else {
+    // rare
+    if (!excludeNextOneUp) {
+      lineOther = `${rareCountBase} (${percentageConversion(rareCountOneUp)})<br>`;
+    }
+    return `${lineOther}${rareCountBase + 1} (${percentageConversion(1 - rareCountOneUp)})`;
+  }
+}
+
+// quick helper function to convert float to percentage
+function percentageConversion(f) {
+  let fp = parseFloat(f);
+  fp *= 100;
+  fp = fp.toFixed(0);
+  let fs = fp.toString() + "%";
+  return fs
 }
 
 // Returns html for the calculator's sub-tab where you input generator and resource counts.
