@@ -2631,7 +2631,6 @@ function getCapsuleDistribution(capsule, rank, rarity) {
   let rareCountBase = Math.round(Math.floor(n / capsule['LteRareWeight']));
   let rareCountOneUp = (n % capsule['LteRareWeight']) / capsule['LteRareWeight'];
   let excludeNextOneUp = false;
-  let lineOther = '';
 
   if (n % capsule['LteRareWeight'] === 0) {
     excludeNextOneUp = true;
@@ -2640,15 +2639,17 @@ function getCapsuleDistribution(capsule, rank, rarity) {
   if (rarity.indexOf("Common") !== -1) {
     // common
     if (!excludeNextOneUp) {
-      lineOther = `<br>${n - rareCountBase} (${percentageConversion(rareCountOneUp)})`;
+      return `${n - rareCountBase - 1} (${percentageConversion(rareCountOneUp)})<br>${n - rareCountBase} (${percentageConversion(1 - rareCountOneUp)})`;
+    } else {
+      return `${n - rareCountBase} (${percentageConversion(1)})`;
     }
-    return `${n - rareCountBase - 1} (${percentageConversion(1 - rareCountOneUp)})${lineOther}`;
   } else {
     // rare
     if (!excludeNextOneUp) {
-      lineOther = `${rareCountBase} (${percentageConversion(rareCountOneUp)})<br>`;
+      return `${rareCountBase} (${percentageConversion(1 - rareCountOneUp)})<br>${rareCountBase + 1} (${percentageConversion(rareCountOneUp)})`;
+    } else {
+      return `${rareCountBase} (${percentageConversion(1)})`;
     }
-    return `${lineOther}${rareCountBase + 1} (${percentageConversion(1 - rareCountOneUp)})`;
   }
 }
 
