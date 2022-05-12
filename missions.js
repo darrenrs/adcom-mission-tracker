@@ -1037,7 +1037,11 @@ function getHelpHtml(isPopup) {
   result += `<li class="my-1">Click ${isPopup? "the Completed tab's" : "this tab's"} toggle at the top-right &UpperRightArrow; to <strong>hide Completed</strong> missions.</li>`;
   result += `<li class="my-1">Click the capsule <span class="resourceIcon wood">&nbsp;</span> next to a mission to access its <strong>Calculator</strong>.</li>`;
   result += `<li class="my-1">If the capsule <span class="scriptedRewardInfo resourceIcon wood">&nbsp;</span> is circled, you can also view the <strong>pre-scripted rewards</strong>.</li>`;
-  result += `<li class="my-1">Click the <span class="resourceIcon" style="background-image:url('${getImageDirectory()}/${firstResourceId}.png')">&nbsp;</span> at the top to view all <strong>Resources/Generators</strong>, and <span class="resourceIcon cardIcon">&nbsp;</span> to view all <strong>${wordForResearchers}</strong>.</li>`;
+  result += `<li class="my-1">The header contains four sub-menus with different features:<ol>`
+  result += `<li class="my-1">Click <span class="resourceIcon" style="background-image:url('${getImageDirectory()}/schedule.png')">&nbsp;</span> to view infomation about the <strong>current balance</strong>.</li>`
+  result += `<li class="my-1">Click <span class="resourceIcon" style="background-image:url('${getImageDirectory()}/${firstResourceId}.png')">&nbsp;</span> to view all <strong>Resources/Generators</strong>.</li>`
+  result += `<li class="my-1">Click <span class="resourceIcon cardIcon">&nbsp;</span> to view all <strong>${wordForResearchers}</strong>.</li>`;
+  result += `<li class="my-1">Click <span class="resourceIcon comradesPerSec">&nbsp;</span> to view all <strong>${resourceName('comrade', false).toLowerCase()} trades</strong>.</li></ol>`;
   result += `<li class="my-1">Got <strong>questions?</strong>  Check out the <a href="${SOCIAL_HELP_URLS['faq']}">Game Guide/FAQ</a>, <a href="${SOCIAL_HELP_URLS['discord']}">Discord</a>, or <a href="${SOCIAL_HELP_URLS['reddit']}">Reddit</a>.</li></ul>`;
   
   return result;
@@ -2515,7 +2519,11 @@ function getAirdropTable(airdrops, ranks) {
             airdropType = resourceName('comrade');
             break;
           case 'SoftCurrency':
-            airdropType = resourceName('darkscience');
+            if (currentMode === 'event') {
+              airdropType = resourceName('darkscience');
+            } else {
+              airdropType = resourceName('scientist');
+            }
             break;
           case 'HardCurrency':
             airdropType = resourceName('gold');
@@ -3963,11 +3971,11 @@ function calcOffline(simData) {
   continuously running it.  This can make long offline sessions more effective than online.
 
   This method uses a binary search to calculate offline production, using a maximum range
-  of [2^0, 2^63] seconds, and calls the actual offline simulation method as needed.
+  of [2^0, 2^53] seconds, and calls the actual offline simulation method as needed.
 */
 function calcOfflineProduction(simData) {
   const INITIAL_LOW_BOUND = 0;
-  const INITIAL_HIGH_BOUND = Math.pow(2, 63);
+  const INITIAL_HIGH_BOUND = Math.pow(2, 53);
   const ACCURACY = 1;  // Final result will be within ACCURACY of correct answer.
 
   let requirement = getOfflineResourceGoal(simData);

@@ -18,22 +18,23 @@ var THEME_ID_OVERRIDES = {};
 // Version for last balance update
 // Only includes changes to the actual balance, per the interests of the community.
 var BALANCE_UPDATE_VERSION = {
-  "atlantis-bal-3": "5.3",
-  "attack-bal-20": "5.3",
-  "cowboy-bal-2": "6.10",
-  "crusade-bal-1": "6.12",
-  "defense-bal-21": "6.10",
-  "export-bal-21": "5.3",
+  "atlantis-bal-3": "6.13",
+  "attack-bal-20": "6.13",
+  "cowboy-bal-2": "6.13",
+  "crusade-bal-1": "6.13",
+  "defense-bal-21": "6.13",
+  "export-bal-21": "6.13",
   "ninja-bal-1": "6.10",
-  "potatofactory-bal-13": "6.10",
-  "power-bal-20": "6.10",
-  "santa-bal-10": "6.9",
-  "space-bal-2": "6.10",
-  "spooky-bal-10": "5.6",
-  "stone-bal-4": "6.1",
-  "winter-bal-3": "6.10",
-  "zombie-bal-5": "6.8",
-  "main": "6.11"
+  "potatofactory-bal-13": "6.13",
+  "power-bal-20": "6.13",
+  "santa-bal-10": "6.13",
+  "space-bal-2": "6.13",
+  "spooky-bal-10": "6.13",
+  "stone-bal-4": "6.13",
+  "supervillain-bal-17": "6.13",
+  "winter-bal-3": "6.13",
+  "zombie-bal-5": "6.13",
+  "main": "6.13"
 };
 
 // For game-specific documentation and social channels
