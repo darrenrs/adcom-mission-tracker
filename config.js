@@ -40,7 +40,7 @@ var BALANCE_UPDATE_VERSION = {
 // For game-specific documentation and social channels
 var SOCIAL_HELP_URLS = {
   "faq": "https://docs.google.com/document/d/1lCa0GNHjXOSpeCgMtqESU7i1UA8LUmObh1s0EfuUPHU/",
-  "discord": "https://discord.gg/VPa4WTM",
+  "discord": "https://discord.gg/XMeABQzk3C",
   "reddit": "https://reddit.com/r/AdventureCommunist/"
 }
 

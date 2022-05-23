@@ -2352,6 +2352,7 @@ function getBalanceInfoPopup() {
 
   let airdrops = "";
   let packs = "";
+  let packAdvisory = "";
   let totalPrice = 0;
   let adRemovalString = "Not available for this balance";
   let goldenAirdrop = "";
@@ -2391,46 +2392,63 @@ function getBalanceInfoPopup() {
   // get information about packs
   for (let i of getData()['Store']) {
     if (i['ItemClass'] === 'VirtualCurrencyBundle') {
-      let name = i['Name'];
-      let price = `US$${(i['Price'] / 100).toFixed(2)}`;
-      totalPrice += i['Price'];
-      let rewardsString = "";
-
-      for (let j of i['Rewards']) {
-        // three reward types: "Gacha" (capsule), "Resources", and "Researcher"
-        let rewardContent = "";
-
-        switch (j['Reward']) {
-          case "Gacha":
-            rewardContent = `x${bigNum(j['Value'])} ${ENGLISH_MAP[`gacha.${j['RewardId']}.name`]} Capsule`;
-            break;
-          case "Resources":
-            let resourceImageUrl = "";
-            if (j['RewardId'] === 'darkscience') {
-              resourceImageUrl = "<img class='rewardIcon' src='img/event/darkscience.png'>";
-            } else if (j['RewardId'] === 'gold') {
-              resourceImageUrl = "<img class='rewardIcon' src='img/main/gold.png'>";
+      // check if "Scheduled"
+      let _continue = true;
+      
+      if (getData()['ScheduledOffers']) {
+        for (let j of getData()['ScheduledOffers']) {
+          if (i['InternalId'] === j['ItemId']) {
+            // this is a scheduled offer; only display if in time period
+            let currentUnixTS = (new Date()).getTime() / 1000;
+            if (!(currentUnixTS >= j['StartDateTimestamp'] && currentUnixTS < j['EndDateTimestamp'])) {
+              _continue = false; // this is a nested loop, so we have to do some trickery.
             }
-
-            if (j['Value'] === 1) {
-              rewardContent = `x${bigNum(j['Value'])} ${resourceImageUrl} ${ENGLISH_MAP[`resource.${j['RewardId']}.singular`]}`;
-            } else {
-              rewardContent = `x${bigNum(j['Value'])} ${resourceImageUrl} ${ENGLISH_MAP[`resource.${j['RewardId']}.plural`]}`;
-            }
-            break;
-          case "Researcher":
-            let researcherInfo = getResearcherBasicDetails(getData().Researchers.filter(r => r.Id == j['RewardId'])[0]);
-            rewardContent = `x${bigNum(j['Value'])} <div class='resourceIcon cardIcon'>&nbsp;</div> ${ENGLISH_MAP[`researcher.${j['RewardId']}.name`]} (${researcherInfo})`;
-            break;
-          default:
-            rewardContent = 'Unknown Reward Type (please report this or check console for more information)';
-            console.warn(`Unknown Reward Type: ${JSON.stringify(j)}`);
-            break;
+          }
         }
-
-        rewardsString += `<li>${rewardContent}</li>`
       }
-      packs += `<li>${name} (${price})<ul>${rewardsString}</ul></li>`;
+      
+      if (_continue) {
+        let name = i['Name'];
+        let price = `US$${(i['Price'] / 100).toFixed(2)}`;
+        totalPrice += i['Price'];
+        let rewardsString = "";
+
+        for (let j of i['Rewards']) {
+          // three reward types: "Gacha" (capsule), "Resources", and "Researcher"
+          let rewardContent = "";
+
+          switch (j['Reward']) {
+            case "Gacha":
+              rewardContent = `x${bigNum(j['Value'])} ${ENGLISH_MAP[`gacha.${j['RewardId']}.name`]} Capsule`;
+              break;
+            case "Resources":
+              let resourceImageUrl = "";
+              if (j['RewardId'] === 'darkscience') {
+                resourceImageUrl = "<img class='rewardIcon' src='img/event/darkscience.png'>";
+              } else if (j['RewardId'] === 'gold') {
+                resourceImageUrl = "<img class='rewardIcon' src='img/main/gold.png'>";
+              }
+
+              if (j['Value'] === 1) {
+                rewardContent = `x${bigNum(j['Value'])} ${resourceImageUrl} ${ENGLISH_MAP[`resource.${j['RewardId']}.singular`]}`;
+              } else {
+                rewardContent = `x${bigNum(j['Value'])} ${resourceImageUrl} ${ENGLISH_MAP[`resource.${j['RewardId']}.plural`]}`;
+              }
+              break;
+            case "Researcher":
+              let researcherInfo = getResearcherBasicDetails(getData().Researchers.filter(r => r.Id == j['RewardId'])[0]);
+              rewardContent = `x${bigNum(j['Value'])} <div class='resourceIcon cardIcon'>&nbsp;</div> ${ENGLISH_MAP[`researcher.${j['RewardId']}.name`]} (${researcherInfo})`;
+              break;
+            default:
+              rewardContent = 'Unknown Reward Type (please report this or check console for more information)';
+              console.warn(`Unknown Reward Type: ${JSON.stringify(j)}`);
+              break;
+          }
+
+          rewardsString += `<li>${rewardContent}</li>`
+        }
+        packs += `<li>${name} (${price})<ul>${rewardsString}</ul></li>`;
+      }
     } else if (i['ItemClass'] === 'AdFreeAirdrop') {
       // ad free airdrops with a price added in 6.11. (only for AdCom as of 25 April 2022)
       let adRemovalPrice = i['Price'];
@@ -2440,6 +2458,10 @@ function getBalanceInfoPopup() {
 
   if (GAME_SAVE_KEY_PREFIX !== "Ages-") {
     goldenAirdrop = `<p id="goldenAirdrop"><strong>Golden Airdrop Boost: </strong>${adRemovalString}</p>`
+  }
+  
+  if (currentMode === "main") {
+    packAdvisory = "<p><strong>Warning: </strong>Main offers are generated dynamically. Please refer to the wiki for a more human-readable synopsis on which offers you might see.</p>"
   }
 
   return `
@@ -2462,6 +2484,7 @@ function getBalanceInfoPopup() {
     <hr>
     <fieldset>
       <legend>Packs</legend>
+      ${packAdvisory}
       <ul>
         ${packs}
       </ul>
