@@ -8,7 +8,7 @@ var THEME_ID_TITLE_OVERRIDES = {
   "main": "Motherland",
   "attack": "Oil",
   "defense": "Shield",
-  "potatofactory": "Factory"
+  "potatofactory": "Factory (GPF)"
 };
 
 // Theme ID != Balance ID
@@ -18,23 +18,23 @@ var THEME_ID_OVERRIDES = {};
 // Version for last balance update
 // Only includes changes to the actual balance, per the interests of the community.
 var BALANCE_UPDATE_VERSION = {
-  "atlantis-bal-3": "6.13",
-  "attack-bal-20": "6.13",
-  "cowboy-bal-2": "6.13",
-  "crusade-bal-1": "6.13",
-  "defense-bal-21": "6.13",
-  "export-bal-21": "6.13",
-  "ninja-bal-1": "6.10",
-  "potatofactory-bal-13": "6.13",
-  "power-bal-20": "6.13",
-  "santa-bal-10": "6.13",
-  "space-bal-2": "6.13",
-  "spooky-bal-10": "6.13",
-  "stone-bal-4": "6.13",
-  "supervillain-bal-17": "6.13",
-  "winter-bal-3": "6.13",
-  "zombie-bal-5": "6.13",
-  "main": "6.13"
+  "atlantis-bal-3": "6.14",
+  "attack-bal-20": "6.14",
+  "cowboy-bal-2": "6.14",
+  "crusade-bal-1": "6.14",
+  "defense-bal-21": "6.14",
+  "export-bal-21": "6.14",
+  "ninja-bal-1": "6.14",
+  "potatofactory-bal-13": "6.14",
+  "power-bal-20": "6.14",
+  "santa-bal-10": "6.14",
+  "space-bal-2": "6.14",
+  "spooky-bal-10": "6.14",
+  "stone-bal-4": "6.14",
+  "supervillain-bal-17": "6.14",
+  "winter-bal-3": "6.14",
+  "zombie-bal-5": "6.14",
+  "main": "6.14"
 };
 
 // For game-specific documentation and social channels
