@@ -8,7 +8,8 @@ var THEME_ID_TITLE_OVERRIDES = {
   "main": "Motherland",
   "attack": "Oil",
   "defense": "Shield",
-  "potatofactory": "Factory (GPF)"
+  "potatofactory": "Factory (GPF)",
+  "bamboo": "Vacation"
 };
 
 // Theme ID != Balance ID
@@ -20,6 +21,7 @@ var THEME_ID_OVERRIDES = {};
 var BALANCE_UPDATE_VERSION = {
   "atlantis-bal-3": "6.14",
   "attack-bal-20": "6.14",
+  "bamboo-bal-10": "6.15",
   "cowboy-bal-2": "6.14",
   "crusade-bal-1": "6.14",
   "defense-bal-21": "6.14",
@@ -34,7 +36,7 @@ var BALANCE_UPDATE_VERSION = {
   "supervillain-bal-17": "6.14",
   "winter-bal-3": "6.14",
   "zombie-bal-5": "6.14",
-  "main": "6.14"
+  "main": "6.15"
 };
 
 // For game-specific documentation and social channels
