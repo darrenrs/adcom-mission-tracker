@@ -2452,7 +2452,11 @@ function getBalanceInfoPopup() {
     } else if (i['ItemClass'] === 'AdFreeAirdrop') {
       // ad free airdrops with a price added in 6.11. (only for AdCom as of 25 April 2022)
       let adRemovalPrice = i['Price'];
-      adRemovalString = `US$${(adRemovalPrice / 100).toFixed(2)}`;
+      if (i['Currency'] === 'RM') {
+        adRemovalString = `US$${(adRemovalPrice / 100).toFixed(2)}`;
+      } else if (i['Currency'] === 'GO') {
+        adRemovalString = `${adRemovalPrice} Gold`;
+      }
     }
   }
 
