@@ -9,7 +9,11 @@ var THEME_ID_TITLE_OVERRIDES = {
   "attack": "Oil",
   "defense": "Shield",
   "potatofactory": "Factory (GPF)",
-  "bamboo": "Vacation"
+  "bamboo": "Vacation",
+  "fusfarm": "Farm",
+  "fusscience": "Science",
+  "fuspet": "Pet Show",
+  "fusvehicle": "Vehicle Show"
 };
 
 // Theme ID != Balance ID
@@ -26,6 +30,8 @@ var BALANCE_UPDATE_VERSION = {
   "crusade-bal-1": "6.14",
   "defense-bal-21": "6.14",
   "export-bal-21": "6.14",
+  "fusfarm-bal-30": "6.17",
+  "fusscience-bal-31": "6.17",
   "ninja-bal-1": "6.14",
   "potatofactory-bal-13": "6.14",
   "power-bal-20": "6.14",
