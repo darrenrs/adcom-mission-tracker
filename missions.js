@@ -2449,7 +2449,7 @@ function getBalanceInfoPopup() {
         }
         packs += `<li>${name} (${price})<ul>${rewardsString}</ul></li>`;
       }
-    } else if (i['ItemClass'] === 'AdFreeAirdrop') {
+    } else if (i['InternalId'] === getData()['AdFreeAirdrops']['StaticInternalId']) {
       // ad free airdrops with a price added in 6.11. (only for AdCom as of 25 April 2022)
       let adRemovalPrice = i['Price'];
       if (i['Currency'] === 'RM') {
@@ -2463,7 +2463,7 @@ function getBalanceInfoPopup() {
   if (GAME_SAVE_KEY_PREFIX !== "Ages-") {
     // golden airdrops still work for the time being, this warning will be re-added if they are ever nerfed
     //goldenAirdrop = `<p id="goldenAirdrop"><strong>Golden Airdrop Boost: </strong>${adRemovalString}</p><br><p><strong>Important Notice:</strong> It is strongly recommended NOT to buy the Golden Airdrop purchase as of 6.15 due to its negative effects in events. The Golden Airdrop purchase automatically skips the ads for large comrade and dark science airdrops, a useful feature, with the drawback of not giving you the choice to decline the ad. It is good strategy to decline these ads (especially at the beginning of the event) until you get better comrade rares. Due to a bug, you could originally get infinite ad-value airdrops via this purchase, which is the only thing that made it worth the buy. If you previously bought Golden Airdrops, I strongly recommend you to no longer do this and send feedback to HyperHippo to restore this functionality or something similar that makes the purchase worth it.</p>`;
-    goldenAirdrop = `<p id="goldenAirdrop"><strong>Golden Airdrop Boost: </strong>${adRemovalString}</p>`;
+    goldenAirdrop = `<p id="goldenAirdrop"><strong>Golden Airdrop Boost: </strong>${adRemovalString} (decreases by US$1.00 per day after event starts)</p>`;
   }
   
   if (currentMode === "main") {
