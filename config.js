@@ -62,3 +62,5 @@ var GAME_SAVE_KEY_PREFIX = "";
 // If not undefined, will show a datamining warning at the top of the Tracker
 var DATAMINE_WARNING_MIN_RANK = undefined; // For motherland
 var DATAMINE_WARNING_THEME_ID = undefined; // For events
+
+//var GS_SURVEY_URL = 'https://docs.google.com/forms/d/1Xcd8llOV7bElIz0slsPk9WmV6JtFIxMyQ1Y1dLvvPrs/'

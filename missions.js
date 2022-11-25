@@ -15,6 +15,7 @@ function main() {
   loadSaveData();
   initializeIntervalFunctions();
   renderMissions();
+  finalSurveyConfigData();
 }
 
 // Determines whether the page is in Main or Event mode, based on the url and save state.
@@ -4458,6 +4459,24 @@ function keystrokeInputLogic(dom, doom) {
   } else {
     console.warn(`Invalid input selector ${dom}; please report this!`);
   }
+}
+
+// One-time survey modal popup
+function finalSurveyConfigData() {
+  if ((window.location.href).includes('/ages')) {
+    // DO NOT trigger survey for Ages... sorry Ages players
+    return;
+  }
+
+  
+  if (!localStorage.getItem('surveyModalAck')) {
+    // first visit since commit, render prompt
+    setTimeout(function() {
+      localStorage.setItem('surveyModalAck', '1')
+      $("#surveyClick").click()
+    }, 1000)
+  }
+  $('#surveyBanner').addClass("show");
 }
 
 main();
