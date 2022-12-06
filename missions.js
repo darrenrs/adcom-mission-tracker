@@ -15,7 +15,7 @@ function main() {
   loadSaveData();
   initializeIntervalFunctions();
   renderMissions();
-  finalSurveyConfigData();
+  //finalSurveyConfigData();
 }
 
 // Determines whether the page is in Main or Event mode, based on the url and save state.
