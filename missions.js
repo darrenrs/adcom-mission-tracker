@@ -1044,7 +1044,8 @@ function getHelpHtml(isPopup) {
   result += `<li class="my-1">Click <span class="resourceIcon cardIcon">&nbsp;</span> to view all <strong>${wordForResearchers}</strong>.</li>`;
   result += `<li class="my-1">Click <span class="resourceIcon comradesPerSec">&nbsp;</span> to view all <strong>${resourceName('comrade', false).toLowerCase()} trades</strong>.</li></ol>`;
   result += `<li class="my-1">Got <strong>questions?</strong>  Check out the <a href="${SOCIAL_HELP_URLS['faq']}">Game Guide/FAQ</a>, <a href="${SOCIAL_HELP_URLS['discord']}">Discord</a>, or <a href="${SOCIAL_HELP_URLS['reddit']}">Reddit</a>.</li></ul>`;
-  
+  result += `New <a href="http://vps.darrenskidmore.com">leaderboard tracker available here</a>! You can see your exact rank in events past and present and keep tabs on your division leaderboards.`
+
   return result;
 }
 
