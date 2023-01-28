@@ -1281,10 +1281,10 @@ function renderMissionButton(mission, rank, missionEtas) {
     // We have an eta for this button
     buttonDescription = `ETA: ${getMissionEtaString(etaTimeStamp)}`;
   }
-  
+
   if (type == "ResourcesSpentSinceSubscription" || type == "ResearchersUpgradedSinceSubscription") {
     buttonClass += `${buttonOutlineStyle}-danger`;
-  } else if (type == "ResearcherCardsEarnedSinceSubscription") {
+  } else if (type == "ResearcherCardsEarnedSinceSubscription" || (type == "ResourcesEarnedSinceSubscription" && mission['Condition']['ConditionId'] == 'darkscience')) {
     buttonClass += `${buttonOutlineStyle}-success`;
   } else {
     buttonClass += `${buttonOutlineStyle}-secondary`;
@@ -2256,7 +2256,7 @@ function renderCalculator(mission) {
     } else if (conditionType == "ResourcesEarnedSinceSubscription") {
       if (["scientist", "darkscience"].includes(condition.ConditionId.toLowerCase())) {
         // We currently don't support a calculator collecting science
-        return "Mission type currently unsupported.  Check back next event!";
+        return "Mission type currently unsupported.";
       }
       
       industryId = getIndustryByResource(condition.ConditionId).Id;
