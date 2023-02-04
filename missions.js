@@ -4062,6 +4062,7 @@ function calcOfflineProductionResult(simData, duration) {
 function getOfflineResourceGoal(simData) {
   let condition = simData.Mission.Condition;
   let resourceId = getResourceByIndustry(simData.IndustryId).Id;
+  debugger;
   
   if (condition.ConditionType == "ResourcesEarnedSinceSubscription") {
     let resourceProgress = simData.Counts["resourceProgress"] || 0;
@@ -4070,7 +4071,7 @@ function getOfflineResourceGoal(simData) {
   } else if (condition.ConditionType == "ResourceQuantity") {
     let generator = simData.Generators.find(g => g.Id == condition.ConditionId);
     let resCost = generator.Cost.find(c => c.Resource == resourceId);
-    return resCost.Qty * (condition.Threshold - simData.Counts[generator.Id]);
+    return resCost.Qty * (condition.Threshold - simData.Counts[generator.Id]) - simData["Counts"][resCost["Resource"]];
     
   } else if (condition.ConditionType == "IndustryUnlocked") {
     let industry = getData().Industries.find(i => i.Id == condition.ConditionId);
