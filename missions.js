@@ -4062,7 +4062,6 @@ function calcOfflineProductionResult(simData, duration) {
 function getOfflineResourceGoal(simData) {
   let condition = simData.Mission.Condition;
   let resourceId = getResourceByIndustry(simData.IndustryId).Id;
-  debugger;
   
   if (condition.ConditionType == "ResourcesEarnedSinceSubscription") {
     let resourceProgress = simData.Counts["resourceProgress"] || 0;
