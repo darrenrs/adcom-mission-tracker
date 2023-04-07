@@ -27,6 +27,7 @@ var BALANCE_UPDATE_VERSION = {
   "atlantis-bal-3": "6.14",
   "attack-bal-20": "6.14",
   "bamboo-bal-10": "6.15",
+  "cockatrice-bal-10": "6.23",
   "cowboy-bal-2": "6.14",
   "crusade-bal-1": "6.14",
   "defense-bal-21": "6.14",
