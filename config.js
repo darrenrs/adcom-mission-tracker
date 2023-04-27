@@ -8,13 +8,13 @@ var THEME_ID_TITLE_OVERRIDES = {
   "main": "Motherland",
   "attack": "Oil",
   "defense": "Shield",
-  "potatofactory": "Factory (GPF)",
+  "potatofactory": "Potato Factory",
   "bamboo": "Vacation",
-  "fusfarm": "Farm",
-  "fusscience": "Science",
+  "fusfarm": "Farm to Table",
+  "fusscience": "State Science",
   "fuspet": "Pet Show",
   "fusvehicle": "Vehicle Show",
-  "hexathlon": "Motherland Games"
+  "hexathlon": "Motherland Games",
 };
 
 // Theme ID != Balance ID
@@ -54,6 +54,7 @@ var BALANCE_UPDATE_VERSION = {
 var SOCIAL_HELP_URLS = {
   "faq": "https://docs.google.com/document/d/1lCa0GNHjXOSpeCgMtqESU7i1UA8LUmObh1s0EfuUPHU/",
   "discord": "https://discord.gg/XMeABQzk3C",
+  "discord_old": "https://discord.gg/hxPRpZME54",
   "reddit": "https://reddit.com/r/AdventureCommunist/"
 }
 

@@ -1043,7 +1043,7 @@ function getHelpHtml(isPopup) {
   result += `<li class="my-1">Click <span class="resourceIcon" style="background-image:url('${getImageDirectory()}/${firstResourceId}.png')">&nbsp;</span> to view all <strong>Resources/Generators</strong>.</li>`
   result += `<li class="my-1">Click <span class="resourceIcon cardIcon">&nbsp;</span> to view all <strong>${wordForResearchers}</strong>.</li>`;
   result += `<li class="my-1">Click <span class="resourceIcon comradesPerSec">&nbsp;</span> to view all <strong>${resourceName('comrade', false).toLowerCase()} trades</strong>.</li></ol>`;
-  result += `<li class="my-1">Got <strong>questions?</strong>  Check out the <a href="${SOCIAL_HELP_URLS['faq']}">Game Guide/FAQ</a>, <a href="${SOCIAL_HELP_URLS['discord']}">Discord</a>, or <a href="${SOCIAL_HELP_URLS['reddit']}">Reddit</a>.</li></ul>`;
+  result += `<li class="my-1">Got <strong>questions?</strong>  Check out the <a href="${SOCIAL_HELP_URLS['faq']}">Game Guide/FAQ</a>, <a href="${SOCIAL_HELP_URLS['discord']}">Official Discord</a>, <a href="${SOCIAL_HELP_URLS['discord_old']}">Unofficial Discord</a>, or <a href="${SOCIAL_HELP_URLS['reddit']}">Reddit</a>.</li></ul>`;
   result += `New <a href="http://vps.darrenskidmore.com">leaderboard tracker available here</a>! You can see your exact rank in events past and present and keep tabs on your division leaderboards.`
 
   return result;
@@ -1135,19 +1135,21 @@ function getRankAdvanceHtml() {
 
   return `<div id="rank-${currentMode}-holder">
   <p>${currentText}</p>
-  <div class="input-group my-1">
-    <div class="input-group-prepend"><span class="input-group-text inputIcon" style="background-image: url('${iconUrl}');">&nbsp;</span></div>
-    <input type="number" class="form-control" id="rank-${currentMode}" value="" min="1" max="${getData().Ranks.length}" placeholder="Range: [1, ${getData().Ranks.length}]">
-  </div>
-  <div>
-    <div class="rank-advance-alert">
-      <p id="rankAdvanceAlert"></p>
+  <form onsubmit="return false;">
+    <div class="input-group my-1">
+      <div class="input-group-prepend"><span class="input-group-text inputIcon" style="background-image: url('${iconUrl}');">&nbsp;</span></div>
+      <input type="number" class="form-control" id="rank-${currentMode}" value="" min="1" max="${getData().Ranks.length}" placeholder="Range: [1, ${getData().Ranks.length}]">
     </div>
-    <div class="rank-advance-buttons">
-      <button type="submit" class="btn btn-success" id="rankAdvanceConfirm" aria-label="OK">OK</button>
-      <button type="submit" class="btn btn-danger" data-dismiss="modal" aria-label="Cancel">Cancel</button>
+    <div>
+      <div class="rank-advance-alert">
+        <p id="rankAdvanceAlert"></p>
+      </div>
+      <div class="rank-advance-buttons">
+        <button type="submit" class="btn btn-success" id="rankAdvanceConfirm" aria-label="OK">OK</button>
+        <button type="cancel" class="btn btn-danger" data-dismiss="modal" aria-label="Cancel">Cancel</button>
+      </div>
     </div>
-  </div>
+  </form>
 </div>`;
 }
 
@@ -1988,13 +1990,13 @@ function advanceProgressTo() {
       
       // Now fill in Current
       for (let fillRank = inputRank;
-            fillRank < getData().Ranks.length &&
+            fillRank <= getData().Ranks.length &&
               missionData.Current.Remaining.length < missionData.Current.StartingCount;
             fillRank++) {
         
           let rankData = missionData[fillRank].Remaining;
           for (let fillIndex = 0;
-                fillIndex < rankData.length &&
+                fillIndex <= rankData.length &&
                   missionData.Current.Remaining.length < missionData.Current.StartingCount;
                 fillIndex++) {
             
@@ -3014,8 +3016,8 @@ function sortResearchers(researchers) {
     if (left.Rarity != right.Rarity) {
       return rarityMap.get(left.Rarity) - rarityMap.get(right.Rarity);
       
-    } else if (industryMap.get(left.TargetIds[0]) != industryMap.get(right.TargetIds[0])) {
-      return industryMap.get(left.TargetIds[0]) - industryMap.get(right.TargetIds[0]);
+    } else if (industryMap.get(left.TargetIds[0].toLowerCase()) != industryMap.get(right.TargetIds[0].toLowerCase())) {
+      return industryMap.get(left.TargetIds[0].toLowerCase()) - industryMap.get(right.TargetIds[0].toLowerCase());
     
     } else if (left.ModType != right.ModType) {
       return modTypeMap.get(left.ModType) - modTypeMap.get(right.ModType);
@@ -3023,7 +3025,7 @@ function sortResearchers(researchers) {
     } else if (generatorMap.get(left.TargetIds[0]) != generatorMap.get(right.TargetIds[0])) {
       return generatorMap.get(left.TargetIds[0]) - generatorMap.get(right.TargetIds[0]);
       
-    }  else {
+    } else {
       return left.Id.localeCompare(right.Id);
     }
   });
