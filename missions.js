@@ -751,6 +751,12 @@ function initializePopups() {
       $('[data-toggle="popover"]').popover();
     });
   });
+
+  $('#balanceInfoPopup').on('show.bs.modal', function (event) {
+    $(function () {
+      $('[data-toggle="popover"]').popover();
+    });
+  });
   
   $('#rankPopupBody').html(getRankAdvanceHtml());
   $('#dataPopupBody').html(getDataManagementHtml());
@@ -1654,7 +1660,6 @@ function describeReward(reward) {
       let cards = script.Card.map(card => `<span class="text-nowrap">${cardValueCount(card)}${describeResearcher(getData().Researchers.find(r => r.Id == card.Id))}</span>`).join(', ') || null;
       
       let rewards = [gold, science, cards].filter(x => x != null).join('. ');
-      
       return `Scripted <span class="capsule ${script.MimicGachaId}">&nbsp;</span>: ${rewards}`;
     } else {
       return `Random <span class="capsule ${reward.RewardId}">&nbsp;</span>`;
@@ -1685,9 +1690,9 @@ function getRewardIcon(reward, imageOnly = false) {
 }
 
 // Given a root.Researchers object, returns an html string with a clickable version of their name with a popover description.
-function describeResearcher(researcher) {
+function describeResearcher(researcher, position = "bottom") {
   let details = getResearcherFullDetailsHtml(researcher);
-  return `<a tabindex="0" class="researcherName" role="button" data-toggle="popover" data-placement="bottom" data-trigger="focus" data-content="${details}" data-html="true"><div class="resourceIcon cardIcon">&nbsp;</div>${researcherName(researcher)}</a>`;
+  return `<a tabindex="0" class="researcherName" role="button" data-toggle="popover" data-placement="${position}" data-trigger="focus" data-content="${details}" data-html="true"><div class="resourceIcon cardIcon">&nbsp;</div>${researcherName(researcher)}</a>`;
 }
 
 // Given a root.Researchers object, returns an html description of that researcher's effect, its unlock rank, and its first guaranteed mission
@@ -2423,7 +2428,11 @@ function getBalanceInfoPopup() {
 
           switch (j['Reward']) {
             case "Gacha":
-              rewardContent = `x${bigNum(j['Value'])} ${ENGLISH_MAP[`gacha.${j['RewardId']}.name`]} Capsule`;
+              let capsuleImage = j['RewardId']; 
+              if (currentMode !== "event") { capsuleImage = `capsule-${capsuleImage}` }
+              let capsuleImageUrl = `<img class='rewardIcon' src='img/${currentMode}/${capsuleImage}.png'>`
+
+              rewardContent = `x${bigNum(j['Value'])} ${capsuleImageUrl} ${ENGLISH_MAP[`gacha.${j['RewardId']}.name`]} Capsule`;
               break;
             case "Resources":
               let resourceImageUrl = "";
@@ -2431,17 +2440,17 @@ function getBalanceInfoPopup() {
                 resourceImageUrl = "<img class='rewardIcon' src='img/event/darkscience.png'>";
               } else if (j['RewardId'] === 'gold') {
                 resourceImageUrl = "<img class='rewardIcon' src='img/main/gold.png'>";
+              } else if (j['RewardId'] === 'scientist') {
+                resourceImageUrl = "<img class='rewardIcon' src='img/main/scientist.png'>";
               }
-
-              if (j['Value'] === 1) {
-                rewardContent = `x${bigNum(j['Value'])} ${resourceImageUrl} ${ENGLISH_MAP[`resource.${j['RewardId']}.singular`]}`;
-              } else {
-                rewardContent = `x${bigNum(j['Value'])} ${resourceImageUrl} ${ENGLISH_MAP[`resource.${j['RewardId']}.plural`]}`;
-              }
+              
+              let resourcePlurality = (j['Value'] === 1) ? "singular" : "plural"
+              rewardContent = `x${bigNum(j['Value'])} ${resourceImageUrl} ${ENGLISH_MAP[`resource.${j['RewardId']}.${resourcePlurality}`]}`;
               break;
             case "Researcher":
-              let researcherInfo = getResearcherBasicDetails(getData().Researchers.filter(r => r.Id == j['RewardId'])[0]);
-              rewardContent = `x${bigNum(j['Value'])} <div class='resourceIcon cardIcon'>&nbsp;</div> ${ENGLISH_MAP[`researcher.${j['RewardId']}.name`]} (${researcherInfo})`;
+              let rewardId = j['RewardId']
+              let researcherInfo = `<span class="text-nowrap">${describeResearcher(getData().Researchers.find(r => r.Id == rewardId), "right")}</span>`
+              rewardContent = `x${bigNum(j['Value'])}${researcherInfo}`
               break;
             default:
               rewardContent = 'Unknown Reward Type (please report this or check console for more information)';
@@ -2456,12 +2465,10 @@ function getBalanceInfoPopup() {
     }
   }
 
-  if (GAME_SAVE_KEY_PREFIX !== "Ages-") {
-    if (currentMode !== "main") {
+  if (GAME_SAVE_KEY_PREFIX !== "Ages-" && currentMode !== "main") {
       let adRemovalPrice = getData()["Store"].filter(p => p.ItemClass === "AdFreeAirdrop")[0]["Price"]
-      let adRemovalString = `US$${(adRemovalPrice / 100).toFixed(2)}`
-      goldenAirdrop = `<p id="goldenAirdrop"><strong>Golden Airdrop Boost: </strong>${adRemovalString} (decreases by US$1.00 per day after event starts)</p>`;
-    }
+      let adRemovalString = (adRemovalPrice) ? `US$${(adRemovalPrice / 100).toFixed(2)} (decreases by US$1.00 per day after event starts)` : "Unavailable in this balance"
+      goldenAirdrop = `<p id="goldenAirdrop"><strong>Golden Airdrop Boost: </strong>${adRemovalString}</p>`;
   }
   
   if (currentMode === "main") {
