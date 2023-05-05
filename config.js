@@ -38,7 +38,7 @@ var BALANCE_UPDATE_VERSION = {
   "fusvehicle-bal-32": "6.18",
   "hexathlon-bal-13": "6.19",
   "ninja-bal-1": "6.14",
-  "potatofactory-bal-13": "6.14",
+  "potatofactory-bal-13": "6.25",
   "power-bal-20": "6.14",
   "santa-bal-10": "6.14",
   "space-bal-2": "6.14",
