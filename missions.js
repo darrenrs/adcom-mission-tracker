@@ -1702,8 +1702,12 @@ function getResearcherFullDetailsHtml(researcher) {
   html += `Unlocks at Rank ${researcher.PlayerRankUnlock}<br />`;
   
   let scriptedMission = getFirstMissionWithScriptedReward(researcher);
+  let inFirstFree = (getData().GachaScripts.find(i => i.GachaId == "sc3").Card.find(j => j.Id == researcher.Id)) ? true : false
+
   if (scriptedMission) {
     html += `First guaranteed: ${describeMission(scriptedMission, "none")}`;
+  } else if (inFirstFree) {
+    html += `First guaranteed: First free capsule`
   } else {
     html += `No guaranteed copies.`;
   };
@@ -2340,6 +2344,7 @@ function updateImportButton() {
 function getBalanceInfoPopup() {
   const themeId = eventScheduleInfo['ThemeId'];
   const lteId = eventScheduleInfo['BalanceId'];
+  const freeScripted =  {"Reward": "Gacha", "RewardId": "sc3", "Value": 1 } // describeReward() requires Reward object to work
   let name;
   let description;
   let lastUpdate = BALANCE_UPDATE_VERSION[lteId] ? BALANCE_UPDATE_VERSION[lteId] : "unknown";
@@ -2480,6 +2485,7 @@ function getBalanceInfoPopup() {
       <legend>${name}</legend>
       <p><em>${description}</em></p>
       <p><strong>Balance Last Updated: </strong>${lastUpdate}</p>
+      <p><strong>Scripted Free Capsule: </strong>${describeReward(freeScripted)}</p>
     </fieldset>
     <hr>
     <fieldset>
