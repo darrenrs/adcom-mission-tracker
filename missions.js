@@ -2368,7 +2368,6 @@ function getBalanceInfoPopup() {
   let packs = "";
   let packAdvisory = "";
   let totalPrice = 0;
-  let adRemovalString = "Not available for this balance";
   let goldenAirdrop = "";
 
   // airdrop totals (ad and non-ad)
@@ -2485,7 +2484,6 @@ function getBalanceInfoPopup() {
       <legend>${name}</legend>
       <p><em>${description}</em></p>
       <p><strong>Balance Last Updated: </strong>${lastUpdate}</p>
-      <p><strong>Scripted Free Capsule: </strong>${describeReward(freeScripted)}</p>
     </fieldset>
     <hr>
     <fieldset>
