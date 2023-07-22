@@ -3971,7 +3971,7 @@ function calcLimitedComrades(simData) {
   let comradeCost = generator.Cost.find(c => c.Resource == "comrade");
   
   let comradeGenerator = simData.Generators[0]; // Assumes the first Generator is for comrades.
-  if (!comradeCost || !comradeGenerator || comradeGenerator.QtyPerSec == 0) {
+  if (!comradeCost || !comradeGenerator) {
     return -1;
   }
   
@@ -3982,6 +3982,15 @@ function calcLimitedComrades(simData) {
   
   let currentComrades = simData.Counts["comrade"] || 0;
   let neededComrades = gensNeeded * comradeCost.Qty - currentComrades;
+
+  // avoid divide-by-zero condition if we do have enough comrades
+  if (comradeGenerator.QtyPerSec <= 0) {
+    if (neededComrades > 0) {
+      return -1;
+    }
+
+    return 0;
+  }
   
   return Math.max(neededComrades / comradeGenerator.QtyPerSec, 0);
 }
