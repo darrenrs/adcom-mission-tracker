@@ -10,7 +10,8 @@ var THEME_ID_TITLE_OVERRIDES = {
   "fusioncareers": "Careers",
   "fusioninfrastructure": "Infrastructure",
   "fusioninnovation": "Innovation",
-  "timetravel": "Anniversary"
+  "timetravel": "Anniversary",
+  "mexico": "Aztec"
 };
 
 // Theme ID != Balance ID
@@ -44,6 +45,7 @@ var BALANCE_UPDATE_VERSION = {
 var SOCIAL_HELP_URLS = {
   "faq": "https://docs.google.com/document/d/1ioNAqUrwWRGMuPFyctSU7dP5lT-H0h4iBtoigi7fgwg/",
   "discord": "https://discord.gg/XCnZKvBdVf",
+  "discord_old": "https://discord.gg/hxPRpZME54",
   "reddit": "https://reddit.com/r/AdventureAges/"
 }
 
