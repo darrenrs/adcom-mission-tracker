@@ -26,15 +26,15 @@ var THEME_ID_OVERRIDES = {
 
 // Version for last balance update
 var BALANCE_UPDATE_VERSION = {
-  "main": "1.15",
-  "architecture-bal-18": "1.14",
+  "main": "1.22",
+  "architecture-bal-18": "1.22",
   "careers-bal-1": "1.15",
   "christmas-bal-13": "1.14",
   "egypt-bal-1": "1.14",
   "infrastructure-bal-17": "1.14",
   "innovation-bal-1": "1.14",
   "japan-bal-2": "1.15",
-  "mexico-bal-2": "1.17",
+  "mexico-bal-2": "1.22",
   "monster-bal-13": "1.12",
   "music-bal-6": "1.17",
   "scandinavia-bal-21": "1.17",
