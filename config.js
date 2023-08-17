@@ -44,7 +44,7 @@ var BALANCE_UPDATE_VERSION = {
   "space-bal-2": "6.14",
   "spooky-bal-10": "6.14",
   "stone-bal-4": "6.25",
-  "supervillain-bal-17": "6.14",
+  "supervillain-bal-17": "6.27",
   "winter-bal-3": "6.14",
   "zombie-bal-5": "6.14",
   "main": "6.19"
