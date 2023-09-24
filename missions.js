@@ -972,7 +972,7 @@ function renderMissions() {
 
       buttonsHtml += `<a type="button" class="btn btn-outline-secondary" data-toggle="modal" data-target="#rankPopup" title="Jump to a specific rank" onclick="focusRankSelectPrompt()">#</a>`;
       
-      if (currentMainRank < DATA.main.Ranks.length) {
+      if (currentMainRank < DATA.evergreen.Ranks.length) {
         buttonsHtml += `<a href="?rank=${currentMainRank + 1}" type="button" class="btn btn-outline-secondary" title="Go forward to Rank ${currentMainRank + 1}">&rarr;</a>`;
       }
       
@@ -2094,7 +2094,8 @@ function getModeKey(mode) {
 }
 
 function getData() {
-  return DATA[currentMode];
+  const evergreenSwitch = currentMode === "main" ? "evergreen" : currentMode;
+  return DATA[evergreenSwitch];
 }
 
 /**** AB TEST STUFF ****/
