@@ -245,7 +245,7 @@ function getAllEventBalanceHtml() {
   for (i of Object.keys(DATA)) {
     const lteId = i;
 
-    if (i === "event" || i === "main") {
+    if (i === "event" || i === "main" || i === "evergreen") {
       continue;
     }
 
