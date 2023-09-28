@@ -557,7 +557,7 @@ class PriorityQueue {
 // Sets up ENGLISH_MAP based on ENGLISH_LOCALIZATION_STRING
 function initializeLocalization() {
   // Get all lines in the form key=value.  Values may include anything but real new lines.
-  const xloc = atob(ENGLISH_LOCALIZATION_STRING)
+  const xloc = decodeURIComponent(escape(atob(ENGLISH_LOCALIZATION_STRING)));
   let lines = xloc.split(/\r?\n/);
   
   for (let line of lines) {
