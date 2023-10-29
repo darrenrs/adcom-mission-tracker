@@ -30,7 +30,7 @@ var BALANCE_UPDATE_VERSION = {
   "architecture-bal-18": "1.22",
   "careers-bal-1": "1.15",
   "christmas-bal-13": "1.14",
-  "egypt-bal-1": "1.14",
+  "egypt-bal-1": "1.22",
   "infrastructure-bal-17": "1.14",
   "innovation-bal-1": "1.14",
   "japan-bal-2": "1.15",
