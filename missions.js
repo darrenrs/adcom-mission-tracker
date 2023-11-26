@@ -2408,66 +2408,64 @@ function getBalanceInfoPopup() {
   for (let i of getData()['Store']) {
     if (i['ItemClass'] === 'VirtualCurrencyBundle') {
       // check if "Scheduled"
-      let _continue = true;
+      let timeRange;
       
       if (getData()['ScheduledOffers']) {
         for (let j of getData()['ScheduledOffers']) {
           if (i['InternalId'] === j['ItemId']) {
-            // this is a scheduled offer; only display if in time period
-            let currentUnixTS = (new Date()).getTime() / 1000;
-            if (!(currentUnixTS >= j['StartDateTimestamp'] && currentUnixTS < j['EndDateTimestamp'])) {
-              _continue = false; // this is a nested loop, so we have to do some trickery.
-            }
+            let startTime = new Date(j['StartDateTimestamp'] * 1000)
+            let endTime = new Date(j['EndDateTimestamp'] * 1000)
+            timeRange = `Available ${startTime.toLocaleDateString()} ${startTime.toLocaleTimeString()} to ${endTime.toLocaleDateString()} ${endTime.toLocaleTimeString()}`;
           }
         }
       }
       
-      if (_continue) {
-        let name = i['Name'];
-        let price = `US$${(i['Price'] / 100).toFixed(2)}`;
-        totalPrice += i['Price'];
-        let rewardsString = "";
+      let name = i['Name'];
+      let nameEnhanced = timeRange ? `<span title="${timeRange}" style="text-decoration: underline #777 dotted;">${name}</span>` : name
 
-        for (let j of i['Rewards']) {
-          // three reward types: "Gacha" (capsule), "Resources", and "Researcher"
-          let rewardContent = "";
+      let price = `US$${(i['Price'] / 100).toFixed(2)}`;
+      totalPrice += i['Price'];
+      let rewardsString = "";
 
-          switch (j['Reward']) {
-            case "Gacha":
-              let capsuleImage = j['RewardId']; 
-              if (currentMode !== "event") { capsuleImage = `capsule-${capsuleImage}` }
-              let capsuleImageUrl = `<img class='rewardIcon' src='img/${currentMode}/${capsuleImage}.png'>`
+      for (let j of i['Rewards']) {
+        // three reward types: "Gacha" (capsule), "Resources", and "Researcher"
+        let rewardContent = "";
 
-              rewardContent = `x${bigNum(j['Value'])} ${capsuleImageUrl} ${ENGLISH_MAP[`gacha.${j['RewardId']}.name`]} Capsule`;
-              break;
-            case "Resources":
-              let resourceImageUrl = "";
-              if (j['RewardId'] === 'darkscience') {
-                resourceImageUrl = "<img class='rewardIcon' src='img/event/darkscience.png'>";
-              } else if (j['RewardId'] === 'gold') {
-                resourceImageUrl = "<img class='rewardIcon' src='img/main/gold.png'>";
-              } else if (j['RewardId'] === 'scientist') {
-                resourceImageUrl = "<img class='rewardIcon' src='img/main/scientist.png'>";
-              }
-              
-              let resourcePlurality = (j['Value'] === 1) ? "singular" : "plural"
-              rewardContent = `x${bigNum(j['Value'])} ${resourceImageUrl} ${ENGLISH_MAP[`resource.${j['RewardId']}.${resourcePlurality}`]}`;
-              break;
-            case "Researcher":
-              let rewardId = j['RewardId']
-              let researcherInfo = `<span class="text-nowrap">${describeResearcher(getData().Researchers.find(r => r.Id == rewardId), "right")}</span>`
-              rewardContent = `x${bigNum(j['Value'])}${researcherInfo}`
-              break;
-            default:
-              rewardContent = 'Unknown Reward Type (please report this or check console for more information)';
-              console.warn(`Unknown Reward Type: ${JSON.stringify(j)}`);
-              break;
-          }
+        switch (j['Reward']) {
+          case "Gacha":
+            let capsuleImage = j['RewardId']; 
+            if (currentMode !== "event") { capsuleImage = `capsule-${capsuleImage}` }
+            let capsuleImageUrl = `<img class='rewardIcon' src='img/${currentMode}/${capsuleImage}.png'>`
 
-          rewardsString += `<li>${rewardContent}</li>`
+            rewardContent = `x${bigNum(j['Value'])} ${capsuleImageUrl} ${ENGLISH_MAP[`gacha.${j['RewardId']}.name`]} Capsule`;
+            break;
+          case "Resources":
+            let resourceImageUrl = "";
+            if (j['RewardId'] === 'darkscience') {
+              resourceImageUrl = "<img class='rewardIcon' src='img/event/darkscience.png'>";
+            } else if (j['RewardId'] === 'gold') {
+              resourceImageUrl = "<img class='rewardIcon' src='img/main/gold.png'>";
+            } else if (j['RewardId'] === 'scientist') {
+              resourceImageUrl = "<img class='rewardIcon' src='img/main/scientist.png'>";
+            }
+            
+            let resourcePlurality = (j['Value'] === 1) ? "singular" : "plural"
+            rewardContent = `x${bigNum(j['Value'])} ${resourceImageUrl} ${ENGLISH_MAP[`resource.${j['RewardId']}.${resourcePlurality}`]}`;
+            break;
+          case "Researcher":
+            let rewardId = j['RewardId']
+            let researcherInfo = `<span class="text-nowrap">${describeResearcher(getData().Researchers.find(r => r.Id == rewardId), "right")}</span>`
+            rewardContent = `x${bigNum(j['Value'])}${researcherInfo}`
+            break;
+          default:
+            rewardContent = 'Unknown Reward Type (please report this or check console for more information)';
+            console.warn(`Unknown Reward Type: ${JSON.stringify(j)}`);
+            break;
         }
-        packs += `<li>${name} (${price})<ul>${rewardsString}</ul></li>`;
+
+        rewardsString += `<li>${rewardContent}</li>`
       }
+      packs += `<li>${nameEnhanced} (${price})<ul>${rewardsString}</ul></li>`;
     }
   }
 
