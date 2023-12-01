@@ -2421,7 +2421,7 @@ function getBalanceInfoPopup() {
       }
       
       let name = i['Name'];
-      let nameEnhanced = timeRange ? `<span title="${timeRange}" style="text-decoration: underline #777 dotted;">${name}</span>` : name
+      let nameEnhanced = timeRange ? `<a tabindex="0" class="researcherName" role="button" data-html="true" data-toggle="popover" data-placement="right" data-trigger="focus" data-content="${timeRange}">${name}</a>` : name
 
       let price = `US$${(i['Price'] / 100).toFixed(2)}`;
       totalPrice += i['Price'];
