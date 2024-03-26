@@ -404,7 +404,7 @@ function updateSoonestCycle(cycle, now, soonestEvents, oneOffHours, hoursPerBala
     let nextBalanceId = cycle.LteBalanceIds[(curCycleIndex + 1) % cycle.LteBalanceIds.length];
     let nextDurationHours = hoursPerBalanceId[nextBalanceId];
     
-    if (now < curEndTime) {
+    if (now < curEndTime && curEndTime < cycleEndTime) {
       eventsFound += 1;
       
       let rewardId = cycle.LteRewardIds[curCycleIndex % cycle.LteRewardIds.length];
