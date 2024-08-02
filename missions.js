@@ -1686,7 +1686,13 @@ function getRewardIcon(reward, imageOnly = false) {
   if (imageOnly || reward.Reward == "Gacha") {
     return imgHtml;
   } else {
-    return `<span class='rewardIconWrapper'>${imgHtml}<span class='rewardIconText'>${bigNum(reward.Value, 1000, 2)}</span></span>`;
+    let stagedRewardValue = reward.Value;
+
+    if (typeof reward.Value === 'string') {
+      stagedRewardValue = parseInt(stagedRewardValue.replace(',', ''))
+    }
+
+    return `<span class='rewardIconWrapper'>${imgHtml}<span class='rewardIconText'>${bigNum(stagedRewardValue, 1000, 2)}</span></span>`;
   }
 }
 
