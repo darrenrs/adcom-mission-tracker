@@ -6,19 +6,19 @@ All of the relative paths should be the same, but the paths will be in /ages/ */
 }
 
 .plastic {
-  background-image: url("img/event/plastic.png");
+  background-image: url("img/shared/gacha/plastic.png");
 }
 
 .armored {
-  background-image: url("img/event/armored.png");
+  background-image: url("img/shared/gacha/armored.png");
 }
 
 .wood {
-  background-image: url("img/main/capsule-wood.png");
+  background-image: url("img/shared/gacha/wood.png");
 }
 
 .stone {
-  background-image: url("img/main/capsule-stone.png");
+  background-image: url("img/shared/gacha/stone.png");
 }
 
 .darkscience {

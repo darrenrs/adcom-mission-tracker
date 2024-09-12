@@ -1250,22 +1250,29 @@ function getEventCurrentRankTitle() {
 }
 
 function describeScheduleRankReward(reward) {
+  let rewardId = reward.RewardId;
+  let singularOrPlural = (reward.Value > 1) ? "plural" :"singular";
+
   switch (reward.Reward) {
     case "Resources":
-      return `${reward.Value} ${resourceName(reward.RewardId)}`;
-      break;
+      let resName = resourceName(rewardId, singularOrPlural);
+      if (rewardId.includes('timehack')) {
+        resName = `<a tabindex="0" class="researcherName" role="button" data-html="true" data-toggle="popover" data-placement="top" data-trigger="focus" data-content="${getTimewarpPopup(rewardId)}">${resName}</a>`
+      }
+
+      return `${reward.Value} ${resName}`;
+    break;
       
     case "Gacha":
-      let gachaName = ENGLISH_MAP[`gacha.${reward.RewardId}.name`];
+      let gachaName = ENGLISH_MAP[`gacha.${rewardId}.name`];
       return `${gachaName} capsule`;
-      break;
+    break;
       
     case "Researcher":
-      let researcherRarity = ENGLISH_MAP[`researcher.rarity.${reward.RewardId}.name`];
-      let singularOrPlural = (reward.Value > 1) ? "plural" :"singular";
+      let researcherRarity = ENGLISH_MAP[`researcher.rarity.${rewardId}.name`];
       let wordForResearcher = ENGLISH_MAP[`conditionmodel.researcher.${singularOrPlural}`].toLowerCase();
       return `${reward.Value} ${researcherRarity} ${wordForResearcher}`;
-      break;
+    break;
   }
 }
 
@@ -1673,27 +1680,30 @@ function describeReward(reward) {
 
 // Given a SCHEDULE_CYCLES.LteRewards.Rewards[i] object, return an html string representing the reward as a small icon.
 function getRewardIcon(reward, imageOnly = false) {
-  let fileName = reward.RewardId;
-  
-  if (reward.Reward == "Gacha") {
-    fileName = `capsule-${reward.RewardId}`;
-  } else if (reward.Reward == "Researcher") {
-    fileName = `card-${reward.RewardId}`;
+  let rewardId = reward['RewardId'];
+  let imgPath = "";
+
+  switch (reward["Reward"]) {
+    case "Gacha": imgPath = `img/shared/gacha/${rewardId}`; break;
+    case "Researcher": imgPath = `img/shared/card/card-${rewardId}`; break;
+    default: imgPath = `img/main/${rewardId}`; break;
   }
-  
-  let imgHtml = `<img class='mx-1 rewardIcon' src='img/main/${fileName}.png'>`;
-  
-  if (imageOnly || reward.Reward == "Gacha") {
+
+  if (rewardId.includes('timehack')) {
+    imgPath = `img/shared/timewarps/${rewardId}`;
+  }
+
+  let imgHtml = `<img class='mx-1 rewardIcon' src='${imgPath}.png'>`
+  if (imageOnly || reward["Reward"] == "Gacha") {
     return imgHtml;
-  } else {
-    let stagedRewardValue = reward.Value;
-
-    if (typeof reward.Value === 'string') {
-      stagedRewardValue = parseInt(stagedRewardValue.replace(',', ''))
-    }
-
-    return `<span class='rewardIconWrapper'>${imgHtml}<span class='rewardIconText'>${bigNum(stagedRewardValue, 1000, 2)}</span></span>`;
   }
+
+  let stagedRewardValue = reward.Value;
+  if (typeof stagedRewardValue === 'string') {
+    stagedRewardValue = parseInt(stagedRewardValue.replace(',', ''));
+  }
+
+  return `<span class='rewardIconWrapper'>${imgHtml}<span class='rewardIconText'>${bigNum(stagedRewardValue, 1000, 2)}</span></span>`;
 }
 
 // Given a root.Researchers object, returns an html string with a clickable version of their name with a popover description.
@@ -2380,30 +2390,16 @@ function getBalanceInfoPopup() {
 
   // airdrop totals (ad and non-ad)
   for (let i of getData()['AirDrops']) {
-    let airdropType;
-    let adStatus;
-
-    switch (i['AirDropRewardType']) {
-      case 'CoreResource':
-        airdropType = "Random Resource";
-        break;
-      case 'PrimaryCurrency':
-        airdropType = resourceName('comrade');
-        break;
-      case 'SoftCurrency':
-        airdropType = resourceName('darkscience');
-        break;
-      case 'HardCurrency':
-        airdropType = resourceName('gold');
-        break;
+    
+    let airdropIdNames = {
+      'CoreResource': "Random Resource",
+      'PrimaryCurrency': resourceName('comrade'),
+      'SoftCurrency': resourceName('darkscience'),
+      'HardCurrency': resourceName('gold')
     }
-
-    if (i['IsAd']) {
-      adStatus = `${i['MaxAdsPerInterval']} ads per cycle`;
-    } else {
-      adStatus = 'non-ad';
-    }
-
+    
+    let airdropType = airdropIdNames[i['AirDropRewardType']];
+    let adStatus = i['IsAd'] ? `${i['MaxAdsPerInterval']} ads per cycle` : 'non-ad';
     let weight = `${i['Weight']}%`;
 
     let airdropLine = `<li>${airdropType} (${adStatus}; ${weight} weight)</li>`;
@@ -2428,45 +2424,71 @@ function getBalanceInfoPopup() {
       
       let name = i['Name'];
       let nameEnhanced = timeRange ? `<a tabindex="0" class="researcherName" role="button" data-html="true" data-toggle="popover" data-placement="right" data-trigger="focus" data-content="${timeRange}">${name}</a>` : name
+      //nameEnhanced += ` [${i['InternalId']}]`; // for dev debugging
 
       let price = `US$${(i['Price'] / 100).toFixed(2)}`;
       totalPrice += i['Price'];
       let rewardsString = "";
 
       for (let j of i['Rewards']) {
-        // three reward types: "Gacha" (capsule), "Resources", and "Researcher"
+        // four reward types: "Gacha" (capsule), "Resources", "Researcher" and "Experiments" (blitz)
         let rewardContent = "";
+        let rewardId = j['RewardId'];
 
         switch (j['Reward']) {
           case "Gacha":
-            let capsuleImage = j['RewardId']; 
-            if (currentMode !== "event") { capsuleImage = `capsule-${capsuleImage}` }
-            let capsuleImageUrl = `<img class='rewardIcon' src='img/${currentMode}/${capsuleImage}.png'>`
+            rewardId = rewardId.toLowerCase();
+            let capsuleImageUrl = `<img class='rewardIcon' src='img/shared/gacha/${rewardId}.png'>`
+            rewardContent = `x${bigNum(j['Value'])} ${capsuleImageUrl} ${ENGLISH_MAP[`gacha.${rewardId}.name`]} Capsule`;
+          break;
 
-            rewardContent = `x${bigNum(j['Value'])} ${capsuleImageUrl} ${ENGLISH_MAP[`gacha.${j['RewardId']}.name`]} Capsule`;
-            break;
           case "Resources":
-            let resourceImageUrl = "";
-            if (j['RewardId'] === 'darkscience') {
-              resourceImageUrl = "<img class='rewardIcon' src='img/event/darkscience.png'>";
-            } else if (j['RewardId'] === 'gold') {
-              resourceImageUrl = "<img class='rewardIcon' src='img/main/gold.png'>";
-            } else if (j['RewardId'] === 'scientist') {
-              resourceImageUrl = "<img class='rewardIcon' src='img/main/scientist.png'>";
-            }
-            
+            rewardId = rewardId.toLowerCase();
+
             let resourcePlurality = (j['Value'] === 1) ? "singular" : "plural"
-            rewardContent = `x${bigNum(j['Value'])} ${resourceImageUrl} ${ENGLISH_MAP[`resource.${j['RewardId']}.${resourcePlurality}`]}`;
-            break;
+            let resourceName = ENGLISH_MAP[`resource.${rewardId}.${resourcePlurality}`];
+
+            let resourceFixedUrls = {
+              'scientist': 'img/main/scientist',
+              'darkscience': 'img/event/darkscience',
+              'gold': 'img/main/gold'
+            };
+            
+            let resourceImageUrl;
+            if (rewardId in resourceFixedUrls) {
+              resourceImageUrl = resourceFixedUrls[rewardId];
+            }
+            else if (rewardId.includes('timehack')) {
+              resourceImageUrl = `img/shared/timewarps/${rewardId}`;
+              resourceName = `<a tabindex="0" class="researcherName" role="button" data-html="true" data-toggle="popover" data-placement="top" data-trigger="focus" data-content="${getTimewarpPopup(rewardId)}">${resourceName}</a>`
+            }
+
+            let resourceImage = `<img class='rewardIcon' src='${resourceImageUrl}.png'>`;
+            rewardContent = `x${bigNum(j['Value'])} ${resourceImage} ${resourceName}`;
+          break;
+
           case "Researcher":
-            let rewardId = j['RewardId']
             let researcherInfo = `<span class="text-nowrap">${describeResearcher(getData().Researchers.find(r => r.Id == rewardId), "right")}</span>`
             rewardContent = `x${bigNum(j['Value'])}${researcherInfo}`
-            break;
+          break;
+
+          case "Experiment":
+            // As of writing, this will never run on Ages
+            // Blitz IDs seem to be hard coded, so we can hardcode these
+            let blitzIdUrl = {
+              "EX180": "blitz-mini",
+              "EX181": "blitz-standard",
+              "EX182": "blitz-mega"
+            };
+            
+            let experimentImageUrl = `<img class='rewardIcon' src='img/shared/blitz/${blitzIdUrl[rewardId]}.png'>`;
+            rewardContent = `x${bigNum(j['Value'])} ${experimentImageUrl} ${ENGLISH_MAP[`experiment.${rewardId}.name`]}`;
+          break;
+
           default:
             rewardContent = 'Unknown Reward Type (please report this or check console for more information)';
             console.warn(`Unknown Reward Type: ${JSON.stringify(j)}`);
-            break;
+          break;
         }
 
         rewardsString += `<li>${rewardContent}</li>`
@@ -2512,6 +2534,21 @@ function getBalanceInfoPopup() {
       <p><strong>Total Cost: </strong>US$${(totalPrice / 100).toFixed(2)}</p>
     </fieldset>
   `
+}
+
+function getTimewarpPopup(timewarpId) {
+  let imageDirectory = `img/shared/timewarps/${timewarpId}.png`;
+  let html = `
+  <img class='resourceIcon mr-1' src='${imageDirectory}'>${ENGLISH_MAP[`resource.${timewarpId}.singular`]}<br />
+  <b>Duration: </b>${ENGLISH_MAP[`store.${timewarpId}.name`]}<br />`;
+
+  let storeWarp = getData()["Store"].filter(item => item['InternalId'] === timewarpId);
+  if (storeWarp.length == 1) {
+    let warpPrice = storeWarp[0]["Price"];
+    html += `<b>Cost: </b>${getRewardIcon({"RewardId":"gold"}, true)}${warpPrice}<br />`;
+  }
+
+  return html;
 }
 
 function getAllIndustryPopup() {
