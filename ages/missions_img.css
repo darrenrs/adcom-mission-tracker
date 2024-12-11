@@ -21,6 +21,18 @@ All of the relative paths should be the same, but the paths will be in /ages/ */
   background-image: url("img/shared/gacha/stone.png");
 }
 
+.rare {
+    background-image: url("img/shared/gacha/rare.png");
+}
+
+.epic {
+    background-image: url("img/shared/gacha/epic.png");
+}
+
+.supreme {
+    background-image: url("img/shared/gacha/supreme.png");
+}
+
 .darkscience {
   background-image: url("img/event/darkscience.png");
 }

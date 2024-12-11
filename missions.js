@@ -1251,7 +1251,7 @@ function getEventCurrentRankTitle() {
 
 function describeScheduleRankReward(reward) {
   let rewardId = reward.RewardId;
-  let singularOrPlural = (reward.Value > 1) ? "plural" :"singular";
+  let singularOrPlural = (reward.Value == 1) ? "singular" : "plural";
 
   switch (reward.Reward) {
     case "Resources":
@@ -1278,58 +1278,94 @@ function describeScheduleRankReward(reward) {
 
 // Given a root.Missions object, returns an html string of a mission button
 function renderMissionButton(mission, rank, missionEtas) {
-  let type = mission.Condition.ConditionType;
-  let buttonClass = "";
-  
-  if (!missionData.Current.Remaining.includes(mission) && !missionData.Completed.Remaining.includes(mission)) {
-    buttonClass = "disabled ";
-  }
-  
-  let buttonOutlineStyle = (rank == "Completed") ? "btn" : "btn-outline";
-  
-  let etaTimeStamp = missionEtas[mission.Id];
-  let buttonDescription = "";
-  if (rank == "Completed") {
-    buttonDescription = "Uncomplete mission"
-  } else if (rank == "Current" && !etaTimeStamp) {
-    buttonDescription = "Complete mission"
-  } else if (etaTimeStamp) {
-    // We have an eta for this button
-    buttonDescription = `ETA: ${getMissionEtaString(etaTimeStamp)}`;
-  }
+    let missionType = mission.Condition.ConditionType;
+    let buttonClass = "disabled ";
+    let buttonOutlineStyle = (rank == "Completed") ? "btn" : "btn-outline";
 
-  if (type == "ResourcesSpentSinceSubscription" || type == "ResearchersUpgradedSinceSubscription") {
-    buttonClass += `${buttonOutlineStyle}-danger`;
-  } else if (type == "ResearcherCardsEarnedSinceSubscription" || (type == "ResourcesEarnedSinceSubscription" && mission['Condition']['ConditionId'] == 'darkscience')) {
-    buttonClass += `${buttonOutlineStyle}-success`;
-  } else {
-    buttonClass += `${buttonOutlineStyle}-secondary`;
-  }
-  
-  let rewardImageClasses = getRewardImageClass(mission);
-  
-  if (rank != "Completed" && rank != "Current") {
-    rewardImageClasses += " disabled";
-  }
-  
-  if ("AbTestConfig" in mission) {
-    let splitGroupId = mission.AbTestConfig.split("|");
-    let testName = splitGroupId[0];
-    let groupName = splitGroupId[1];
+    let isMissionAvailable = missionData.Current.Remaining.includes(mission) || missionData.Completed.Remaining.includes(mission);
+    if (isMissionAvailable) {
+        buttonClass = ""; // Reset since mission is available
+    }
     
-    let groupMap = getAvailableAbTestGroups();
-    let groupsForTest = groupMap[testName];
-    let groupIndex = groupsForTest.indexOf(groupName);
+    let isDangerType = ["ResourcesSpentSinceSubscription", "ResearchersUpgradedSinceSubscription"].includes(missionType);
+    let isSuccessType =
+    missionType === "ResearcherCardsEarnedSinceSubscription" || 
+        (missionType === "ResourcesEarnedSinceSubscription" && mission['Condition']['ConditionId'] === 'darkscience');
     
-    let groupClass = `altGroup-${groupIndex}`;
-    let nextGroupIndex = (groupIndex + 1) % groupsForTest.length;
-    let nextGroupName = groupsForTest[nextGroupIndex];
-    let groupTitleText = `Switch from ${mission.AbTestConfig} to alternate mission group ${testName}|${nextGroupName}`;
+    if (isDangerType) {
+        buttonClass += `${buttonOutlineStyle}-danger`;
+    } else if (isSuccessType) {
+        buttonClass += `${buttonOutlineStyle}-success`;
+    } else {
+        buttonClass += `${buttonOutlineStyle}-secondary`;
+    }
+
+    let etaTimeStamp = missionEtas[mission.Id];
+    let buttonDescription = ""
+
+    if (rank == "Completed") {
+        buttonDescription = "Uncomplete mission"
+    } 
+    else if (rank == "Current" && !etaTimeStamp) {
+        buttonDescription = "Complete mission"
+    } 
+    else if (etaTimeStamp) {
+        // We have an eta for this button
+        buttonDescription = `ETA: ${getMissionEtaString(etaTimeStamp)}`;
+    }
+
+    let missionButton = `<button id="button-${mission.Id}" class="btn ${buttonClass}" onclick="clickMission('${mission.Id}')" title="${buttonDescription}">${describeMission(mission)}</button>`
     
-    return `<span class="altEmptySpan"></span><button id="button-${mission.Id}" class="btn ${buttonClass}" onclick="clickMission('${mission.Id}')" title="${buttonDescription}">${describeMission(mission)}</button><a href="javascript:void(0);" class="infoButton resourceIcon altMissionButton ${groupClass} ml-1" onclick="switchToNextAbGroup('${mission.Id}')" title="${groupTitleText}">&nbsp;</a><a href="#" class="infoButton ${rewardImageClasses} resourceIcon ml-1" data-toggle="modal" data-target="#infoPopup" data-mission="${mission.Id}" title="Click for mission info/calc">&nbsp;</a>`;
-  } else {
-    return `<button id="button-${mission.Id}" class="btn ${buttonClass}" onclick="clickMission('${mission.Id}')" title="${buttonDescription}">${describeMission(mission)}</button><a href="#" class="infoButton ${rewardImageClasses} resourceIcon ml-1" data-toggle="modal" data-target="#infoPopup" data-mission="${mission.Id}" title="Click for mission info/calc">&nbsp;</a>`;
-  }
+    let rewardImageClasses = (rank != "Completed" && rank != "Current") ? "disabled " : ""
+    let rewardType = mission.Reward.Reward
+    let rewardId = mission.Reward.RewardId
+    let rewardIconSrc = ""
+
+    if (rewardType == "Gacha") {
+        // Place the ring around reward icon to indicate it's scripted
+        let scriptIdSearch = getData().GachaScripts.filter(x => x["GachaId"] == rewardId)
+        let isScripted = (scriptIdSearch.length != 0)
+        rewardImageClasses += isScripted ? " scriptedRewardInfo" : ""
+
+        let rewardGachaId = isScripted ? scriptIdSearch[0]["MimicGachaId"] : rewardId
+        rewardIconSrc = `img/shared/gacha/${rewardGachaId}.png`
+    }
+    else if (rewardType == "Resources") {
+        if (rewardId == 'gold') {
+            rewardIconSrc = 'img/shared/gold.png';
+        }
+        else if (rewardId.includes('timehack_')) {
+            rewardIconSrc = `img/shared/timewarps/${rewardId}.png`
+        }
+        else {
+            // Luckily this only occurs for Motherland rewards
+            // Must need to have a method of implementing for events in the future somehow
+            // ('GetCurrentTheme()' ?)
+            rewardIconSrc = `img/main/${rewardId}.png`
+        }
+    }
+
+    let rewardButton = `<a href="javascript:void(0);" style="background-image:url('${rewardIconSrc}')" class="infoButton ${rewardImageClasses} resourceIcon ml-1" data-toggle="modal" data-target="#infoPopup" data-mission="${mission.Id}" title="Click for mission info/calc">&nbsp;</a>`
+    
+    let ABButton = ``
+    if ("AbTestConfig" in mission) {
+        let splitGroupId = mission.AbTestConfig.split("|");
+        let testName = splitGroupId[0];
+        let groupName = splitGroupId[1];
+        
+        let groupMap = getAvailableAbTestGroups();
+        let groupsForTest = groupMap[testName];
+        let groupIndex = groupsForTest.indexOf(groupName);
+        
+        let groupClass = `altGroup-${groupIndex}`;
+        let nextGroupIndex = (groupIndex + 1) % groupsForTest.length;
+        let nextGroupName = groupsForTest[nextGroupIndex];
+        let groupTitleText = `Switch from ${mission.AbTestConfig} to alternate mission group ${testName}|${nextGroupName}`;
+
+        ABButton = `<a href="javascript:void(0);" class="infoButton resourceIcon altMissionButton ${groupClass} ml-1" onclick="switchToNextAbGroup('${mission.Id}')" title="${groupTitleText}">&nbsp;</a>`
+    }
+
+    return missionButton + ABButton + rewardButton
 }
 
 // Returns the css class(es) of the reward associated with a given mission
@@ -1651,31 +1687,44 @@ function describeMission(mission, overrideIcon = "") {
 
 // Given a root.Missions.Reward object, return an html string describing the reward (almost always a gacha capsule with gold + science + researchers).
 function describeReward(reward) {
-  if (reward.Reward == "Resources") {
-    return `${bigNum(reward.Value)} ${resourceName(reward.RewardId)}`;
-  
-  } else if (reward.Reward == "Gacha") {
-    let gacha = getData().GachaLootTable.find(g => g.Id == reward.RewardId);
-    if (!gacha) { return `Unknown gacha reward id: ${reward.RewardId}`; }
-    
-    if (gacha.Type == "Scripted") {
-      let script = getData().GachaScripts.find(s => s.GachaId == gacha.Id);
-      if (!script) { return `Unknown gacha script id: ${gacha.Id}`; }      
-            
-      let gold = script.Gold ? `${script.Gold} ${resourceName('gold')}` : null;
-      let scienceIcon = (currentMode == "main") ? "science" : "darkscience";
-      let science = script.Science ? `${script.Science}<span class="resourceIcon ${scienceIcon}">&nbsp;</span>` : null;      
-      let cards = script.Card.map(card => `<span class="text-nowrap">${cardValueCount(card)}${describeResearcher(getData().Researchers.find(r => r.Id == card.Id))}</span>`).join(', ') || null;
-      
-      let rewards = [gold, science, cards].filter(x => x != null).join('. ');
-      return `Scripted <span class="capsule ${script.MimicGachaId}">&nbsp;</span>: ${rewards}`;
-    } else {
-      return `Random <span class="capsule ${reward.RewardId}">&nbsp;</span>`;
+    if (reward.Reward == "Resources") {
+        return describeRewardIndividual(reward);
     }
-    
-  } else {    
+
+    if (reward.Reward == "Gacha") {
+        let gachaData = getData().GachaLootTable.find(g => g.Id == reward.RewardId);
+        if (!gachaData) { return `Unknown gacha reward id: ${reward.RewardId}`; }
+
+        if (gachaData.Type != "Scripted") { return `Random <span class="capsule ${reward.RewardId}">&nbsp;</span>` }
+
+        let script = getData().GachaScripts.find(s => s.GachaId == gachaData.Id);
+        if (!script) { return `Unknown gacha script id: ${gacha.Id}`; }   
+
+        let gold = script.Gold ? `<li>${describeRewardIndividual({"RewardId":"gold", "Value": script.Gold})}</li>` : ''
+        let science = script.Science ? `<li>${describeRewardIndividual({"RewardId":"science", "Value": script.Science})}</li>` : ''
+        
+        let cards = ``
+        script.Card.forEach(card => {
+            let researcher = getData().Researchers.find(r => r.Id === card.Id);
+            cards += `<li><span class="text-nowrap">${cardValueCount(card)}${describeResearcher(researcher)}</span></li>`;
+        })
+        
+        let scriptRewards = gold + science + cards
+        return `Scripted <span class="capsule ${script.MimicGachaId}">&nbsp;</span>:<ul>${scriptRewards}</ul>`;
+    }
+   else {    
     return `Unknown reward: ${reward.Reward}`;
-  }
+   }
+}
+
+function describeRewardIndividual(reward) {
+    if (reward.RewardId === 'science' || reward.RewardId === 'scientist') {
+        let resourceId = (currentMode === 'main') ? 'science' : 'darkscience';
+        let resourceDisplayName = (currentMode === 'main') ? resourceName('scientist') : resourceName(resourceId);
+        return `${bigNum(reward.Value)}<span class="resourceIcon ${resourceId}">&nbsp;</span>${resourceDisplayName}`;
+    }
+
+    return `${bigNum(reward.Value)}${getRewardIcon(reward, true)}${resourceName(reward.RewardId)}`;
 }
 
 // Given a SCHEDULE_CYCLES.LteRewards.Rewards[i] object, return an html string representing the reward as a small icon.
@@ -1691,6 +1740,9 @@ function getRewardIcon(reward, imageOnly = false) {
 
   if (rewardId.includes('timehack')) {
     imgPath = `img/shared/timewarps/${rewardId}`;
+  }
+  else if (rewardId == 'gold') {
+    imgPath = `img/shared/gold`;
   }
 
   let imgHtml = `<img class='mx-1 rewardIcon' src='${imgPath}.png'>`
@@ -2451,7 +2503,7 @@ function getBalanceInfoPopup() {
             let resourceFixedUrls = {
               'scientist': 'img/main/scientist',
               'darkscience': 'img/event/darkscience',
-              'gold': 'img/main/gold'
+              'gold': 'img/shared/gold'
             };
             
             let resourceImageUrl;
@@ -2545,7 +2597,8 @@ function getTimewarpPopup(timewarpId) {
   let storeWarp = getData()["Store"].filter(item => item['InternalId'] === timewarpId);
   if (storeWarp.length == 1) {
     let warpPrice = storeWarp[0]["Price"];
-    html += `<b>Cost: </b>${getRewardIcon({"RewardId":"gold"}, true)}${warpPrice}<br />`;
+    let goldHtml = `<img class='mx-1 rewardIcon' src='img/shared/gold.png'>`
+    html += `<b>Cost: </b>${goldHtml}${warpPrice}<br />`;
   }
 
   return html;
