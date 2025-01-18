@@ -1729,33 +1729,42 @@ function describeRewardIndividual(reward) {
 
 // Given a SCHEDULE_CYCLES.LteRewards.Rewards[i] object, return an html string representing the reward as a small icon.
 function getRewardIcon(reward, imageOnly = false) {
-  let rewardId = reward['RewardId'];
-  let imgPath = "";
-
-  switch (reward["Reward"]) {
-    case "Gacha": imgPath = `img/shared/gacha/${rewardId}`; break;
-    case "Researcher": imgPath = `img/shared/card/card-${rewardId}`; break;
-    default: imgPath = `img/main/${rewardId}`; break;
-  }
-
-  if (rewardId.includes('timehack')) {
-    imgPath = `img/shared/timewarps/${rewardId}`;
-  }
-  else if (rewardId == 'gold') {
-    imgPath = `img/shared/gold`;
-  }
-
-  let imgHtml = `<img class='mx-1 rewardIcon' src='${imgPath}.png'>`
-  if (imageOnly || reward["Reward"] == "Gacha") {
-    return imgHtml;
-  }
-
-  let stagedRewardValue = reward.Value;
-  if (typeof stagedRewardValue === 'string') {
-    stagedRewardValue = parseInt(stagedRewardValue.replace(',', ''));
-  }
-
-  return `<span class='rewardIconWrapper'>${imgHtml}<span class='rewardIconText'>${bigNum(stagedRewardValue, 1000, 2)}</span></span>`;
+    let { Reward, RewardId, Value } = reward; 
+    let imgPath = "";
+  
+    switch (Reward) {
+      case "Gacha": 
+        imgPath = `img/shared/gacha/${RewardId}`; 
+        break;
+      
+      case "Researcher": 
+        imgPath = `img/shared/card/card-${RewardId}`; 
+        break;
+        
+      default:
+        if (RewardId.includes('timehack')) {
+          imgPath = `img/shared/timewarps/${RewardId}`;
+        }
+        else if (RewardId == 'gold') {
+          imgPath = `img/shared/gold`;
+        }
+        else {
+          imgPath = `img/main/${RewardId}`;
+        }
+        break;
+    }
+  
+    let imgHtml = `<img class='mx-1 rewardIcon' src='${imgPath}.png'>`
+    if (imageOnly || Reward == "Gacha") {
+      return imgHtml;
+    }
+  
+    let stagedRewardValue = Value;
+    if (typeof stagedRewardValue === 'string') {
+      stagedRewardValue = parseInt(stagedRewardValue.replace(',', ''));
+    }
+  
+    return `<span class='rewardIconWrapper'>${imgHtml}<span class='rewardIconText'>${bigNum(stagedRewardValue, 1000, 2)}</span></span>`;
 }
 
 // Given a root.Researchers object, returns an html string with a clickable version of their name with a popover description.
