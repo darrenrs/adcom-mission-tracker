@@ -15,6 +15,7 @@ var THEME_ID_TITLE_OVERRIDES = {
   "fuspet": "Pet Show",
   "fusvehicle": "Vehicle Show",
   "hexathlon": "Motherland Games",
+  "minicockatrice": "Mini Cockatrice"
 };
 
 // Theme ID != Balance ID
@@ -37,6 +38,7 @@ var BALANCE_UPDATE_VERSION = {
   "fusscience-bal-31": "6.30",
   "fusvehicle-bal-32": "6.18",
   "hexathlon-bal-13": "6.19",
+  "minicockatrice-bal-1": "6.43",
   "ninja-bal-1": "6.14",
   "potatofactory-bal-13": "6.38",
   "power-bal-20": "6.14",
@@ -47,7 +49,7 @@ var BALANCE_UPDATE_VERSION = {
   "supervillain-bal-17": "6.41",
   "winter-bal-3": "6.14",
   "zombie-bal-5": "6.14",
-  "main": "6.19"
+  "main": "6.42"
 };
 
 // For game-specific documentation and social channels
