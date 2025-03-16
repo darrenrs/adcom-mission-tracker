@@ -2327,74 +2327,81 @@ function switchToNextAbGroup(missionId) {
 function renderCalculator(mission) {
   let condition = mission.Condition;
   let conditionType = condition.ConditionType;
-  if (["ResourceQuantity", "IndustryUnlocked", "ResourcesEarnedSinceSubscription"].includes(conditionType)) {
-    // First figure out which industry to display and calculate
-    let industryId = "";
-    if (conditionType == "ResourceQuantity") {
-      let generator = getGenerator(condition.ConditionId);
-      if (generator) {
-        // A normal "Own Generator" mission
-        industryId = generator.IndustryId;
-      } else {
-        // A stupid "Own Resource" mission
-        industryId = getIndustryByResource(condition.ConditionId).Id;
-      }
-    } else if (conditionType == "IndustryUnlocked") {
-      // Choose the industry to the left of the one to unlock.
-      let unlockableIndustryIndex = getData().Industries.findIndex(i => i.Id == condition.ConditionId);
-      industryId = getData().Industries[unlockableIndustryIndex - 1].Id;
-    } else if (conditionType == "ResourcesEarnedSinceSubscription") {
-      if (["scientist", "darkscience"].includes(condition.ConditionId.toLowerCase())) {
-        // We currently don't support a calculator collecting science
-        return "Mission type currently unsupported.";
-      }
-      
-      industryId = getIndustryByResource(condition.ConditionId).Id;
-    }
-    
-    let resource = getResourceByIndustry(industryId);
-    let imgDirectory = getImageDirectory();
-    let wordForTrades = upperCaseFirstLetter(ENGLISH_MAP['conditionmodel.trade.plural']);
-    
-    // Display three tabs: one for generators, one for production researchers, one for trades. Then below, options and submit.
-    let html = `
-      <ul class="nav nav-tabs" id="calc-tabs" role="tablist">
-        <li class="nav-item">
-          <a class="nav-link active" id="generators-tab" data-toggle="tab" href="#generators" role="tab" aria-controls="generators" aria-selected="true"><div class="resourceIcon" style="background-image: url('${imgDirectory}/${resource.Id}.png');">&nbsp;</div> Generators</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" id="researchers-tab" data-toggle="tab" href="#researchers" role="tab" aria-controls="researchers" aria-selected="false"><div class="resourceIcon cardIcon">&nbsp;</div> ${ENGLISH_MAP['gachapurchaseconfirmation.content.panel.go_researchers.txt_name']}</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" id="trades-tab" data-toggle="tab" href="#trades" role="tab" aria-controls="trades" aria-selected="false"><div class="resourceIcon comradesPerSec">&nbsp;</div> ${wordForTrades}</a>
-        </li>
-      </ul>
-      <div class="tab-content">
-        <div class="tab-pane fade show active" id="generators" role="tabpanel" aria-labelledby="generators-tab">${getGeneratorsTab(mission, industryId)}</div>
-        <div class="tab-pane fade" id="researchers" role="tabpanel" aria-labelledby="researchers-tab">${getResearchersTab(mission, industryId)}</div>
-        <div class="tab-pane fade" id="trades" role="tabpanel" aria-labelledby="trades-tab">${getTradesTab()}</div>
-      </div>`;
-    html += `<hr /><div class="form-check"><input class="form-check-input" type="checkbox" value="" id="configAutobuy"><label class="form-check-label" for="configAutobuy">Auto-buy deepest generator</label>
-      <a class="infoButton ml-1" tabindex="-1" role="button" data-toggle="popover" data-trigger="focus" data-content="Continuously buy max of the deepest available automated generator.">&#9432;</a></div>`;
-    html += `<div class="form-check"><input class="form-check-input" type="checkbox" value="" id="configOffline" onclick="clickOffline()"><label class="form-check-label" for="configOffline">Offline</label>
-      <a class="infoButton ml-1" tabindex="-1" role="button" data-toggle="popover" data-trigger="focus" data-content="There appears to be an undocumented huge difference in the game's offline calculations, where it runs the deepest generator for the entire duration, followed by the second-deepest, etc., instead of repeating the process continuously.  This can make long offline periods optimal, but you cannot check in.">&#9432;</a></div>`;
-    
-    if (conditionType == "ResourceQuantity") {
-      html += `<div class="form-check"><input class="form-check-input" type="checkbox" value="" id="configComradeLimited" onclick="clickComradeLimited('${condition.ConditionId}')"><label class="form-check-label" for="configComradeLimited">Limited by ${resourceName('comrade')} only</label>
-        <a class="infoButton ml-1" tabindex="-1" role="button" data-toggle="popover" data-trigger="focus" data-content="Simplify and speed up calculation by assuming production is irrelevant.">&#9432;</a></div>`;
-    }
-    
-    html += `<div class="form-inline"><label for="configMaxSimSeconds" id="configMaxSimSecondsLabel" class="mr-2">Max Sim Time:</label><input type="number" class="form-control w-25" min="1" value="1" id="configMaxSimSeconds" placeholder="Max Sim Seconds"><a class="infoButton ml-2" tabindex="-1" role="button" data-toggle="popover" data-trigger="focus" data-html="true" data-content="Higher Max Sim Time (<strong>in seconds</strong>) allows you to simulate further, but increases time when simulation doesn't succeed.  If it fails, double-check your Generators, ${upperCaseFirstLetter(ENGLISH_MAP['conditionmodel.researcher.plural'])}, and ${resourceName('comrade')}.">&#9432;</a></div>`;
-    
-    html += `<p class="mt-2"><strong>Result:</strong> <span id="result"></span></p>`;
-    html += `<input type="hidden" id="missionId" value="${mission.Id}"><input type="hidden" id="industryId" value="${industryId}">`;
-    html += `<p><button id="calcButton" class="btn btn-primary" type="button" onclick="doProductionSim()" title="Run simulation to calculate ETA">Calculate!</button>`;
-    html += `<button id="importButton" class="btn btn-primary float-right" type="button" onclick="importCounts()">Import Counts</button></p>`;
-    
-    return html;
-  } else {
+  let supportedMissions = ["ResourceQuantity", "IndustryUnlocked", "ResourcesEarnedSinceSubscription"];
+
+  if (!supportedMissions.includes(conditionType)) {
     return "Mission type currently unsupported.";
   }
+
+  // First figure out which resource to display and calculate
+  let resourceId = "";
+
+  // "Own" and "Collect" missions
+  if (conditionType == "ResourceQuantity" || conditionType == "ResourcesEarnedSinceSubscription") {
+    if (["scientist", "darkscience"].includes(condition.ConditionId.toLowerCase())) {
+      // We currently don't support a calculator collecting science
+      return "Mission type currently unsupported.";
+    }
+
+    let generator = getGenerator(condition.ConditionId);
+
+    if (generator) {
+      // "Own Generator" or "Collect Generator (stupid)"
+      resourceId = generator.IndustryId;
+    } 
+    else {
+      // "Own Resource (stupid)" or "Collect Resource"
+      resourceId = getIndustryByResource(condition.ConditionId).Id;
+    }
+  } 
+  
+  // "Unlock" mission
+  else if (conditionType == "IndustryUnlocked") {
+    // Choose the industry to the left of the one to unlock.
+    let unlockableIndustryIndex = getData().Industries.findIndex(i => i.Id == condition.ConditionId);
+    resourceId = getData().Industries[unlockableIndustryIndex - 1].Id;
+  }
+  
+  let resource = getResourceByIndustry(resourceId);
+  let imgDirectory = getImageDirectory();
+  let wordForTrades = upperCaseFirstLetter(ENGLISH_MAP['conditionmodel.trade.plural']);
+  
+  // Display three tabs: one for generators, one for production researchers, one for trades. Then below, options and submit.
+  let html = `
+    <ul class="nav nav-tabs" id="calc-tabs" role="tablist">
+      <li class="nav-item">
+        <a class="nav-link active" id="generators-tab" data-toggle="tab" href="#generators" role="tab" aria-controls="generators" aria-selected="true"><div class="resourceIcon" style="background-image: url('${imgDirectory}/${resource.Id}.png');">&nbsp;</div> Generators</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" id="researchers-tab" data-toggle="tab" href="#researchers" role="tab" aria-controls="researchers" aria-selected="false"><div class="resourceIcon cardIcon">&nbsp;</div> ${ENGLISH_MAP['gachapurchaseconfirmation.content.panel.go_researchers.txt_name']}</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" id="trades-tab" data-toggle="tab" href="#trades" role="tab" aria-controls="trades" aria-selected="false"><div class="resourceIcon comradesPerSec">&nbsp;</div> ${wordForTrades}</a>
+      </li>
+    </ul>
+    <div class="tab-content">
+      <div class="tab-pane fade show active" id="generators" role="tabpanel" aria-labelledby="generators-tab">${getGeneratorsTab(mission, resourceId)}</div>
+      <div class="tab-pane fade" id="researchers" role="tabpanel" aria-labelledby="researchers-tab">${getResearchersTab(mission, resourceId)}</div>
+      <div class="tab-pane fade" id="trades" role="tabpanel" aria-labelledby="trades-tab">${getTradesTab()}</div>
+    </div>`;
+  html += `<hr /><div class="form-check"><input class="form-check-input" type="checkbox" value="" id="configAutobuy"><label class="form-check-label" for="configAutobuy">Auto-buy deepest generator</label>
+    <a class="infoButton ml-1" tabindex="-1" role="button" data-toggle="popover" data-trigger="focus" data-content="Continuously buy max of the deepest available automated generator.">&#9432;</a></div>`;
+  html += `<div class="form-check"><input class="form-check-input" type="checkbox" value="" id="configOffline" onclick="clickOffline()"><label class="form-check-label" for="configOffline">Offline</label>
+    <a class="infoButton ml-1" tabindex="-1" role="button" data-toggle="popover" data-trigger="focus" data-content="There appears to be an undocumented huge difference in the game's offline calculations, where it runs the deepest generator for the entire duration, followed by the second-deepest, etc., instead of repeating the process continuously.  This can make long offline periods optimal, but you cannot check in.">&#9432;</a></div>`;
+  
+  if (conditionType == "ResourceQuantity") {
+    html += `<div class="form-check"><input class="form-check-input" type="checkbox" value="" id="configComradeLimited" onclick="clickComradeLimited('${condition.ConditionId}')"><label class="form-check-label" for="configComradeLimited">Limited by ${resourceName('comrade')} only</label>
+      <a class="infoButton ml-1" tabindex="-1" role="button" data-toggle="popover" data-trigger="focus" data-content="Simplify and speed up calculation by assuming production is irrelevant.">&#9432;</a></div>`;
+  }
+  
+  html += `<div class="form-inline"><label for="configMaxSimSeconds" id="configMaxSimSecondsLabel" class="mr-2">Max Sim Time:</label><input type="number" class="form-control w-25" min="1" value="1" id="configMaxSimSeconds" placeholder="Max Sim Seconds"><a class="infoButton ml-2" tabindex="-1" role="button" data-toggle="popover" data-trigger="focus" data-html="true" data-content="Higher Max Sim Time (<strong>in seconds</strong>) allows you to simulate further, but increases time when simulation doesn't succeed.  If it fails, double-check your Generators, ${upperCaseFirstLetter(ENGLISH_MAP['conditionmodel.researcher.plural'])}, and ${resourceName('comrade')}.">&#9432;</a></div>`;
+  
+  html += `<p class="mt-2"><strong>Result:</strong> <span id="result"></span></p>`;
+  html += `<input type="hidden" id="missionId" value="${mission.Id}"><input type="hidden" id="industryId" value="${resourceId}">`;
+  html += `<p><button id="calcButton" class="btn btn-primary" type="button" onclick="doProductionSim()" title="Run simulation to calculate ETA">Calculate!</button>`;
+  html += `<button id="importButton" class="btn btn-primary float-right" type="button" onclick="importCounts()">Import Counts</button></p>`;
+  
+  return html;
 }
 
 function updateImportButton() {
