@@ -182,6 +182,8 @@ function getSchedulePopup() {
 
 // Returns the HTML for the schedule event block for a given event
 function getSchedulePopupEvent(eventInfo) {
+  const IsAges = (window.location.href).includes('/ages');
+
   let shortOptions = { weekday: 'short', month: 'short', day: 'numeric' };
   let longOptions = { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: 'numeric', timeZoneName: 'short' };
   
@@ -196,15 +198,145 @@ function getSchedulePopupEvent(eventInfo) {
   let lteId = eventInfo.LteId;
   let name = ENGLISH_MAP[`lte.${eventInfo.ThemeId}.name`];
   
-  let headerClasses = "";
-  if (currentMode == "event" && eventInfo.LteId == eventScheduleInfo.LteId) {
-    // This is the currently-tracked event, highlight the header.
-    headerClasses = "selected";
-  }
+  let headerClasses = (currentMode == "event" && eventInfo.LteId == eventScheduleInfo.LteId) ? "selected": "";
   
   let top3RewardIcons = eventInfo.Rewards.slice(-3).map(r => getRewardIcon(r)).join('');
-  let completionRewards = eventInfo.Rewards.map(r => `<li><span class="rewardListIconWrapper">${getRewardIcon(r)}</span> ${describeScheduleRankReward(r)}</li>`).join('');
-  
+
+  // Instead of manually writing ever bit of the HTML for these tabs manually,
+  // we create a loop using certain rules, which makes it easier to skip 
+  // shortboard rewards for Ages without breaking up the string a bunch. 
+  let shortboardDat = {};
+  const globalboardDat = SCHEDULE_CYCLES.LteLeaderboards.filter(x => x.LeaderboardId == eventInfo.GlobalLeaderboardId)[0];
+
+  if (!IsAges) {
+    shortboardDat = SCHEDULE_CYCLES.LteShortLeaderboards.filter(x => x.LeaderboardId == eventInfo.LeaderboardId)[0]
+  }
+  else {
+    // Create a dummy shortboard data so it doesn't crash when loading on Ages
+    shortboardDat = {BracketRewards:[],Brackets:[]};
+  }
+
+  const rewardSectionConfig = [
+    {
+      "id": "milestone",
+      "name": "Milestones",
+      "labelTitle": "Rank",
+      "labelFormat": "number",
+      "rewards": eventInfo.Rewards,
+      "brackets": null
+    },
+    {
+      "id": "segment",
+      "name": "Leaderboard",
+      "labelTitle": "Placement",
+      "labelFormat": "ordinal",
+      "rewards": shortboardDat.BracketRewards,
+      "brackets": shortboardDat.Brackets
+    },
+    {
+      "id": "global",
+      "name": "Global",
+      "labelTitle": "Placement",
+      "labelFormat": "percent",
+      "rewards": globalboardDat.BracketRewards,
+      "brackets": globalboardDat.Brackets
+    }
+  ];
+
+  let scheduledEventHtml = '';
+
+  let scheduledEventNavs = [];
+  let scheduledEventTables = [];
+
+  for (let index = 0; index < rewardSectionConfig.length; index++) {
+    let { id, name, labelTitle, labelFormat, rewards, brackets } = rewardSectionConfig[index];
+    let isFirst = (index == 0);
+
+    // Ages doesn't have Shortboards yet
+    if (id == "segment" && IsAges) {
+      continue;
+    }
+
+    let sectionId = `schedule-${id}rewards-${lteId}`; // LteId is used so that it doesn't change all of the displays in the popup
+    let navButtonIconPath = `img/shared/leaderboard-${id}.png`;
+
+    let navButtonHtml = `     
+      <li class="nav-item">
+        <a 
+          class="nav-link ${isFirst ? 'active' : ''}" 
+          id="${sectionId}-tab" 
+          data-toggle="tab" 
+          href="#${sectionId}" 
+          role="tab" 
+          aria-controls="${sectionId}" 
+          aria-selected="${isFirst}"
+        >
+          <div class="resourceIcon" style="background-image: url('${navButtonIconPath}');">&nbsp;</div> 
+          ${name}
+        </a>
+      </li>
+    `;
+
+    scheduledEventNavs.push(navButtonHtml);
+
+    /// Section Rewards ///
+
+    // Gets the table contents (ie. the label + reward)
+    let rewardsTable = ``;
+    for (let i = 0; i < rewards.length; i++) {
+      let label = ``;
+      let bracket = null;
+
+      switch (id) {
+        case "milestone":
+          label = `${i + 1}`;
+          break;
+
+        case "segment":
+          bracket = brackets[i].Value;
+          label = `${ordinalConversion(bracket)}`
+          break;
+          
+        case "global": 
+          bracket = brackets[i];  
+          label = `Top ${(bracket.IsPercentage) ? percentageConversion(bracket.Value) : bracket.Value}`
+          break;
+      }
+
+      let reward = rewards[i];
+
+      rewardsTable += `
+        <tr>
+          <td style="padding:0">${label}</td>
+          <td style="padding:0">
+            <span class="rewardListIconWrapper">${getRewardIcon(reward)}</span> 
+            ${describeScheduleRankReward(reward)}
+          </td>
+        </tr>
+      `;
+    }
+
+    // Surround the table contents with headers and classes
+    let sectonTableHtml = `
+    <div 
+      id="${sectionId}" 
+      class="tab-pane fade ${isFirst ? "active show": ""}" 
+      role="tabpanel" 
+      aria-labelledby="${sectionId}-tab"
+    >
+      <table class="table">
+        <tr>
+          <th>${labelTitle}</th>
+          <th>Reward</th>
+        </tr>
+        ${rewardsTable}
+      </table> 
+    </div>
+    `;
+
+    scheduledEventTables.push(sectonTableHtml);
+  }
+
   return `
     <div class="card">
       <div class="card-header scheduleHeader ${headerClasses}" data-toggle="collapse" data-target="#scheduleBody-${lteId}" aria-controls="scheduleBody-${lteId}">
@@ -217,11 +349,34 @@ function getSchedulePopupEvent(eventInfo) {
           <div><strong>${name}</strong><span class="float-right"><a href="?event=${eventInfo.EndTimeMillis}">View in Tracker</a></span></div><br />
           <strong>Starts:</strong> ${startLong}<br />
           <strong>Ends:</strong> ${endLong}<br /><br />
-          <strong>Rank Completion Rewards:</strong><br />
-          <ol>${completionRewards}</ol>
+          <strong>Event Rewards:</strong><br /><br />
+
+          <ul class="nav nav-tabs" role="tablist">
+            ${scheduledEventNavs.join("")}
+          </ul>
+          
+          <div class="tab-content">
+            ${scheduledEventTables.join("")}
+          </div>
+
         </div>
       </div>
-    </div>`;
+    </div>
+  `;
+}
+
+// Function for adding an ordinal to a number (for leaderboard placements usually)
+// 1 -> 1st, 2 -> 2nd, 5 -> 5th, etc.
+function ordinalConversion(inputNumber) {
+  let lastDigit = inputNumber.toString()[inputNumber.toString().length - 1];
+  let presets = { 1: "st", 2: "nd", 3: "rd" };
+  let numberExclusions = [11, 12, 13];
+
+  if (!Object.keys(presets).includes(lastDigit) || numberExclusions.includes(inputNumber)) {
+    return `${inputNumber}th`
+  } 
+
+  return `${inputNumber}${presets[lastDigit]}`
 }
 
 // get HTML for all balances
@@ -356,7 +511,9 @@ function updateSoonestOneOff(oneOffEvent, now, soonestEvents, oneOffHours) {
       ThemeId: oneOffEvent.ThemeId,
       StartTimeMillis: startTimeMillis,
       EndTimeMillis: endTimeMillis,
-      Rewards: getRewardsById(oneOffEvent.RewardId)
+      Rewards: getRewardsById(oneOffEvent.RewardId),
+      LeaderboardId: oneOffEvent.LteShortLeaderboardId,
+      GlobalLeaderboardId: oneOffEvent.LeaderboardId
     });
   }
 }
@@ -1260,17 +1417,18 @@ function describeScheduleRankReward(reward) {
         resName = `<a tabindex="0" class="researcherName" role="button" data-html="true" data-toggle="popover" data-placement="top" data-trigger="focus" data-content="${getTimewarpPopup(rewardId)}">${resName}</a>`
       }
 
-      return `${reward.Value} ${resName}`;
+      let resValue = parseInt(reward.Value.toString().replace(",","")); // Stupid line to remove commas from SOME inputs ?
+      return `${bigNum(resValue)} ${resName}`;
     break;
       
     case "Gacha":
-      let gachaName = ENGLISH_MAP[`gacha.${rewardId}.name`];
-      return `${gachaName} capsule`;
+      let gachaName = ENGLISH_MAP[`gacha.${rewardId}.name`].replace("Capsule", "");
+      return `${gachaName} Capsule`;
     break;
       
     case "Researcher":
       let researcherRarity = ENGLISH_MAP[`researcher.rarity.${rewardId}.name`];
-      let wordForResearcher = ENGLISH_MAP[`conditionmodel.researcher.${singularOrPlural}`].toLowerCase();
+      let wordForResearcher = ENGLISH_MAP[`conditionmodel.researcher.${singularOrPlural}`];
       return `${reward.Value} ${researcherRarity} ${wordForResearcher}`;
     break;
   }
