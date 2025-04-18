@@ -243,8 +243,6 @@ function getSchedulePopupEvent(eventInfo) {
     }
   ];
 
-  let scheduledEventHtml = '';
-
   let scheduledEventNavs = [];
   let scheduledEventTables = [];
 
@@ -304,11 +302,42 @@ function getSchedulePopupEvent(eventInfo) {
       }
 
       let reward = rewards[i];
+      
+      let avatarId = reward["AvatarId"];
+      let avatarReward = ``;
+
+      if (avatarId != 'null' && avatarId != null) {
+        const AvatarDat = DATA["common"].Avatars;
+        let avatarName = "";
+
+        if (avatarId == "LTE AVATAR") {
+          let relatedAvatar = {};
+          AvatarDat.forEach(a => {
+            if (!Object.keys(a).includes("UnlockLocation")) return;
+            if (a.UnlockLocation.ThemeId == eventInfo.ThemeId)
+              relatedAvatar = a;
+              return;
+          });
+
+          avatarName = `${relatedAvatar.Rarity} Avatar`
+          avatarIcon = `<span class="rewardListIconWrapper">${getAvatarRewardIcon(relatedAvatar)}</span>`
+        }
+        else {
+          avatarReward = "Unknown Avatar Reward";
+        }
+        
+        avatarReward = `
+          ${avatarIcon}
+          ${avatarName} / 
+          <br/>
+        `;
+      }
 
       rewardsTable += `
         <tr>
           <td style="padding:0">${label}</td>
           <td style="padding:0">
+            ${avatarReward}
             <span class="rewardListIconWrapper">${getRewardIcon(reward)}</span> 
             ${describeScheduleRankReward(reward)}
           </td>
@@ -378,6 +407,29 @@ function ordinalConversion(inputNumber) {
 
   return `${inputNumber}${presets[lastDigit]}`
 }
+
+// This function isn't fully structured for non-event based rewards atm :p
+function getAvatarRewardIcon(avatarDat) {
+  let { VisualKey, UnlockLocation } = avatarDat;
+
+  // Some avatars have a researcher ID at the end of them.
+  // If they do, find it and get that file path.
+  let lastValue = VisualKey.split("-");
+  lastValue = lastValue[lastValue.length-1];
+  
+  let themeId = UnlockLocation.ThemeId;
+  let balanceKey = Object.keys(DATA).filter(id => id.includes(themeId))[0];
+
+  let researchersList = DATA[balanceKey].Researchers.filter(x => x.Id == lastValue);
+  if (researchersList == 1) {
+    return `<img class='mx-1 rewardIcon' src='img/event/${themeId}/${lastValue}.png'>`;
+  }
+  else {
+    let imgPath = `img/shared/avatars/${themeId}-avatar-${lastValue}`;
+    return `<img class='mx-1 rewardIcon' src='${imgPath}.png'>`;
+  }
+}
+
 
 // get HTML for all balances
 function getAllEventBalanceHtml() {
