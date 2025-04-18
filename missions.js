@@ -92,7 +92,7 @@ function loadModeSettings() {
         setGameLocal("CurrentMode", "event");
         
       } else if (keyValue[0] == "eventOverride"
-                  && keyValue[1] in DATA && keyValue[1] != "main") {
+                  && keyValue[1] in DATA && keyValue[1] != "main" && keyValue[1] != "common") {
         // Parse ?eventOverride=X
         
         // This is a quick hack to allow switching to non-current events.
@@ -452,7 +452,7 @@ function getAllEventBalanceHtml() {
   for (i of Object.keys(DATA)) {
     const lteId = i;
 
-    if (i === "event" || i === "main" || i === "evergreen") {
+    if (i === "event" || i === "main" || i === "evergreen" || i === "common") {
       continue;
     }
 
