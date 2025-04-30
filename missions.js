@@ -313,24 +313,35 @@ function getSchedulePopupEvent(eventInfo) {
         if (avatarId == "LTE AVATAR") {
           let relatedAvatar = {};
           AvatarDat.forEach(a => {
-            if (!Object.keys(a).includes("UnlockLocation")) return;
-            if (a.UnlockLocation.ThemeId == eventInfo.ThemeId)
-              relatedAvatar = a;
-              return;
+            if (Object.keys(a).includes("UnlockLocation")) {
+              if (a.UnlockLocation.ThemeId == eventInfo.ThemeId) {
+                relatedAvatar = a;
+                return;
+              }
+            }
+            else if (Object.keys(a).includes("BalancesIncluded")) {
+              if (a.BalancesIncluded.includes(eventInfo.BalanceId)) {
+                relatedAvatar = a;
+                return;
+              }
+            }
           });
 
+          console.log(relatedAvatar)
+
           avatarName = `${relatedAvatar.Rarity} Avatar`
-          avatarIcon = `<span class="rewardListIconWrapper">${getAvatarRewardIcon(relatedAvatar)}</span>`
+          avatarIcon = `<span class="rewardListIconWrapper"><img class='mx-1 rewardIcon' src='img/shared/avatars/${relatedAvatar['VisualKey']}.png'></span>`;
+
+          avatarReward = `
+            ${avatarIcon}
+            ${avatarName} / 
+            <br/>
+          `;
         }
         else {
           avatarReward = "Unknown Avatar Reward";
         }
         
-        avatarReward = `
-          ${avatarIcon}
-          ${avatarName} / 
-          <br/>
-        `;
       }
 
       rewardsTable += `
@@ -366,6 +377,12 @@ function getSchedulePopupEvent(eventInfo) {
     scheduledEventTables.push(sectonTableHtml);
   }
 
+  // Clause where HH has event in schedule but no data for it
+  let viewInTrackerLink = `<a href="?event=${eventInfo.EndTimeMillis}">View in Tracker</a>`;
+  if (!Object.keys(DATA).includes(eventInfo.BalanceId)) {
+    viewInTrackerLink = `<a tabindex="0" style="color:#666; text-decoration: none" class="researcherName" role="button" data-html="true" data-toggle="popover" data-placement="bottom" data-trigger="focus" data-content="<p>Data is currently unavailable for this balance.</p>"><i>View in Tracker</i></a>`;
+  }
+
   return `
     <div class="card">
       <div class="card-header scheduleHeader ${headerClasses}" data-toggle="collapse" data-target="#scheduleBody-${lteId}" aria-controls="scheduleBody-${lteId}">
@@ -375,7 +392,7 @@ function getSchedulePopupEvent(eventInfo) {
       </div>
       <div class="collapse" id="scheduleBody-${lteId}">
         <div class="card-body">
-          <div><strong>${name}</strong><span class="float-right"><a href="?event=${eventInfo.EndTimeMillis}">View in Tracker</a></span></div><br />
+          <div><strong>${name}</strong><span class="float-right">${viewInTrackerLink}</span></div><br />
           <strong>Starts:</strong> ${startLong}<br />
           <strong>Ends:</strong> ${endLong}<br /><br />
           <strong>Event Rewards:</strong><br /><br />
@@ -406,28 +423,6 @@ function ordinalConversion(inputNumber) {
   } 
 
   return `${inputNumber}${presets[lastDigit]}`
-}
-
-// This function isn't fully structured for non-event based rewards atm :p
-function getAvatarRewardIcon(avatarDat) {
-  let { VisualKey, UnlockLocation } = avatarDat;
-
-  // Some avatars have a researcher ID at the end of them.
-  // If they do, find it and get that file path.
-  let lastValue = VisualKey.split("-");
-  lastValue = lastValue[lastValue.length-1];
-  
-  let themeId = UnlockLocation.ThemeId;
-  let balanceKey = Object.keys(DATA).filter(id => id.includes(themeId))[0];
-
-  let researchersList = DATA[balanceKey].Researchers.filter(x => x.Id == lastValue);
-  if (researchersList == 1) {
-    return `<img class='mx-1 rewardIcon' src='img/event/${themeId}/${lastValue}.png'>`;
-  }
-  else {
-    let imgPath = `img/shared/avatars/${themeId}-avatar-${lastValue}`;
-    return `<img class='mx-1 rewardIcon' src='${imgPath}.png'>`;
-  }
 }
 
 

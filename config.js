@@ -15,7 +15,8 @@ var THEME_ID_TITLE_OVERRIDES = {
   "fuspet": "Pet Show",
   "fusvehicle": "Vehicle Show",
   "hexathlon": "Motherland Games",
-  "minicockatrice": "Mini Cockatrice"
+  "minicockatrice": "Mini Cockatrice",
+  "minipotatofactory": "Mini Potatofactory"
 };
 
 // Theme ID != Balance ID
@@ -25,7 +26,7 @@ var THEME_ID_OVERRIDES = {};
 // Version for last balance update
 // Only includes changes to the actual balance, per the interests of the community.
 var BALANCE_UPDATE_VERSION = {
-  "atlantis-bal-3": "6.14",
+  "atlantis-bal-3": "6.44",
   "attack-bal-20": "6.14",
   "bamboo-bal-10": "6.15",
   "cockatrice-bal-10": "6.23",
@@ -39,6 +40,7 @@ var BALANCE_UPDATE_VERSION = {
   "fusvehicle-bal-32": "6.18",
   "hexathlon-bal-13": "6.19",
   "minicockatrice-bal-1": "6.43",
+  "minipotatofactory-bal-13": "6.45",
   "ninja-bal-1": "6.14",
   "potatofactory-bal-13": "6.38",
   "power-bal-20": "6.14",
