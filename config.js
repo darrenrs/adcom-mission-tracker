@@ -40,7 +40,7 @@ var BALANCE_UPDATE_VERSION = {
   "fusvehicle-bal-32": "6.18",
   "hexathlon-bal-13": "6.19",
   "minicockatrice-bal-1": "6.43",
-  "minipotatofactory-bal-13": "6.45",
+  "minipotatofactory-bal-13": "6.46",
   "ninja-bal-1": "6.14",
   "potatofactory-bal-13": "6.38",
   "power-bal-20": "6.14",
@@ -51,7 +51,7 @@ var BALANCE_UPDATE_VERSION = {
   "supervillain-bal-17": "6.41",
   "winter-bal-3": "6.14",
   "zombie-bal-5": "6.14",
-  "main": "6.45"
+  "main": "6.46"
 };
 
 // For game-specific documentation and social channels
