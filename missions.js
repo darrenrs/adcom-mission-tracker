@@ -327,10 +327,9 @@ function getSchedulePopupEvent(eventInfo) {
             }
           });
 
-          console.log(relatedAvatar)
-
-          avatarName = `${relatedAvatar.Rarity} Avatar`
-          avatarIcon = `<span class="rewardListIconWrapper"><img class='mx-1 rewardIcon' src='img/shared/avatars/${relatedAvatar['VisualKey']}.png'></span>`;
+          avatarName = `${relatedAvatar.Rarity} Avatar`;
+          let visualKey = relatedAvatar['VisualKey'].replace(".png","");
+          avatarIcon = `<span class="rewardListIconWrapper"><img class='mx-1 rewardIcon' src='img/shared/avatars/${visualKey}.png'></span>`;
 
           avatarReward = `
             ${avatarIcon}
