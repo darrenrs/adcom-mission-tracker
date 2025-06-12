@@ -903,6 +903,26 @@ function initializePopups() {
     let modal = $(this);
     modal.find('#balanceInfoPopupBody').html(getBalanceInfoPopup());
   });
+
+  $('#scriptedGachaTablePopup').on('show.bs.modal', function (event) {
+    let button = $(event.relatedTarget); // Button that triggered the modal
+    let activeTabId = button.data('tab'); // Extract info from data-* attributes
+    
+    // Fill in the body
+    let modal = $(this);
+    modal.find('#scriptedGachaTableBody').html(getScriptedCapsulesPopup());
+    
+    // Set the correct tab to be active based on which button launched the popup.
+    let activeTab = modal.find(`#${activeTabId}`);
+    activeTab.addClass('active');
+    activeTab.attr('aria-selected', 'true');
+    
+    modal.find(`[aria-labelledby="${activeTabId}"]`).addClass('show active');
+    
+    $(function () {
+      $('[data-toggle="popover"]').popover();
+    });
+  });
   
   $('#airdropTablePopup').on('show.bs.modal', function () {
     // Fill in the body
@@ -1890,7 +1910,7 @@ function describeMission(mission, overrideIcon = "") {
 }
 
 // Given a root.Missions.Reward object, return an html string describing the reward (almost always a gacha capsule with gold + science + researchers).
-function describeReward(reward) {
+function describeReward(reward, includeCapType = true) {
     if (reward.Reward == "Resources") {
         return describeRewardIndividual(reward);
     }
@@ -1914,7 +1934,8 @@ function describeReward(reward) {
         })
         
         let scriptRewards = gold + science + cards
-        return `Scripted <span class="capsule ${script.MimicGachaId}">&nbsp;</span>:<ul>${scriptRewards}</ul>`;
+        let capsuleWrapper = includeCapType ? `Scripted <span class="capsule ${script.MimicGachaId}">&nbsp;</span>:` : ``
+        return `${capsuleWrapper}<ul>${scriptRewards}</ul>`;
     }
    else {    
     return `Unknown reward: ${reward.Reward}`;
@@ -2848,6 +2869,183 @@ function getAllIndustryPopup() {
     </div>`;
 }
 
+function getScriptedCapsulesPopup() {
+    let firstCapsuleIconUrl = `img/shared/gacha/${getData().GachaLootTable[0].Id}.png`;
+
+    return `
+        <div class="keyboardShortcutHolder">
+            <ul class="nav nav-tabs" id="scripted-capsules-tabs" role="tablist">
+                <li class="nav-item">
+                    <a class="nav-link active" id="scripts-sortbyscripts-tab" data-toggle="tab" href="#scripts-sortbyscripts" role="tab" aria-controls="scripts-sortbyscripts" aria-selected="true"><div class="resourceIcon" style="background-image: url('${firstCapsuleIconUrl}');">&nbsp;</div> Capsules</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="scripts-sortbyresearcher-tab" data-toggle="tab" href="#scripts-sortbyresearcher" role="tab" aria-controls="scripts-sortbyresearcher" aria-selected="false"><div class="resourceIcon cardIcon">&nbsp;</div> Researchers</a>
+                </li>
+            </ul>
+            <div class="tab-content">
+                <div class="tab-pane fade show active" id="scripts-sortbyscripts" role="tabpanel" aria-labelledby="scripts-sortbyscripts-tab"><table class="table">${getScriptedsByCapsule()}</table></div>
+                <div class="tab-pane fade" id="scripts-sortbyresearcher" role="tabpanel" aria-labelledby="scripts-sortbyresearcher-tab"><table class="table">${getScriptedsByResearcher()}</table></div>
+            </div>
+        </div>
+    `;
+}
+
+function getScriptedsByCapsule() {
+    let isEvent = (currentMode != 'main');
+    let balanceMissions = getData().Missions;
+    let scriptedData = getData().GachaScripts;
+    let researcherData = getData().Researchers;
+
+    // We wanna show the first free at the top of the table for convinence
+    // Locate the index of the first scripted free, if it exists, cut it out and move it to the front.
+    let scriptedFreeId = getData().GachaFreeCycle[0].ScriptId;
+    scriptedData = scriptedData.slice();
+    let scriptedIdx = scriptedData.findIndex(obj => obj.GachaId === scriptedFreeId);
+    if (scriptedIdx > 0) {
+        let [firstScriptObj] = scriptedData.splice(scriptedIdx, 1);
+        scriptedData.unshift(firstScriptObj);
+    }
+
+    let tableHtml = `
+        <tr>
+            <th>Mission</th>
+            <th>${isEvent ? "" : "Rank"}</th>
+            <th>Rewards</th>
+        </tr>
+    `;
+
+    let scienceId = (isEvent) ? 'darkscience' : 'science';
+    let scienceName = (isEvent) ? resourceName('darkscience') : resourceName('scientist');
+
+    scriptedData.forEach(script => {
+        // TODO: Implement a "Rank#" section for Events (harder because all missions are considered Rank 1)
+        let missionName;
+        let rankNumber = "";
+
+        if (script.GachaId == scriptedFreeId) {
+            let scriptMimicImage = `<span class="capsule ${script.MimicGachaId}">&nbsp;</span>`;
+            missionName = `${scriptMimicImage} First Free Capsule`;
+        }
+        else {
+            let scriptedMission = balanceMissions.filter(x => x.Reward.RewardId == script.GachaId);
+            if (scriptedMission.length == 0) {
+                // This script does not show up anywhere, hide it from the list
+                return;
+            }
+            scriptedMission = scriptedMission[0];
+            missionName = describeMission(scriptedMission);
+
+            if (!isEvent) {
+                rankNumber = scriptedMission.Rank;
+            }
+        }
+
+        let rewardsList = ``;
+
+        if (script.Science > 0) {
+            rewardsList += `<span class="resourceIcon ${scienceId}">&nbsp</span> ${shortBigNum(script.Science)} ${scienceName}<br/>`;
+        }
+        if (script.Gold > 0) {
+            rewardsList += `<img class="resourceIcon" src="img/shared/gold.png"> ${shortBigNum(script.Gold)} ${resourceName('gold')}<br/>`
+        }
+        if (script.Trophy > 0) {
+            rewardsList += `<img class="resourceIcon" src="img/shared/trophy.png"> ${shortBigNum(script.Trophy)} ${resourceName('trophy')}<br/>`
+        }
+
+        script.Card.forEach(rs => {
+            let rsBody = getResearcherFullDetailsHtml(researcherData.filter(r => r.Id == rs.Id)[0]);
+            let rsPopup = `<a tabindex="0" class="researcherName" role="button" data-html="true" data-toggle="popover" data-placement="bottom" data-trigger="focus" data-content="${rsBody}" data-original-title="" title="">${researcherName(rs.Id)}</a>`;
+            rewardsList += `<span class="resourceIcon cardIcon">&nbsp</span> ${shortBigNum(rs.Value)}x ${rsPopup}<br/>`;
+        });
+
+        tableHtml += `
+            <tr>
+                <td style='padding:5px 0'>${missionName}</td>
+                <td style='padding:5px 0; text-align:center'>${rankNumber}</td>
+                <td style='padding:5px 0'>${rewardsList}</td>
+            </tr>
+        `;
+    });
+
+    return tableHtml;
+}
+
+function getScriptedsByResearcher() {
+    let isEvent = (currentMode != 'main');
+    let imgDirectory = getImageDirectory();
+    let scriptedData = getData().GachaScripts;
+    let balanceMissions = getData().Missions;
+    let balanceRanks = getData().Ranks;
+
+    let scriptedFreeId = getData().GachaFreeCycle[0].ScriptId;
+
+    let researcherData = getData().Researchers;
+    sortResearchers(researcherData);
+
+    let tableHtml = `
+        <tr>
+            <th>Researcher</th>
+            <th>${isEvent ? "" : "Rank"}</th>
+            <th>Sources</th>
+        </tr>
+    `;
+
+    researcherData.forEach(researcher => {
+        let nameTitle = `<div class="resourceIcon" style="background-image: url('${imgDirectory}/${researcher.Id}.png');">&nbsp;</div> ${researcherName(researcher)}`;
+
+        let appearances = scriptedData.filter(sc => sc.Card.some(rs => rs.Id === researcher.Id));
+        let ranksList = [];
+        let scriptedListHtml = [];
+
+        if (appearances == 0) {
+            scriptedListHtml = ["<span style='color:#bbb'>No guaranteed copies.</span>"]
+            ranksList = [];
+        }
+        else {
+            // Order scripts in order (free capsules will come first, then ordered scripts)
+            appearances.sort((a, b) => { 
+                if (a.GachaId === scriptedFreeId) return -1;
+                a.GachaId.localeCompare(b.GachaId)
+            });
+
+            appearances.forEach(sc => {
+                // 1. Check if it's the free scripted capsule
+                // 2. Check if it's from a mission
+                // 3. Check if it's from a rank up capsule (Motherland)
+
+                if (sc.GachaId == scriptedFreeId) {
+                    scriptedListHtml.push(`<span class="capsule ${sc.MimicGachaId}">&nbsp;</span> First Free Capsule`);
+                    ranksList.push("");
+                    return;
+                }
+
+                let missions = balanceMissions.filter(m => m.Reward.RewardId == sc.GachaId);
+                if (missions.length == 1) {
+                    scriptedListHtml.push(describeMission(missions[0]))
+                    ranksList.push(isEvent ? "" : missions[0].Rank)
+                    return;
+                }
+
+                let rankUps = balanceRanks.filter(r => r.RewardId == sc.GachaId);
+                if (rankUps.length == 1) {
+                    scriptedListHtml.push(`<span class="capsule ${sc.MimicGachaId}">&nbsp;</span> Completing Rank ${rankUps[0].Rank}`);
+                    ranksList.push("");
+                }
+            });
+        }
+
+        tableHtml += `
+            <tr>
+                <td style='padding:5px 0'>${nameTitle}</td>
+                <td style='padding:5px 0; text-align:center'>${ranksList.join("<br/>")}</td>
+                <td style='padding:5px 0'>${scriptedListHtml.join("<br/>")}</td>
+            </tr>
+        `;
+    });
+
+    return tableHtml;
+}
+
 function getAirdropTablePopup() {
   return `<div class="keyboardShortcutHolder"><table class="table">${getAirdropTable(getData()['AirDrops'], getData()['Ranks'].length)}</table></div>`
 }
@@ -3159,59 +3357,80 @@ function getResourceInput(tagId, description, imageUrl, imageTitle, defaultValue
 
 // Returns a long-form html description of the generator, adjusted to researcher levels.  Will not contain "
 function describeGenerator(generator, researchers, formValues) {
-  let html = "";  
-  let imgDirectory = getImageDirectory();
+    let genValues = getDerivedResearcherValues(generator, researchers, formValues);
+    let imgDirectory = getImageDirectory();
+
+    let generatorCosts = `<strong>Costs:</strong><br/>`;
   
-  let genValues = getDerivedResearcherValues(generator, researchers, formValues);
-  
-  html += `<strong>Costs:</strong><br />`;
-  
-  let costs = generator.Cost.map(c => ({ Resource: c.Resource.toLowerCase(), Qty: Number(c.Qty) }));
-  for (let cost of costs) {
-    if (cost.Resource != "comrade") {
-      cost.Qty /= genValues.CostReduction;
+    let costs = generator.Cost.map(c => ({ Resource: c.Resource.toLowerCase(), Qty: Number(c.Qty) }));
+    for (let cost of costs) {
+        if (cost.Resource != "comrade") {
+            cost.Qty /= genValues.CostReduction;
+        }
+        generatorCosts += `<span class='mx-1'><img class='resourceIcon mr-1' src='${imgDirectory}/${cost.Resource}.png' title='${resourceName(cost.Resource)}'>${bigNum(cost.Qty)}</span>`;
     }
-    html += `<span class='mx-1'><img class='resourceIcon mr-1' src='${imgDirectory}/${cost.Resource}.png' title='${resourceName(cost.Resource)}'>${bigNum(cost.Qty)}</span>`;
-  }
   
-  html += `<br /><br /><strong>Generates:</strong><br />`;
-  
-  genValues.Speed = genValues.Speed || 1;
-  let genTime = generator.BaseCompletionTime / genValues.Speed;
-  
-  let qtyProduced = generator.Generate.Qty * genValues.Power;
-  html += `<img class='resourceIcon mr-1' src='${imgDirectory}/${generator.Generate.Resource}.png' title='${resourceName(generator.Generate.Resource)}'>${shortBigNum(qtyProduced)} `;
-  html += `per <img class='resourceIcon mx-1' src='img/shared/speed.png'>${getEta(genTime)}<div class='my-3'></div>`;
-  
-  html += `<img class='resourceIcon mr-1' src='img/shared/boost_power.png' title='Power'>x${shortBigNum(genValues.Power)} `;
-  html += `<img class='resourceIcon mx-1' src='img/shared/discount.png' title='Power'>x${shortBigNum(genValues.CostReduction)} `;
-  html += `<img class='resourceIcon mx-1' src='img/shared/speed.png' title='Power'>x${shortBigNum(genValues.Speed)}<div class='my-1'></div>`;
-  html += `<img class='resourceIcon mr-1' src='img/shared/crit_chance.png' title='Crit Chance'>${shortBigNum(genValues.CritChance * 100)}% `;
-  html += `<img class='resourceIcon mx-1' src='img/shared/crit_power.png' title='Crit Power'>x${shortBigNum(genValues.CritPower)}<div class='my-3'></div>`;
-  
-  let totalPerSec = qtyProduced * (genValues.CritChance * genValues.CritPower + 1 - genValues.CritChance) / genTime;
-  if (totalPerSec < 1e4) {
-    totalPerSec = totalPerSec.toPrecision(3);
-  }
-  html += `Each Outputs: <img class='resourceIcon mr-1' src='${imgDirectory}/${generator.Generate.Resource}.png' title='${resourceName(generator.Generate.Resource)}'>${shortBigNum(totalPerSec)}/sec`;
-  
-  let industry = getData().Industries.find(i => i.Id == generator.IndustryId);
-  if (generator.Unlock.Threshold > 0 || industry.UnlockCostResourceQty > 0) {
-    html += `<br /><br /><strong>Unlocks at:</strong><br />`;
-    if (generator.Unlock.Threshold > 0 && generator.Unlock.ConditionType != "IndustryUnlocked") {
-      html += `<img class='resourceIcon mr-1' src='${imgDirectory}/${generator.Unlock.ConditionId}.png' title='${resourceName(generator.Unlock.ConditionId)}'>${bigNum(generator.Unlock.Threshold)}`;
-    } else {
-      html += `<img class='resourceIcon mr-1' src='${imgDirectory}/${industry.UnlockCostResourceId.toLowerCase()}.png' title='${resourceName(industry.UnlockCostResourceId.toLowerCase())}'>${bigNum(industry.UnlockCostResourceQty)}`;
+    genValues.Speed = genValues.Speed || 1;
+    let genTime = generator.BaseCompletionTime / genValues.Speed;
+    let qtyProduced = generator.Generate.Qty * genValues.Power;
+
+    let totalPerSec = qtyProduced * (genValues.CritChance * genValues.CritPower + 1 - genValues.CritChance) / genTime;
+    if (totalPerSec < 1e4) totalPerSec = totalPerSec.toPrecision(3);
+
+    let scienceIconPath = `img/${currentMode}/${generator.ObjectiveReward.RewardId}.png`;
+
+    let generatorOutputs = `
+        <strong>Generates:</strong><br/>
+        <img class='resourceIcon mr-1' src='${imgDirectory}/${generator.Generate.Resource}.png' title='${resourceName(generator.Generate.Resource)}'>
+        ${shortBigNum(qtyProduced)} per <img class='resourceIcon mx-1' src='img/shared/speed.png'>${getEta(genTime)}<div class='my-3'></div>
+
+        <img class='resourceIcon mr-1' src='img/shared/boost_power.png' title='Power'>x${shortBigNum(genValues.Power)}
+        <img class='resourceIcon mx-1' src='img/shared/discount.png' title='Discount'>x${shortBigNum(genValues.CostReduction)}
+        <img class='resourceIcon mx-1' src='img/shared/speed.png' title='Speed'>x${shortBigNum(genValues.Speed)}<div class='my-1'></div>
+        <img class='resourceIcon mr-1' src='img/shared/crit_chance.png' title='Crit Chance'>${shortBigNum(genValues.CritChance * 100)}%
+        <img class='resourceIcon mx-1' src='img/shared/crit_power.png' title='Crit Power'>x${shortBigNum(genValues.CritPower)}<div class='my-3'></div>
+
+        Each Outputs: <img class='resourceIcon mr-1' src='${imgDirectory}/${generator.Generate.Resource}.png' title='${resourceName(generator.Generate.Resource)}'>${shortBigNum(totalPerSec)}/sec<br/>
+        <img class='mx-1 rewardIcon' src='${scienceIconPath}'>${shortBigNum(generator.ObjectiveReward.Value)} per bubble earned
+    `;
+
+    let generatorUnlock = ``;
+
+    let industry = getData().Industries.find(i => i.Id == generator.IndustryId);
+    if (generator.Unlock.Threshold > 0 || industry.UnlockCostResourceQty > 0) {
+        generatorUnlock = `<strong>Unlocks at:</strong><br />`;
+
+        if (generator.Unlock.Threshold > 0 && generator.Unlock.ConditionType != "IndustryUnlocked") {
+            generatorUnlock += `
+            <img class='resourceIcon mr-1' 
+                src='${imgDirectory}/${generator.Unlock.ConditionId}.png' 
+                title='${resourceName(generator.Unlock.ConditionId)}'>
+                ${bigNum(generator.Unlock.Threshold)}
+            `;
+        } 
+        else {
+            generatorUnlock += `
+            <img class='resourceIcon mr-1' 
+                src='${imgDirectory}/${industry.UnlockCostResourceId.toLowerCase()}.png' 
+                title='${resourceName(industry.UnlockCostResourceId.toLowerCase())}'>
+                ${bigNum(industry.UnlockCostResourceQty)}
+            `;
+        }
     }
-  }
   
-  html += `<br /><br /><strong>Automator:</strong><br />`;
-  
-  let autoResearcher = getData().Researchers.find(r => r.ModType == "GenManagerAndSpeedMult" && r.TargetIds[0] == generator.Id);
-  html += `<div class='resourceIcon cardIcon mr-1'>&nbsp;</div>${researcherName(autoResearcher)}<br />`;
-  html += getResearcherFullDetailsHtml(autoResearcher);
-  
-  return html;
+    let autoResearcher = getData().Researchers.find(r => r.ModType == "GenManagerAndSpeedMult" && r.TargetIds[0] == generator.Id);
+    let generatorAutomator = `
+        <strong>Automator:</strong><br/>
+        <div class='resourceIcon cardIcon mr-1'>&nbsp;</div>${researcherName(autoResearcher)}<br/>
+        ${getResearcherFullDetailsHtml(autoResearcher)}
+    `;
+
+    return `
+        ${generatorCosts}<br/><br/>
+        ${generatorOutputs}<br/><br/>
+        ${generatorUnlock}<br/><br/>
+        ${generatorAutomator}
+    `;
 }
 
 function getFirstMissionWithScriptedReward(researcher) {
