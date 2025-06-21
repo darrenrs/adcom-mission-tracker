@@ -14,14 +14,23 @@ var THEME_ID_TITLE_OVERRIDES = {
   "mexico": "Aztec"
 };
 
+// For balances that use the same theme, provide a value that corresponds with the folder found in the "img" folder.
+// Examples: All fusions can use the "fusion" theme folder
+const THEME_DUPLICATE_OVERRIDES = {
+  "fusionarchitecture": "fusion",
+  "fusioncareers": "fusion",
+  "fusioninfrastructure": "fusion",
+  "fusioninnovation": "fusion"
+}
+
 // Theme ID != Balance ID
 // This is exclusively seen in Ages for now.
 var THEME_ID_OVERRIDES = {
-  "architecture-bal-18": "fusionarchitecture",
-  "careers-bal-1": "fusioncareers",
-  "infrastructure-bal-17": "fusioninfrastructure",
-  "innovation-bal-1": "fusioninnovation",
-  "monster-bal-13": "halloween"
+  "architecture": "fusionarchitecture",
+  "careers": "fusioncareers",
+  "infrastructure": "fusioninfrastructure",
+  "innovation": "fusioninnovation",
+  "monster": "halloween"
 };
 
 // Version for last balance update

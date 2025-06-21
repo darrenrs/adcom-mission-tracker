@@ -4,7 +4,7 @@ var POWERS = ['K', 'M', 'B', 'T', 'AA', 'BB', 'CC', 'DD', 'EE', 'FF', 'GG', 'HH'
 
 // These are used for the event's title in the top-left nav menu.
 // Typically, the ThemeId is used directly, but some themes are poorly-named.
-var THEME_ID_TITLE_OVERRIDES = {
+const THEME_ID_TITLE_OVERRIDES = {
   "main": "Motherland",
   "attack": "Oil",
   "defense": "Shield",
@@ -16,16 +16,29 @@ var THEME_ID_TITLE_OVERRIDES = {
   "fusvehicle": "Vehicle Show",
   "hexathlon": "Motherland Games",
   "minicockatrice": "Mini Cockatrice",
-  "minipotatofactory": "Mini Potatofactory"
+  "minipotatofactory": "Mini Potatofactory",
+  "minisanta": "Mini Santa"
+};
+
+// For balances that use the same theme, provide a value that corresponds with the folder found in the "img" folder.
+// Examples: All fusions can use the "fusion" theme folder
+const THEME_DUPLICATE_OVERRIDES = {
+  "fusfarm": "fusion",
+  "fusscience": "fusion",
+  "fuspet": "fusion",
+  "fusvehicle": "fusion",
+  "minicockatrice": "cockatrice",
+  "minipotatofactory": "potatofactory",
+  "minisanta": "santa"
 };
 
 // Theme ID != Balance ID
 // This is exclusively seen in Ages for now.
-var THEME_ID_OVERRIDES = {};
+const THEME_ID_OVERRIDES = {};
 
 // Version for last balance update
 // Only includes changes to the actual balance, per the interests of the community.
-var BALANCE_UPDATE_VERSION = {
+const BALANCE_UPDATE_VERSION = {
   "atlantis-bal-3": "6.44",
   "attack-bal-20": "6.14",
   "bamboo-bal-10": "6.15",
@@ -41,6 +54,7 @@ var BALANCE_UPDATE_VERSION = {
   "hexathlon-bal-13": "6.19",
   "minicockatrice-bal-1": "6.43",
   "minipotatofactory-bal-13": "6.46",
+  "minisanta-bal-1": "6.47",
   "ninja-bal-1": "6.14",
   "potatofactory-bal-13": "6.38",
   "power-bal-20": "6.14",
@@ -55,7 +69,7 @@ var BALANCE_UPDATE_VERSION = {
 };
 
 // For game-specific documentation and social channels
-var SOCIAL_HELP_URLS = {
+const SOCIAL_HELP_URLS = {
   "faq": "https://docs.google.com/document/d/1lCa0GNHjXOSpeCgMtqESU7i1UA8LUmObh1s0EfuUPHU/",
   "discord": "https://discord.gg/XMeABQzk3C",
   "discord_old": "https://discord.gg/hxPRpZME54",
@@ -63,7 +77,7 @@ var SOCIAL_HELP_URLS = {
 }
 
 // So that AdCom can have "CurrentMode" and Ages can have "Ages-CurrentMode"
-var GAME_SAVE_KEY_PREFIX = "";
+const GAME_SAVE_KEY_PREFIX = "";
 
 // If not undefined, will show a datamining warning at the top of the Tracker
 var DATAMINE_WARNING_MIN_RANK = undefined; // For motherland

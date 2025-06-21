@@ -136,19 +136,21 @@ function loadModeSettings() {
   }
   
   // Set up the top-left title in the navbar
-  let icon = `<img class="scheduleIcon" src="${getImageDirectory()}/schedule.png">`;
-  let eventIcon = `<img class="scheduleIcon" src="img/event/${eventScheduleInfo.ThemeId}/schedule.png">`;
-  let eventName = THEME_ID_TITLE_OVERRIDES[eventScheduleInfo.ThemeId] || eventScheduleInfo.ThemeId;
+  let themeId = THEME_ID_OVERRIDES[eventScheduleInfo.ThemeId] || eventScheduleInfo.ThemeId;
+  let iconSrc = `img/shared/themeicons/${(currentMode == "main") ? "main" : themeId}.png`;
+  let eventIcon = `<img class="scheduleIcon" src="${iconSrc}">`;
+  let eventName = THEME_ID_TITLE_OVERRIDES[themeId] || themeId;
   eventName = upperCaseFirstLetter(eventName);
   let title = (currentMode == "main") ? THEME_ID_TITLE_OVERRIDES["main"] : eventName;
+  
   
   // The top-left dropdown always shows the current event, regardless of overrides.
   let trueCurrentEvent = getCurrentEventInfo();
   let trueCurrentEventTitle = THEME_ID_TITLE_OVERRIDES[trueCurrentEvent.ThemeId] || trueCurrentEvent.ThemeId;
   trueCurrentEventTitle = upperCaseFirstLetter(trueCurrentEventTitle);
-  let trueEventIcon = `<img class="scheduleIcon" src="img/event/${trueCurrentEvent.ThemeId}/schedule.png">`;
+  let trueEventIcon = `<img class="scheduleIcon" src="img/shared/themeicons/${trueCurrentEvent.ThemeId}.png">`;
   
-  $('#mode-select-title').html(`${icon} ${title}`);
+  $('#mode-select-title').html(`${eventIcon} ${title}`);
   $('#mode-select-title').addClass("show");
   $('#mode-select-event').html(`${trueEventIcon} ${trueCurrentEventTitle}`);
   
@@ -164,7 +166,7 @@ function loadModeSettings() {
   // Set up the icon for the "All Generators" button in the navbar
   let firstResourceId = getData().Resources[0].Id;
   $('#viewAllGeneratorsButton').attr('style', `background-image:url('${getImageDirectory()}/${firstResourceId}.png')`);
-  $('#viewBalanceInfoButton').attr('style', `background-image:url('${getImageDirectory()}/schedule.png')`);
+  $('#viewBalanceInfoButton').attr('style', `background-image:url('${iconSrc}')`);
   
   // Show a "datamined" warning for future ranks that aren't in the current version
   if ((DATAMINE_WARNING_MIN_RANK && currentMode == "main" && currentMainRank >= DATAMINE_WARNING_MIN_RANK) ||
@@ -385,7 +387,7 @@ function getSchedulePopupEvent(eventInfo) {
   return `
     <div class="card">
       <div class="card-header scheduleHeader ${headerClasses}" data-toggle="collapse" data-target="#scheduleBody-${lteId}" aria-controls="scheduleBody-${lteId}">
-        <img src='img/event/${eventInfo.ThemeId}/schedule.png' class="scheduleIconLarge">
+        <img src='img/shared/themeicons/${eventInfo.ThemeId}.png' class="scheduleIconLarge">
         ${startShort} - ${endShort}
         <span class="float-right">${top3RewardIcons} <span class="ml-2">(+)</span></span>
       </div>
@@ -430,7 +432,7 @@ function getAllEventBalanceHtml() {
   let data = `
   <div class="card">
     <div class="card-header scheduleHeader" data-toggle="collapse" data-target="#scheduleBody-main" aria-controls="scheduleBody-main">
-      <img src='img/main/schedule.png' class="scheduleIconLarge">
+      <img src='img/shared/themeicons/main.png' class="scheduleIconLarge">
       ${THEME_ID_TITLE_OVERRIDES["main"]}
       <span class="float-right"><span class="ml-2">(+)</span></span>
     </div>
@@ -446,28 +448,31 @@ function getAllEventBalanceHtml() {
   for (i of Object.keys(DATA)) {
     const lteId = i;
 
-    if (i === "event" || i === "main" || i === "evergreen" || i === "common") {
+    if (["event", "main", "evergreen", "common"].includes(i)) {
       continue;
     }
 
-    let themeId = lteId.split('-')[0];
-    
-    if (THEME_ID_OVERRIDES[lteId]) {
-      themeId = THEME_ID_OVERRIDES[lteId];
+    let originalId = lteId.split('-')[0];
+    if (THEME_ID_OVERRIDES[originalId]) { 
+      originalId = THEME_ID_OVERRIDES[originalId]; 
     }
 
+    let themeId = originalId;
+    if (THEME_DUPLICATE_OVERRIDES[themeId]) {
+      themeId = THEME_DUPLICATE_OVERRIDES[themeId];
+    }
+  
+    const name = ENGLISH_MAP[`lte.${originalId}.name`];
     let balanceLastUpdate = BALANCE_UPDATE_VERSION[lteId] ? BALANCE_UPDATE_VERSION[lteId] : "unknown";
-
-    const name = ENGLISH_MAP[`lte.${themeId}.name`];
 
     data += `
       <div class="card">
-        <div class="card-header scheduleHeader" data-toggle="collapse" data-target="#scheduleBody-${themeId}" aria-controls="scheduleBody-${themeId}">
-          <img src='img/event/${themeId}/schedule.png' class="scheduleIconLarge">
+        <div class="card-header scheduleHeader" data-toggle="collapse" data-target="#scheduleBody-${originalId}" aria-controls="scheduleBody-${themeId}">
+          <img src='img/shared/themeicons/${originalId}.png' class="scheduleIconLarge">
           ${name}
           <span class="float-right"><span class="ml-2">(+)</span></span>
         </div>
-        <div class="collapse" id="scheduleBody-${themeId}">
+        <div class="collapse" id="scheduleBody-${originalId}">
           <div class="card-body">
             <div><span class="float-right"><a href="?mode=event&eventOverride=${lteId}">View in Tracker</a></span></div>
             <div><strong>Last Update: </strong>${balanceLastUpdate}</div>
@@ -1261,6 +1266,7 @@ function renderMissions() {
 function getHelpHtml(isPopup) {
   let firstResourceId = getData().Resources[0].Id;
   let wordForResearchers = upperCaseFirstLetter(ENGLISH_MAP[`conditionmodel.researcher.plural`]);
+  let themeId = THEME_ID_OVERRIDES[eventScheduleInfo.ThemeId] || eventScheduleInfo.ThemeId; 
   let result = "";
   
   result += `<ul><li class="my-1">Click <strong>Current</strong> missions to move them to Completed.</li>`;
@@ -1269,7 +1275,7 @@ function getHelpHtml(isPopup) {
   result += `<li class="my-1">Click the capsule <span class="resourceIcon wood">&nbsp;</span> next to a mission to access its <strong>Calculator</strong>.</li>`;
   result += `<li class="my-1">If the capsule <span class="scriptedRewardInfo resourceIcon wood">&nbsp;</span> is circled, you can also view the <strong>pre-scripted rewards</strong>.</li>`;
   result += `<li class="my-1">The header contains four sub-menus with different features:<ol>`
-  result += `<li class="my-1">Click <span class="resourceIcon" style="background-image:url('${getImageDirectory()}/schedule.png')">&nbsp;</span> to view infomation about the <strong>current balance</strong>.</li>`
+  result += `<li class="my-1">Click <span class="resourceIcon" style="background-image:url('img/shared/themeicons/${themeId}.png')">&nbsp;</span> to view infomation about the <strong>current balance</strong>.</li>`
   result += `<li class="my-1">Click <span class="resourceIcon" style="background-image:url('${getImageDirectory()}/${firstResourceId}.png')">&nbsp;</span> to view all <strong>Resources/Generators</strong>.</li>`
   result += `<li class="my-1">Click <span class="resourceIcon cardIcon">&nbsp;</span> to view all <strong>${wordForResearchers}</strong>.</li>`;
   result += `<li class="my-1">Click <span class="resourceIcon comradesPerSec">&nbsp;</span> to view all <strong>${resourceName('comrade', false).toLowerCase()} trades</strong>.</li></ol>`;
@@ -1357,10 +1363,10 @@ function getRankAdvanceHtml() {
 
   if (currentMode === 'main') {
     currentText = 'Please enter the rank to navigate to.';
-    iconUrl = `${getImageDirectory()}/schedule.png`;
+    iconUrl = `img/shared/themeicons/main.png`
   } else {
     currentText = 'Please enter the rank to navigate to.<br>All previous missions will be marked as complete.';
-    iconUrl = `img/event/${eventScheduleInfo.ThemeId}/schedule.png`;
+    iconUrl = `img/shared/themeicons/${eventScheduleInfo.ThemeId}.png`;
   }
 
   return `<div id="rank-${currentMode}-holder">
@@ -2132,13 +2138,16 @@ var MISSION_EMOJI = {
 
 
 function getImageDirectory(overrideDirectory = "") {
-  if (overrideDirectory) {
-    return overrideDirectory;
-  } else if (currentMode == "event" && eventScheduleInfo && eventScheduleInfo.ThemeId) {
-    return `img/${currentMode}/${eventScheduleInfo.ThemeId}`;
-  } else {
-    return `img/${currentMode}`;
+  if (overrideDirectory) return overrideDirectory;
+  
+  else if (currentMode == "event" && eventScheduleInfo && eventScheduleInfo.ThemeId) {
+    let themeId = eventScheduleInfo.ThemeId;
+    themeId = THEME_ID_OVERRIDES[themeId] || themeId;
+    themeId = THEME_DUPLICATE_OVERRIDES[themeId] || themeId;
+    return `img/${currentMode}/${themeId}`;
   }
+
+  return `img/${currentMode}`;
 }
 
 // Used in describeMission to get an approriate icon based on the settings and resource involved.
