@@ -39,7 +39,7 @@ const THEME_ID_OVERRIDES = {};
 // Version for last balance update
 // Only includes changes to the actual balance, per the interests of the community.
 const BALANCE_UPDATE_VERSION = {
-  "atlantis-bal-3": "6.44",
+  "atlantis-bal-3": "6.47",
   "attack-bal-20": "6.14",
   "bamboo-bal-10": "6.15",
   "cockatrice-bal-10": "6.23",
