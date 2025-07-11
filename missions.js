@@ -3726,6 +3726,7 @@ function getValueForResearcherLevel(researcher, level) {
     // This is a special case that indicates a custom value.
     return getFormValuesObject().ResearcherOverrides[researcher.Id];
   } else {
+    console.log(researcher)
     let exponentialTotal = researcher.ExpoMultiplier * Math.pow(researcher.ExpoGrowth, level);
     let quadraticTotal = researcher.BasePower + level * researcher.CurveModifier + level * level * researcher.UpgradePower;
     

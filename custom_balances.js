@@ -117,7 +117,7 @@ DATA["thanksgiving-bal-10"] = {
                     "Value": 3
                 },
                 {
-                    "Id": "SF0016",
+                    "Id": "THX042",
                     "Value": 1
                 }
             ]
@@ -5401,7 +5401,7 @@ DATA["thanksgiving-bal-10"] = {
             "Name": "I1CritBonus",
             "ModType": "GeneratorCritPowerMult",
             "TargetIds": [
-                "mashpotato"
+                "foodlabour"
             ],
             "ExpoMultiplier": 3,
             "ExpoGrowth": 2,
@@ -5418,7 +5418,7 @@ DATA["thanksgiving-bal-10"] = {
             "Name": "I2CritBonus",
             "ModType": "GeneratorCritPowerMult",
             "TargetIds": [
-                "turkeyleg"
+                "animallabour"
             ],
             "ExpoMultiplier": 3,
             "ExpoGrowth": 2,
@@ -5435,7 +5435,7 @@ DATA["thanksgiving-bal-10"] = {
             "Name": "I3CritBonus",
             "ModType": "GeneratorCritPowerMult",
             "TargetIds": [
-                "fire"
+                "technician"
             ],
             "ExpoMultiplier": 4,
             "ExpoGrowth": 2,
@@ -5452,7 +5452,7 @@ DATA["thanksgiving-bal-10"] = {
             "Name": "I4CritBonus",
             "ModType": "GeneratorCritPowerMult",
             "TargetIds": [
-                "pie"
+                "baker"
             ],
             "ExpoMultiplier": 5,
             "ExpoGrowth": 2,
@@ -5469,7 +5469,7 @@ DATA["thanksgiving-bal-10"] = {
             "Name": "I5CritBonus",
             "ModType": "GeneratorCritPowerMult",
             "TargetIds": [
-                "cornucopia"
+                "botanist"
             ],
             "ExpoMultiplier": 5,
             "ExpoGrowth": 2,
@@ -5486,7 +5486,7 @@ DATA["thanksgiving-bal-10"] = {
             "Name": "GlobalCritBonus",
             "ModType": "GeneratorCritPowerMult",
             "TargetIds": [
-                "mashpotato,turkeyleg,fire,pie,cornucopia"
+                "foodlabour,animallabour,technician,baker,botanist"
             ],
             "ExpoMultiplier": 4,
             "ExpoGrowth": 2,
@@ -5503,7 +5503,7 @@ DATA["thanksgiving-bal-10"] = {
             "Name": "GlobalDiscount",
             "ModType": "GeneratorCostReduction",
             "TargetIds": [
-                "mashpotato,turkeyleg,fire,pie,cornucopia"
+                "foodlabour,animallabour,technician,baker,botanist"
             ],
             "ExpoMultiplier": 1,
             "ExpoGrowth": 10,
@@ -5520,7 +5520,7 @@ DATA["thanksgiving-bal-10"] = {
             "Name": "GlobalCritChance",
             "ModType": "GeneratorCritChance",
             "TargetIds": [
-                "mashpotato,turkeyleg,fire,pie,cornucopia"
+                "foodlabour,animallabour,technician,baker,botanist"
             ],
             "ExpoMultiplier": 0,
             "ExpoGrowth": 0,
@@ -5935,48 +5935,6 @@ DATA["thanksgiving-bal-10"] = {
             "Resettable": false,
             "SharedData": false
         },
-        "Trades", [
-            {
-                "Resource": "Mashpotato",
-                "CostExponent": 10,
-                "CostMultiplier": 500,
-                "ComradeMultiplier": 0,
-                "ComradeAdd": 1,
-                "MaxLevel": 249
-            },
-            {
-                "Resource": "Turkeyleg",
-                "CostExponent": 10,
-                "CostMultiplier": 500,
-                "ComradeMultiplier": 0,
-                "ComradeAdd": 2,
-                "MaxLevel": 249
-            },
-            {
-                "Resource": "Fire",
-                "CostExponent": 10,
-                "CostMultiplier": 500,
-                "ComradeMultiplier": 0,
-                "ComradeAdd": 3,
-                "MaxLevel": 249
-            },
-            {
-                "Resource": "Pie",
-                "CostExponent": 10,
-                "CostMultiplier": 500,
-                "ComradeMultiplier": 0,
-                "ComradeAdd": 4,
-                "MaxLevel": 249
-            },
-            {
-                "Resource": "Cornucopia",
-                "CostExponent": 10,
-                "CostMultiplier": 500,
-                "ComradeMultiplier": 0,
-                "ComradeAdd": 5,
-                "MaxLevel": 249
-            }
-        ]
     ],
     "Store": [
         {
