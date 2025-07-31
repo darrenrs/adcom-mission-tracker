@@ -43,7 +43,7 @@ const BALANCE_UPDATE_VERSION = {
   "attack-bal-20": "6.14",
   "bamboo-bal-10": "6.15",
   "cockatrice-bal-10": "6.23",
-  "cowboy-bal-2": "6.14",
+  "cowboy-bal-2": "6.47",
   "crusade-bal-1": "6.14",
   "defense-bal-21": "6.14",
   "export-bal-21": "6.29",
