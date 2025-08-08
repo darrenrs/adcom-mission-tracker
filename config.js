@@ -17,7 +17,8 @@ const THEME_ID_TITLE_OVERRIDES = {
   "hexathlon": "Motherland Games",
   "minicockatrice": "Mini Cockatrice",
   "minipotatofactory": "Mini Potatofactory",
-  "minisanta": "Mini Santa"
+  "minisanta": "Mini Santa",
+  "minivacation": "Mini Vacation",
 };
 
 // For balances that use the same theme, provide a value that corresponds with the folder found in the "img" folder.
@@ -29,7 +30,8 @@ const THEME_DUPLICATE_OVERRIDES = {
   "fusvehicle": "fusion",
   "minicockatrice": "cockatrice",
   "minipotatofactory": "potatofactory",
-  "minisanta": "santa"
+  "minisanta": "santa",
+  "minivacation": "bamboo",
 };
 
 // Theme ID != Balance ID
@@ -55,6 +57,7 @@ const BALANCE_UPDATE_VERSION = {
   "minicockatrice-bal-1": "6.43",
   "minipotatofactory-bal-13": "6.46",
   "minisanta-bal-1": "6.47",
+  "minivacation-bal-1": "6.48",
   "ninja-bal-1": "6.14",
   "potatofactory-bal-13": "6.38",
   "power-bal-20": "6.14",

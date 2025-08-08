@@ -329,7 +329,7 @@ function getSchedulePopupEvent(eventInfo) {
             }
           });
 
-          avatarName = `${relatedAvatar.Rarity} Avatar`;
+          avatarName = ENGLISH_MAP[`avatar.avatar.rarity.${relatedAvatar.Rarity.toLowerCase()}`];
           let visualKey = relatedAvatar['VisualKey'].replace(".png","");
           avatarIcon = `<span class="rewardListIconWrapper"><img class='mx-1 rewardIcon' src='img/shared/avatars/${visualKey}.png'></span>`;
 
@@ -1917,35 +1917,35 @@ function describeMission(mission, overrideIcon = "") {
 
 // Given a root.Missions.Reward object, return an html string describing the reward (almost always a gacha capsule with gold + science + researchers).
 function describeReward(reward, includeCapType = true) {
-    if (reward.Reward == "Resources") {
-        return describeRewardIndividual(reward);
-    }
+  switch (reward.Reward) {
+    case "Resources":
+      return describeRewardIndividual(reward);
 
-    if (reward.Reward == "Gacha") {
-        let gachaData = getData().GachaLootTable.find(g => g.Id == reward.RewardId);
-        if (!gachaData) { return `Unknown gacha reward id: ${reward.RewardId}`; }
+    case "Gacha":
+      let gachaData = getData().GachaLootTable.find(g => g.Id == reward.RewardId);
+      if (!gachaData) { return `Unknown gacha reward id: ${reward.RewardId}`; }
 
-        if (gachaData.Type != "Scripted") { return `Random <span class="capsule ${reward.RewardId}">&nbsp;</span>` }
+      if (gachaData.Type != "Scripted") { return `Random <span class="capsule ${reward.RewardId}">&nbsp;</span>` }
 
-        let script = getData().GachaScripts.find(s => s.GachaId == gachaData.Id);
-        if (!script) { return `Unknown gacha script id: ${gacha.Id}`; }   
+      let script = getData().GachaScripts.find(s => s.GachaId == gachaData.Id);
+      if (!script) { return `Unknown gacha script id: ${gacha.Id}`; }   
 
-        let gold = script.Gold ? `<li>${describeRewardIndividual({"RewardId":"gold", "Value": script.Gold})}</li>` : ''
-        let science = script.Science ? `<li>${describeRewardIndividual({"RewardId":"science", "Value": script.Science})}</li>` : ''
-        
-        let cards = ``
-        script.Card.forEach(card => {
-            let researcher = getData().Researchers.find(r => r.Id === card.Id);
-            cards += `<li><span class="text-nowrap">${cardValueCount(card)}${describeResearcher(researcher)}</span></li>`;
-        })
-        
-        let scriptRewards = gold + science + cards
-        let capsuleWrapper = includeCapType ? `Scripted <span class="capsule ${script.MimicGachaId}">&nbsp;</span>:` : ``
-        return `${capsuleWrapper}<ul>${scriptRewards}</ul>`;
-    }
-   else {    
-    return `Unknown reward: ${reward.Reward}`;
-   }
+      let gold = script.Gold ? `<li>${describeRewardIndividual({"RewardId":"gold", "Value": script.Gold})}</li>` : ''
+      let science = script.Science ? `<li>${describeRewardIndividual({"RewardId":"science", "Value": script.Science})}</li>` : ''
+      
+      let cards = ``
+      script.Card.forEach(card => {
+          let researcher = getData().Researchers.find(r => r.Id === card.Id);
+          cards += `<li><span class="text-nowrap">${cardValueCount(card)}${describeResearcher(researcher)}</span></li>`;
+      })
+      
+      let scriptRewards = gold + science + cards
+      let capsuleWrapper = includeCapType ? `Scripted <span class="capsule ${script.MimicGachaId}">&nbsp;</span>:` : ``
+      return `${capsuleWrapper}<ul>${scriptRewards}</ul>`;
+    
+    default:    
+      return `Unknown reward: ${reward.Reward}`;
+  }
 }
 
 function describeRewardIndividual(reward) {
@@ -2738,6 +2738,20 @@ function getBalanceInfoPopup() {
         let rewardId = j['RewardId'];
 
         switch (j['Reward']) {
+          case "Avatar":
+            let aviDat = DATA.common.Avatars.filter(a => a.ID == rewardId);
+            if (aviDat.length == 0) {
+              rewardContent = "Unknown Avatar Reward";
+              break;
+            }
+            
+            aviDat = aviDat[0];
+            let avatarName = ENGLISH_MAP[`avatar.avatar.rarity.${aviDat.Rarity.toLowerCase()}`];
+            let visualKey = aviDat['VisualKey'].replace(".png","");
+            let avatarIcon = `<span class="rewardListIconWrapper"><img class='mx-1 rewardIcon' src='img/shared/avatars/${visualKey}.png'></span>`;
+            rewardContent = `x${bigNum(j['Value'])} ${avatarIcon} ${avatarName}`
+          break;
+
           case "Gacha":
             rewardId = rewardId.toLowerCase();
             let capsuleImageUrl = `<img class='rewardIcon' src='img/shared/gacha/${rewardId}.png'>`
