@@ -2994,7 +2994,6 @@ function getScriptedsByCapsule() {
 }
 
 function getScriptedsByResearcher() {
-    let isEvent = (currentMode != 'main');
     let imgDirectory = getImageDirectory();
     let scriptedData = getData().GachaScripts;
     let balanceMissions = getData().Missions;
@@ -3008,63 +3007,53 @@ function getScriptedsByResearcher() {
     let tableHtml = `
         <tr>
             <th>Researcher</th>
-            <th>${isEvent ? "" : "Rank"}</th>
             <th>Sources</th>
         </tr>
     `;
 
-    researcherData.forEach(researcher => {
+    // Object with keys being Researcher HTML and values being a list of each reference in scripts
+    let scriptedListHtml = {};
+
+    for (let researcher of researcherData) {
         let nameTitle = `<div class="resourceIcon" style="background-image: url('${imgDirectory}/${researcher.Id}.png');">&nbsp;</div> ${researcherName(researcher)}`;
-
         let appearances = scriptedData.filter(sc => sc.Card.some(rs => rs.Id === researcher.Id));
-        let ranksList = [];
-        let scriptedListHtml = [];
+        scriptedListHtml[nameTitle] = [];
+        
+        if (appearances == 0) continue;
+        
+        let references = [];
+        for (let sc of appearances) {
+            // Locate where this Script can be gotten from
 
-        if (appearances == 0) {
-            scriptedListHtml = ["<span style='color:#bbb'>No guaranteed copies.</span>"]
-            ranksList = [];
+            if (sc.GachaId == scriptedFreeId) {
+                references.push(`<span class="capsule ${sc.MimicGachaId}">&nbsp;</span> Scripted Free Capsule`);
+                continue;
+            }
+
+            let missionRefs = balanceMissions.filter(m => m.Reward.RewardId == sc.GachaId);
+            let rankupRefs = balanceRanks.filter(r => r.RewardId == sc.GachaId);
+
+            references = references.concat(
+                missionRefs.map(m => describeMission(m)),
+                rankupRefs.map(r => `<span class="capsule ${sc.MimicGachaId}">&nbsp;</span> Completing Rank ${r.Rank}`)
+            );
         }
-        else {
-            // Order scripts in order (free capsules will come first, then ordered scripts)
-            appearances.sort((a, b) => { 
-                if (a.GachaId === scriptedFreeId) return -1;
-                a.GachaId.localeCompare(b.GachaId)
-            });
-
-            appearances.forEach(sc => {
-                // 1. Check if it's the free scripted capsule
-                // 2. Check if it's from a mission
-                // 3. Check if it's from a rank up capsule (Motherland)
-
-                if (sc.GachaId == scriptedFreeId) {
-                    scriptedListHtml.push(`<span class="capsule ${sc.MimicGachaId}">&nbsp;</span> First Free Capsule`);
-                    ranksList.push("");
-                    return;
-                }
-
-                let missions = balanceMissions.filter(m => m.Reward.RewardId == sc.GachaId);
-                if (missions.length == 1) {
-                    scriptedListHtml.push(describeMission(missions[0]))
-                    ranksList.push(isEvent ? "" : missions[0].Rank)
-                    return;
-                }
-
-                let rankUps = balanceRanks.filter(r => r.RewardId == sc.GachaId);
-                if (rankUps.length == 1) {
-                    scriptedListHtml.push(`<span class="capsule ${sc.MimicGachaId}">&nbsp;</span> Completing Rank ${rankUps[0].Rank}`);
-                    ranksList.push("");
-                }
-            });
+        scriptedListHtml[nameTitle] = references.join("<br/>");
+    };
+    
+    for (let researcherName of Object.keys(scriptedListHtml)) {
+        let appearances = scriptedListHtml[researcherName];
+        if (appearances == '' || appearances == []) {
+            appearances = `<span style='color:#bbb'>No guaranteed copies.</span>`;
         }
 
         tableHtml += `
             <tr>
-                <td style='padding:5px 0'>${nameTitle}</td>
-                <td style='padding:5px 0; text-align:center'>${ranksList.join("<br/>")}</td>
-                <td style='padding:5px 0'>${scriptedListHtml.join("<br/>")}</td>
+                <td style='padding:5px 0'>${researcherName}</td>
+                <td style='padding:5px 0'>${appearances}</td>
             </tr>
         `;
-    });
+    }
 
     return tableHtml;
 }
