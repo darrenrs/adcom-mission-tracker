@@ -316,7 +316,7 @@ function getSchedulePopupEvent(eventInfo) {
           let relatedAvatar = {};
           AvatarDat.forEach(a => {
             if (Object.keys(a).includes("UnlockLocation")) {
-              if (a.UnlockLocation.ThemeId == eventInfo.ThemeId) {
+              if ((a.UnlockLocation.ThemeId == eventInfo.ThemeId) || (a.UnlockLocation.ThemeId == THEME_DUPLICATE_OVERRIDES[eventInfo.ThemeId])) {
                 relatedAvatar = a;
                 return;
               }
@@ -329,15 +329,20 @@ function getSchedulePopupEvent(eventInfo) {
             }
           });
 
-          avatarName = ENGLISH_MAP[`avatar.avatar.rarity.${relatedAvatar.Rarity.toLowerCase()}`];
-          let visualKey = relatedAvatar['VisualKey'].replace(".png","");
-          avatarIcon = `<span class="rewardListIconWrapper"><img class='mx-1 rewardIcon' src='img/shared/avatars/${visualKey}.png'></span>`;
-
-          avatarReward = `
-            ${avatarIcon}
-            ${avatarName} / 
-            <br/>
-          `;
+          if (Object.keys(relatedAvatar).length == 0) {
+            avatarReward = "Unknown Avatar Reward<br/>";
+          }
+          else {
+            avatarName = ENGLISH_MAP[`avatar.avatar.rarity.${relatedAvatar.Rarity.toLowerCase()}`];
+            let visualKey = relatedAvatar['VisualKey'].replace(".png","");
+            avatarIcon = `<span class="rewardListIconWrapper"><img class='mx-1 rewardIcon' src='img/shared/avatars/${visualKey}.png'></span>`;
+  
+            avatarReward = `
+              ${avatarIcon}
+              ${avatarName} / 
+              <br/>
+            `;
+          }
         }
         else {
           avatarReward = "Unknown Avatar Reward";
