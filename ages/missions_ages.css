@@ -3,3 +3,11 @@
 .propagandaBoost {
   background-size: contain;
 }
+
+.researcherCommon {
+  background-color: rgb(215, 245, 255) !important;
+}
+
+.researcherRare {
+  background-color: rgb(227, 255, 227) !important;
+}
