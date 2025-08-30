@@ -1301,9 +1301,10 @@ function getHelpHtml(isPopup) {
         <li class="my-1">Got <strong>questions?</strong>  Check out the <a href="${SOCIAL_HELP_URLS['faq']}">Game Guide/FAQ</a>, <a href="${SOCIAL_HELP_URLS['discord']}">Official Discord</a>, <a href="${SOCIAL_HELP_URLS['discord_old']}">Unofficial Discord</a>, or <a href="${SOCIAL_HELP_URLS['reddit']}">Reddit</a>.</li>
     </ul>
     `;
-
+    
+    result += `If you want to do more advanced offline calculations, <a href="https://stiwen87.github.io">check this page out.</a> (Credit to Stiwen)<br>`
     if (!(window.location.href).includes('/ages')) {
-        result += `New <a href="https://darrenskidmore.com/adcom-leaderboard/">leaderboard tracker available here</a>! You can see your exact rank in events past and present and keep tabs on your division leaderboards.`;
+        result += `<a href="https://darrenskidmore.com/adcom-leaderboard/">Leaderboard tracker available here</a>! You can see your exact rank in events past and present and keep tabs on your division leaderboards.`;
     }
 
     return result;
