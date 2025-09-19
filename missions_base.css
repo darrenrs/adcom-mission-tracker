@@ -100,9 +100,59 @@ input:checked + .slider:before {
   border-radius: 50%;
 }
 
-
 .currentRank {
   color: #788781;	
+}
+
+#mode-select-title {
+    vertical-align: middle;
+    font-size: 1.25rem;
+}
+
+.nav-btn {
+    height: 40px;
+    color: white;
+    margin: 0 2px;
+    background-color: rgb(0, 0, 0, 0.15);
+    border: rgba(255, 255, 255, 0.2) 1px solid;
+    border-radius: 2px;
+}
+
+.nav-icon-btn {
+    width: 40px;
+}
+
+.nav-btn:hover {
+    background-color: rgb(0, 0, 0, 0.4);
+    border: rgba(255, 255, 255, 0.3) 1px solid;
+}
+
+.nav-btn:focus {
+    outline: none;
+    box-shadow: none;
+}
+
+.nav-btn img {
+    padding: 2px;
+    max-width: 100%;
+    max-height: 100%;
+    min-width: 28px;
+    min-height: 28px;
+}
+
+/* Top-nav buttons go onto another line on mobile devices */
+@media (max-width: 440px) {
+    .navbar {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .navbar .nav-right {
+        margin-top: .5rem;
+        width: 100%;
+        display: flex;
+        justify-content: flex-start;
+    }
 }
 
 .researcherName {
@@ -124,6 +174,7 @@ input:checked + .slider:before {
   background-repeat: no-repeat;
   background-position: center;
   display: inline-block;
+  object-fit: contain;
 }
 
 .resourceIcon.disabled {

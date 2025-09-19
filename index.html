@@ -1,77 +1,111 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <!-- Global site tag (gtag.js) - Google Analytics -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-37R6V8R8CG"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-37R6V8R8CG"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
 
-    gtag('config', 'G-37R6V8R8CG');
-  </script>
+        gtag('js', new Date());
+        gtag('config', 'G-37R6V8R8CG');
+    </script>
 
-  <title>AdVenture Communist Mission Tracker</title>
-  <link id="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link href="missions_base.css" rel="stylesheet">
-  <link href="missions_img.css" rel="stylesheet">
-  <link rel="shortcut icon" type="image/png" href="img/shared/gacha/stone.png">
+    <title>AdVenture Communist Mission Tracker</title>
+    <link id="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link href="missions_base.css" rel="stylesheet">
+    <link href="missions_img.css" rel="stylesheet">
+    <link rel="shortcut icon" type="image/png" href="img/shared/gacha/stone.png">
 </head>
+
 <body id="body">
-  <nav class="navbar navbar-expand navbar-dark bg-dark">
-    <span class="dropdown">
-      <a id="mode-select-title" class="navbar-brand mb-0 h1 dropdown-toggle collapse" href="#" id="modeMenuLink" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Motherland Missions</a>
-      <ul class="dropdown-menu" aria-labelledby="settingsDropdownMenuLink">
-        <a href="?mode=main" class="dropdown-item" id="mode-select-main" title="Switch to Motherland"><img class="scheduleIcon mx-1" src="img/shared/themeicons/main.png"> Motherland</a>
-        <a href="?mode=event" class="dropdown-item" id="mode-select-event" title="Switch to Current Event"><img class="scheduleIcon" src="img/shared/themeicons/space.png"> Event</a>
-        <div class="dropdown-divider"></div>
-        <a href="#" class="dropdown-item" id="mode-select-schedule" data-toggle="modal" data-target="#schedulePopup" title="View Schedule"><img class="scheduleIcon" src="img/shared/calendar.png"> Schedule</a>
-        <a href="#" class="dropdown-item" id="mode-select-eventbal" data-toggle="modal" data-target="#eventBalancePopup" title="View All Events"><img class="scheduleIcon" src="img/shared/calendar.png"> All Events</a>
-        <div class="dropdown-divider"></div>
-        <a href="https://darrenskidmore.com/adcom-leaderboard/" class="dropdown-item" title="Leaderboard Tracker"><img class="scheduleIcon" src="img/shared/leaderboard-segment.png"> Leaderboard</a>
-      </ul>
-    </span>
-    <ul class="navbar-nav ml-auto">
-      <li class="nav-item">
-        <a href="#" class="nav-link" data-toggle="modal" data-target="#balanceInfoPopup" data-tab="balance-info-tab" title="View Balance Info"><div id="viewBalanceInfoButton" class="resourceIcon">&nbsp;</div></a>
-      </li>
-      <li class="nav-item">
-        <a href="#" class="nav-link" data-toggle="modal" data-target="#allInfoPopup" data-tab="all-generators-tab" title="View Generators"><div id="viewAllGeneratorsButton" class="resourceIcon">&nbsp;</div></a>
-      </li>
-      <li class="nav-item">
-        <a href="#" class="nav-link" data-toggle="modal" data-target="#allInfoPopup" data-tab="all-researchers-tab" title="View Researchers"><div class="resourceIcon cardIcon">&nbsp;</div></a>
-      </li>
-      <li class="nav-item">
-        <a href="#" class="nav-link" data-toggle="modal" data-target="#allInfoPopup" data-tab="all-trades-tab" title="View Trades"><div class="resourceIcon comradesPerSec">&nbsp;</div></a>
-      </li>
-      <li class="nav-item dropdown">
-        <a class="nav-link dropdown-toggle" href="#" id="settingsDropdownMenuLink" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="Settings">
-          &equiv;
-        </a>
-        <ul class="dropdown-menu dropdown-menu-right" aria-labelledby="settingsDropdownMenuLink">
-          <h6 class="dropdown-header text-center">Style</h6>
-          <button class="dropdown-item" id="config-style-dark" onclick="toggleDarkStyle()"><span class="active-checkbox"></span> Dark</button>
-          <button class="dropdown-item" id="config-style-list" onclick="toggleListStyle()"><span class="active-checkbox"></span> List</button>
-          <button class="dropdown-item" id="config-style-icons" onclick="toggleIconsStyle()"><span class="active-checkbox"></span> Icons</button>
-          <div class="dropdown-divider"></div>
-          <h6 class="dropdown-header text-center">Progress</h6>
-          <button class="dropdown-item" data-toggle="modal" data-target="#rankPopup" onclick='focusRankSelectPrompt()'>Advance To Rank</button>
-          <button class="dropdown-item" data-toggle="modal" data-target="#dataPopup">Reset Data</button>
-          <div class="dropdown-divider"></div>
-          <h6 class="dropdown-header text-center">Tables</h6>
-          <button class="dropdown-item" data-toggle="modal" data-target="#airdropTablePopup">Airdrops by Rank</button>
-          <button class="dropdown-item" data-toggle="modal" data-target="#scriptedGachaTablePopup">Scripted Capsules</button>
-          <button class="dropdown-item" data-toggle="modal" data-target="#capsuleTablePopup">Capsules by Rank</button>
-          <div class="dropdown-divider"></div>
-          <h6 class="dropdown-header text-center">Help</h6>
-          <button class="dropdown-item" data-toggle="modal" data-target="#helpPopup">General Help</button>
-          <button class="dropdown-item" data-toggle="modal" data-target="#keyboardPopup">Keyboard Shortcuts</button>
-          <button class="dropdown-item" data-toggle="modal" data-target="#finalSurveyPopup" id="surveyClick" style="display: none;">Survey</button>
+    <nav class="navbar navbar-expand navbar-dark bg-dark">
+        <div class="dropdown">
+            <button id="mode-select-title" class="nav-btn dropdown-toggle show" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                Balance
+            </button>
+            
+            <ul class="dropdown-menu" aria-labelledby="settingsDropdownMenuLink">
+                <a href="?mode=main" class="dropdown-item" id="mode-select-main" title="Switch to Motherland">
+                    <img class="scheduleIcon" src="img/shared/themeicons/main.png">
+                    Motherland
+                </a>
+                <a href="?mode=event" class="dropdown-item" id="mode-select-event" title="Switch to Current Event">
+                    <img class="scheduleIcon" src="img/shared/themeicons/space.png">
+                    Event
+                </a>
+                <div class="dropdown-divider"></div>
+                <a href="#" class="dropdown-item" id="mode-select-schedule" data-toggle="modal" data-target="#schedulePopup" title="View Schedule">
+                    <img class="scheduleIcon" src="img/shared/calendar.png">
+                    Schedule
+                </a>
+                <a href="#" class="dropdown-item" id="mode-select-eventbal" data-toggle="modal" data-target="#eventBalancePopup" title="View All Events">
+                    <img class="scheduleIcon" src="img/shared/calendar.png">
+                    All Events
+                </a>
+                <div class="dropdown-divider"></div>
+                <a href="https://darrenskidmore.com/adcom-leaderboard/" class="dropdown-item" title="Leaderboard Tracker">
+                    <img class="scheduleIcon" src="img/shared/leaderboard-segment.png">
+                    Leaderboard
+                </a>
+                <a href="https://stiwen87.github.io/" class="dropdown-item" title="Offline Calculator">
+                    <img class="scheduleIcon" src="img/shared/themeicons/main.png">
+                    Offline Calculator
+                </a>
+            </ul>
+        </div>
+
+        <ul class="navbar-nav ml-auto nav-right">
+            <li class="nav-item">
+                <button type="button" id="viewBalanceInfoButton" class="nav-btn nav-icon-btn" data-toggle="modal" data-target="#balanceInfoPopup" data-tab="balance-info-tab" title="View Balance Info">
+                    <img src="img/shared/themeicons/main.png">
+                </button>
+            </li>
+            <li class="nav-item">
+                <button type="button" id="viewAllGeneratorsButton" class="nav-btn nav-icon-btn" data-toggle="modal" data-target="#allInfoPopup" data-tab="all-generators-tab" title="View Generators">
+                    <img src="img/main/potato.png">
+                </button>
+            </li>
+            <li class="nav-item">
+                <button type="button" class="nav-btn nav-icon-btn" data-toggle="modal" data-target="#allInfoPopup" data-tab="all-researchers-tab" title="View Researchers">
+                    <img src="img/shared/card.png">
+                </button>
+            </li>
+            <li class="nav-item">
+                <button type="button" class="nav-btn nav-icon-btn" data-toggle="modal" data-target="#allInfoPopup" data-tab="all-trades-tab" title="View Trades">
+                    <img src="img/shared/comrades_per_second.png">
+                </button>
+            </li>
+            <li class="nav-item dropdown">
+                <button type="button" class="nav-btn nav-icon-btn dropdown-toggle" d="settingsDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="Settings">
+                    &equiv;
+                </button>
+                <ul class="dropdown-menu dropdown-menu-right" aria-labelledby="settingsDropdownMenuLink">
+                    <h6 class="dropdown-header text-center">Style</h6>
+                    <button class="dropdown-item" id="config-style-dark" onclick="toggleDarkStyle()"><span class="active-checkbox"></span> Dark</button>
+                    <button class="dropdown-item" id="config-style-list" onclick="toggleListStyle()"><span class="active-checkbox"></span> List</button>
+                    <button class="dropdown-item" id="config-style-icons" onclick="toggleIconsStyle()"><span class="active-checkbox"></span> Icons</button>
+                    <div class="dropdown-divider"></div>
+                    <h6 class="dropdown-header text-center">Progress</h6>
+                    <button class="dropdown-item" data-toggle="modal" data-target="#rankPopup" onclick='focusRankSelectPrompt()'>Advance To Rank</button>
+                    <button class="dropdown-item" data-toggle="modal" data-target="#dataPopup">Reset Data</button>
+                    <div class="dropdown-divider"></div>
+                    <h6 class="dropdown-header text-center">Tables</h6>
+                    <button class="dropdown-item" data-toggle="modal" data-target="#airdropTablePopup">Airdrops by Rank</button>
+                    <button class="dropdown-item" data-toggle="modal" data-target="#scriptedGachaTablePopup">Scripted Capsules</button>
+                    <button class="dropdown-item" data-toggle="modal" data-target="#capsuleTablePopup">Capsules by Rank</button>
+                    <div class="dropdown-divider"></div>
+                    <h6 class="dropdown-header text-center">Help</h6>
+                    <button class="dropdown-item" data-toggle="modal" data-target="#helpPopup">General Help</button>
+                    <button class="dropdown-item" data-toggle="modal" data-target="#keyboardPopup">Keyboard Shortcuts</button>
+                    <button class="dropdown-item" data-toggle="modal" data-target="#finalSurveyPopup" id="surveyClick" style="display: none;">Survey</button>
+                </ul>
+            </li>
         </ul>
-      </li>
-    </ul>
-  </nav>
+    </nav>
   <div class="modal fade" id="infoPopup" tabindex="-1" role="dialog" aria-labelledby="infoTitle" aria-hidden="true">
     <div class="modal-dialog" role="document">
       <div class="modal-content">
@@ -301,28 +335,28 @@
     </button>
   </div>
   <div id="missions"></div>
-  <footer>
-    <div class="ml-2">
-     <table class="small text-muted">
-      <tr>
-       <td class="px-2"><img class="scheduleIcon" src="img/shared/themeicons/main.png" title="AdVenture Communist"></td>
-       <td class="px-2"><a href='/adcom-mission-tracker/guide.html?product=adcom'>Game Guide/FAQ</a></td>
-       <td class="px-2">Missions</td>
-       <td class="px-2"><a href='/adcom-capsule-tracker/'>Capsules</a></td>
-      </tr>
-      <tr>
-       <td class="px-2"><img class="scheduleIcon" src="ages/img/shared/themeicons/main.png" title="AdVenture Ages"></td>
-       <td class="px-2"><a href='/adcom-mission-tracker/guide.html?product=ages'>Game Guide/FAQ</a></td>
-       <td class="px-2"><a href='/adcom-mission-tracker/ages/'>Missions</a></td>
-       <td class="px-2"><a href='/adcom-capsule-tracker/ages/'>Capsules</a></td>
-      </tr>
-     </table>
-     <small class="text-muted ml-2">
-     Issues?  Suggestions?  Want to contribute?  Project on <a href='https://github.com/darrenrs/adcom-mission-tracker'>GitHub</a>.
-     </small>
-    </div>
-  </footer>
 </body>
+
+<footer class="ml-2">
+    <table class="small text-muted">
+        <tr>
+            <td class="px-2"><img class="scheduleIcon" src="img/shared/themeicons/main.png" title="AdVenture Communist"></td>
+            <td class="px-2"><a href='/adcom-mission-tracker/guide.html?product=adcom'>Game Guide/FAQ</a></td>
+            <td class="px-2">Missions</td>
+            <td class="px-2"><a href='/adcom-capsule-tracker/'>Capsules</a></td>
+        </tr>
+        <tr>
+            <td class="px-2"><img class="scheduleIcon" src="ages/img/shared/themeicons/main.png" title="AdVenture Ages"></td>
+            <td class="px-2"><a href='/adcom-mission-tracker/guide.html?product=ages'>Game Guide/FAQ</a></td>
+            <td class="px-2"><a href='/adcom-mission-tracker/ages/'>Missions</a></td>
+            <td class="px-2"><a href='/adcom-capsule-tracker/ages/'>Capsules</a></td>
+        </tr>
+    </table>
+    <small class="text-muted ml-2">
+        Issues?  Suggestions?  Want to contribute?  Project on <a href='https://github.com/darrenrs/adcom-mission-tracker'>GitHub</a>.
+    </small>
+</footer>
+
 <script
   src="https://code.jquery.com/jquery-3.4.1.min.js"
   integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
@@ -333,6 +367,7 @@
   crossorigin="anonymous"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+
 <script src="config.js"></script>
 <script src="data.js"></script>
 <script src="missions.js"></script>
