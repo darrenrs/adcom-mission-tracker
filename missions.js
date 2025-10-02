@@ -516,7 +516,7 @@ function getSoonestEventInfos(minEventCount = 10, maxEventCount = 20, now = Date
   for (let oneOffEvent of SCHEDULE_CYCLES.LteOneOff) {
     updateSoonestOneOff(oneOffEvent, now, soonestEvents, oneOffHours);
   }
-  
+
   // Before iterating through the cycles, limit them to ones that aren't over.
   let currentCycles = SCHEDULE_CYCLES.LteSchedule.filter(cycle => now < getScheduleTimeMillis(cycle.EndTime));
   let hoursPerBalanceId = getHoursPerBalanceId();
@@ -532,7 +532,7 @@ function getSoonestEventInfos(minEventCount = 10, maxEventCount = 20, now = Date
     results.unshift(soonestEvents.pop());
   }
   
-  
+
   // Finally, find the last new theme in the schedule, and pare it down
   // to the min required to see all themes, or at least "minEventCount"
   let foundThemes = new Set();
@@ -547,7 +547,6 @@ function getSoonestEventInfos(minEventCount = 10, maxEventCount = 20, now = Date
   }
   
   let resultsToKeep = Math.max(minEventCount, parseInt(lastNewIndex) + 1);
-  
   return results.slice(0, resultsToKeep);
 }
 
