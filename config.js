@@ -50,7 +50,7 @@ const BALANCE_UPDATE_VERSION = {
   "cowboy-bal-2": "6.47",
   "crusade-bal-1": "6.14",
   "defense-bal-21": "6.14",
-  "export-bal-21": "6.29",
+  "export-bal-21": "6.50",
   "fusfarm-bal-30": "6.30",
   "fuspet-bal-32": "6.30",
   "fusscience-bal-31": "6.30",
