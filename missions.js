@@ -143,13 +143,11 @@ function loadModeSettings() {
   }
   
   // Set up the top-left title in the navbar
-  let themeId = THEME_ID_OVERRIDES[eventScheduleInfo.ThemeId] || eventScheduleInfo.ThemeId;
+  let themeId = eventScheduleInfo.ThemeId;
+  let basicEventName = getBasicEventName((currentMode != "main") ? themeId : "main");
+
   let iconSrc = `img/shared/themeicons/${(currentMode == "main") ? "main" : themeId}.png`;
   let eventIcon = `<img class="scheduleIcon" src="${iconSrc}">`;
-  let eventName = THEME_ID_TITLE_OVERRIDES[themeId] || themeId;
-  eventName = upperCaseFirstLetter(eventName);
-  let title = (currentMode == "main") ? THEME_ID_TITLE_OVERRIDES["main"] : eventName;
-  
   
   // The top-left dropdown always shows the current event, regardless of overrides.
   let trueCurrentEvent = getCurrentEventInfo();
@@ -157,7 +155,7 @@ function loadModeSettings() {
   trueCurrentEventTitle = upperCaseFirstLetter(trueCurrentEventTitle);
   let trueEventIcon = `<img class="scheduleIcon" src="img/shared/themeicons/${trueCurrentEvent.ThemeId}.png">`;
   
-  $('#mode-select-title').html(`${eventIcon} ${title}`);
+  $('#mode-select-title').html(`${eventIcon} ${basicEventName}`);
   $('#mode-select-title').addClass("show");
   $('#mode-select-event').html(`${trueEventIcon} ${trueCurrentEventTitle}`);
   
@@ -181,6 +179,23 @@ function loadModeSettings() {
     $('#alertUnconfirmed').removeClass('collapse');
   }
 }
+
+function getBasicEventName(themeId) {
+  themeId = themeId.toLowerCase();
+
+  if (themeId.includes("-bal-")) {
+    let balIdx = themeId.indexOf("-bal-");
+    themeId = themeId.substring(0, balIdx);
+  }
+
+  if (themeId == "evergreen" || themeId == "main") {
+    return THEME_ID_TITLE_OVERRIDES["main"];
+  }
+
+  themeId = THEME_ID_OVERRIDES[themeId] || themeId;
+  themeId = THEME_ID_TITLE_OVERRIDES[themeId] || themeId;
+  return upperCaseFirstLetter(themeId);
+} 
 
 
 // Returns the HTML for the body of the schedule popup
@@ -951,6 +966,12 @@ function initializePopups() {
     let modal = $(this);
     modal.find('#capsuleTablePopupBody').html(getCapsuleTablePopup());
   });
+
+  $('#avatarTablePopup').on('show.bs.modal', function () {
+    // Fill in the body
+    let modal = $(this);
+    modal.find('#avatarTablePopupBody').html(getAvatarTablePopup());
+  });
   
   $('#allInfoPopup').on('show.bs.modal', function (event) {
     let button = $(event.relatedTarget); // Button that triggered the modal
@@ -1049,54 +1070,51 @@ function loadSaveData() {
 
 function loadEventSaveData() {
   let dataString = getLocal("event", "Completed");
-  if (dataString) {
-    // Iterate through every mission in every rank, move completed ones to Completed.
-    /* This is a little inefficient, but it preserves the completion order. */
-    let completedIds = dataString.split(',');
-    for (let completedId of completedIds) {
-      if (!completedId) {
-        break;
-      }
-      
-      for (let rank in missionData) {
-        if (rank == "Completed") {
-          continue;
-        }
-        
-        for (let missionIndex = 0; missionIndex < missionData[rank].Remaining.length; missionIndex++) {
-          let mission = missionData[rank].Remaining[missionIndex];          
-          if (completedId == mission.Id) {
-            missionData[rank].Remaining.splice(missionIndex, 1);
-            missionData.Completed.Remaining.push(mission);
-            completedId = null;
-            break;
-          }
-        }
-      }
+  if (!dataString) return;
+
+  // Iterate through every mission in every rank, move completed ones to Completed.
+  /* This is a little inefficient, but it preserves the completion order. */
+  let completedIds = dataString.split(',');
+  for (let completedId of completedIds) {
+    if (!completedId) {
+      break;
     }
     
-    // Now find the lowest-rank missions to fill in Current.
-    let missionsNeeded = missionData.Current.StartingCount - missionData.Current.Remaining.length;
-    for (let rank = 1; rank <= getData().Ranks.length; rank++) {
-      if (missionsNeeded == 0) {
-        break;
+    for (let rank in missionData) {
+      if (rank == "Completed") {
+        continue;
       }
       
-      while (missionData[rank].Remaining.length != 0 && missionsNeeded != 0) {
-        let newMission = missionData[rank].Remaining.shift();
-        missionData.Current.Remaining.push(newMission);
-        missionsNeeded -= 1;
+      for (let missionIndex = 0; missionIndex < missionData[rank].Remaining.length; missionIndex++) {
+        let mission = missionData[rank].Remaining[missionIndex];          
+        if (completedId == mission.Id) {
+          missionData[rank].Remaining.splice(missionIndex, 1);
+          missionData.Completed.Remaining.push(mission);
+          completedId = null;
+          break;
+        }
       }
     }
   }
   
+  // Now find the lowest-rank missions to fill in Current.
+  let missionsNeeded = missionData.Current.StartingCount - missionData.Current.Remaining.length;
+  for (let rank = 1; rank <= getData().Ranks.length; rank++) {
+    if (missionsNeeded == 0) {
+      break;
+    }
+    
+    while (missionData[rank].Remaining.length != 0 && missionsNeeded != 0) {
+      let newMission = missionData[rank].Remaining.shift();
+      missionData.Current.Remaining.push(newMission);
+      missionsNeeded -= 1;
+    }
+  }
 }
 
 function loadMainSaveData() {
   let dataString = getLocal("main", "Completed");
-  if (!dataString) {
-    return;
-  }
+  if (!dataString) return; 
   
   let completedIds = dataString.split(',');
   let curRankMissions = new Set(getMissions().filter(m => m.Rank == currentMainRank).map(m => m.Id));
@@ -1133,8 +1151,8 @@ function updateSaveData() {
   if (currentMode == "event") {
     let saveData = missionData.Completed.Remaining.map(m => m.Id).join(',');
     setLocal("event", "Completed", saveData);
-  } else {
-    
+  } 
+  else {
     // Motherland
     let curRankCompletedIds = missionData.Completed.Remaining.map(m => m.Id);
     let saveData = [...curRankCompletedIds, ...missionData.OtherRankMissionIds].join(',');
@@ -1886,11 +1904,8 @@ function researcherName(researcherIdOrObj) {
 }
 
 function upperCaseFirstLetter(name) {
-  if (name) {
-    return name.charAt(0).toUpperCase() + name.slice(1);
-  } else {
-    return "";
-  }
+  if (!name) return "";
+  return name.charAt(0).toUpperCase() + name.slice(1);
 }
 
 // Given a mission object, returns a description html string that idenitifies the mission.
@@ -3255,6 +3270,68 @@ function percentageConversion(f) {
   fp = fp.toFixed(0);
   let fs = fp.toString() + "%";
   return fs
+}
+
+function getAvatarTablePopup() {
+  let avatars = [];
+  try { 
+    avatars = DATA.common.Avatars; 
+  }
+  catch {
+    console.warn(`Avatar object failed to load. 'common' object is: ${DATA.common}`);
+    return "Failed to retrieve Avatar data. Please report this to a developer!";
+  }
+
+  let tableBody = "";
+
+  for (let avi of avatars) {
+    let aviRarity = ENGLISH_MAP[`avatar.avatar.rarity.${avi.Rarity.toLowerCase()}`];
+    let aviIconSrc = `img/shared/avatars/${avi.VisualKey}`;
+    let aviDisplay = `<img class="mx-1 rewardIcon" src='${aviIconSrc}.png'> ${aviRarity}`;
+    let aviUnlock = "Unknown unlock requirement";
+
+    if (Object.keys(avi).includes("UnlockLocation")) {
+      let unlockLocation = avi.UnlockLocation;
+      let fixedType = unlockLocation.Type.toLowerCase();
+
+      if (fixedType == "rank") fixedType = "lte-rank";
+      else if (fixedType.includes("specop")) fixedType = fixedType.split(" ").join(".")
+
+      aviUnlock = ENGLISH_MAP[`avatar.unlock-location.${fixedType}`];
+      if (aviUnlock == undefined) { 
+        aviUnlock = "Unknown unlock requirement";
+      }
+      else if (fixedType == "milestones") {
+        aviUnlock = aviUnlock.replace("{0}", getBasicEventName(unlockLocation.ThemeId));
+      }
+      else {
+        aviUnlock = aviUnlock.replace("{0}", unlockLocation.Rank);
+        aviUnlock = aviUnlock.replace("{1}", getBasicEventName(unlockLocation.ThemeId ?? ""));
+      }
+    }
+    else if (Object.keys(avi).includes("BalancesIncluded")) {
+      let eventsList = avi.BalancesIncluded.map(x => getBasicEventName(x)).join(", ");
+      aviUnlock = `Only available in ${eventsList}`;
+    }
+
+    tableBody += `
+    <tr>
+      <td style="padding:1px">${aviDisplay}</td>
+      <td style="padding:1px">${aviUnlock}</td>
+    </tr>`;
+  }
+
+  return `
+  <table class="table">
+    <thead>
+      <th style="width:180px">Avatar</th>
+      <th>Unlock Condition</th>
+    </thead>
+    <tbody>
+      ${tableBody}
+    </tbody>
+  </table>
+  `
 }
 
 // Returns html for the calculator's sub-tab where you input generator and resource counts.

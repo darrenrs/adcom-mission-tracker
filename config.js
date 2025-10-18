@@ -49,7 +49,7 @@ const BALANCE_UPDATE_VERSION = {
   "cockatrice-bal-10": "6.48",
   "cowboy-bal-2": "6.47",
   "crusade-bal-1": "6.14",
-  "defense-bal-21": "6.14",
+  "defense-bal-21": "6.50",
   "export-bal-21": "6.50",
   "fusfarm-bal-30": "6.30",
   "fuspet-bal-32": "6.30",
@@ -86,7 +86,7 @@ const SOCIAL_HELP_URLS = {
 const GAME_SAVE_KEY_PREFIX = "";
 
 // If not undefined, will show a datamining warning at the top of the Tracker
-var DATAMINE_WARNING_MIN_RANK = undefined; // For motherland
+var DATAMINE_WARNING_MIN_RANK = 185; // For motherland
 var DATAMINE_WARNING_THEME_ID = undefined; // For events
 
 //var GS_SURVEY_URL = 'https://docs.google.com/forms/d/1Xcd8llOV7bElIz0slsPk9WmV6JtFIxMyQ1Y1dLvvPrs/'

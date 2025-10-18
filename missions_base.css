@@ -21,6 +21,13 @@
 .dark .btn-outline-secondary.disabled,
 .dark .btn-outline-success.disabled,
 .dark .btn-outline-danger.disabled {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue",
+    Arial,"Noto Sans",sans-serif,"Apple Color Emoji","Segoe UI Emoji",
+    "Segoe UI Symbol","Noto Color Emoji" 
+    !important;
+  font-size: 16px !important;
+
+
   color:
     rgb(
       var(--accessible-color),
@@ -113,8 +120,8 @@ input:checked + .slider:before {
     height: 40px;
     color: white;
     margin: 0 2px;
-    background-color: rgb(0, 0, 0, 0.15);
-    border: rgba(255, 255, 255, 0.2) 1px solid;
+    background-color: rgb(0, 0, 0, 0.35);
+    border: rgba(255, 255, 255, 0.35) 1px solid;
     border-radius: 2px;
 }
 
@@ -123,8 +130,13 @@ input:checked + .slider:before {
 }
 
 .nav-btn:hover {
-    background-color: rgb(0, 0, 0, 0.4);
-    border: rgba(255, 255, 255, 0.3) 1px solid;
+    background-color: rgb(0, 0, 0, 0.6);
+    border: rgba(255, 255, 255, 0.6) 1px solid;
+}
+
+.dark .nav-btn:hover {
+  background-color: rgb(255, 255, 255, 0.25);
+  border: rgba(255, 255, 255, 0.5) 1px solid;
 }
 
 .nav-btn:focus {

@@ -97,6 +97,7 @@
                     <button class="dropdown-item" data-toggle="modal" data-target="#airdropTablePopup">Airdrops by Rank</button>
                     <button class="dropdown-item" data-toggle="modal" data-target="#scriptedGachaTablePopup">Scripted Capsules</button>
                     <button class="dropdown-item" data-toggle="modal" data-target="#capsuleTablePopup">Capsules by Rank</button>
+                    <button class="dropdown-item" data-toggle="modal" data-target="#avatarTablePopup">Avatar Unlocks</button>
                     <div class="dropdown-divider"></div>
                     <h6 class="dropdown-header text-center">Help</h6>
                     <button class="dropdown-item" data-toggle="modal" data-target="#helpPopup">General Help</button>
@@ -272,6 +273,21 @@
       </div>
     </div>
   </div>
+  <div class="modal fade" id="avatarTablePopup" tabindex="-1" role="dialog" aria-labelledby="avatarTablePopupTitle" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="avatarTableTitle">Avatar Unlocks</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div id="avatarTablePopupBody"></div>
+        </div>
+      </div>
+    </div>
+  </div>
   <div class="modal fade" id="helpPopup" tabindex="-1" role="dialog" aria-labelledby="helpPopupTitle" aria-hidden="true">
     <div class="modal-dialog" role="document">
       <div class="modal-content">
@@ -324,7 +340,7 @@
     </div>
   </div>
   <div id="alertNoSchedule" class="alert alert-warning collapse mx-2 my-2" role="alert">There is no additional schedule data.  Please contact @enigma.code or @catster via discord to update the schedule.</div>
-  <div id="alertUnconfirmed" class="alert alert-warning collapse mx-2 my-2" role="alert">This mission list has been datamined from a future version and may not be final.</div>
+  <div id="alertUnconfirmed" class="alert alert-warning collapse mx-2 my-2" role="alert">This mission list has been <strong>datamined</strong> from a future version and may not be final.</div>
   <div id="alertFakeEvent" class="alert alert-warning collapse mx-2 my-2" role="alert">This event is new content, and will be added to the Tracker shortly before the event begins.</div>
   <div id="overrideWarning" class="alert alert-warning collapse mx-2 my-2" role="alert">You are in <strong>Event Override</strong> mode.  Event progress is temporary.</div>
   <div id="surveyBanner" class="alert alert-success collapse mx-2 my-2" role="alert">Please take the survey at <a href="https://docs.google.com/forms/d/1Xcd8llOV7bElIz0slsPk9WmV6JtFIxMyQ1Y1dLvvPrs/">this location</a>. This link expires on Monday, December 5, 2022.</div>
