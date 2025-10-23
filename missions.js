@@ -1208,7 +1208,8 @@ function renderMissions() {
       // A generic EVENT rank
       // Create the event rank popup.  Start with Completion Reward, if possible
       let popupHtml = "";
-      if (rank < getData().Ranks.length) {
+
+      if (rank < getData().Ranks.length && eventScheduleInfo.Rewards[0] != undefined) {
         let formattedRewards = "";
 
         if (IsAges) {
