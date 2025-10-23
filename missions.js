@@ -5,6 +5,8 @@ let currentMainRank = 1;
 let eventScheduleInfo = null;  // The main schedule metadata associated with the current LteEvent
 let ENGLISH_MAP = {}; // This gets filled in during mission.js's main(). After that, ENGLISH_MAP["active"] == "Active"
 
+const IsAges = (window.location.href).includes('/ages'); // If we're on the Ages tracker
+
 function main() {
   loadModeSettings();
   initializeLocalization();
@@ -206,8 +208,6 @@ function getSchedulePopup() {
 
 // Returns the HTML for the schedule event block for a given event
 function getSchedulePopupEvent(eventInfo) {
-  const IsAges = (window.location.href).includes('/ages');
-
   let shortOptions = { weekday: 'short', month: 'short', day: 'numeric' };
   let longOptions = { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: 'numeric', timeZoneName: 'short' };
   
@@ -224,7 +224,13 @@ function getSchedulePopupEvent(eventInfo) {
   
   let headerClasses = (currentMode == "event" && eventInfo.LteId == eventScheduleInfo.LteId) ? "selected": "";
   
-  let top3RewardIcons = eventInfo.Rewards.slice(-3).map(r => getRewardIcon(r)).join('');
+  let top3RewardIcons = ''; 
+  if (!IsAges) {
+    top3RewardIcons = eventInfo.Rewards.slice(-3).map(r => getRewardIcon(r.MilestoneReward)).join(''); 
+  }
+  else {
+    top3RewardIcons = eventInfo.Rewards.slice(-3).map(r => getRewardIcon(r)).join('');
+  }
 
   // Instead of manually writing ever bit of the HTML for these tabs manually,
   // we create a loop using certain rules, which makes it easier to skip 
@@ -326,60 +332,22 @@ function getSchedulePopupEvent(eventInfo) {
       }
 
       let reward = rewards[i];
-      
-      let avatarId = reward["AvatarId"];
-      let avatarReward = ``;
+      let rewardsDisplay = ``;
 
-      if (avatarId != 'null' && avatarId != null) {
-        const AvatarDat = DATA["common"].Avatars;
-        let avatarName = "";
-
-        if (avatarId == "LTE AVATAR") {
-          let relatedAvatar = {};
-          AvatarDat.forEach(a => {
-            if (Object.keys(a).includes("UnlockLocation")) {
-              if ((a.UnlockLocation.ThemeId == eventInfo.ThemeId) || (a.UnlockLocation.ThemeId == THEME_DUPLICATE_OVERRIDES[eventInfo.ThemeId])) {
-                relatedAvatar = a;
-                return;
-              }
-            }
-            else if (Object.keys(a).includes("BalancesIncluded")) {
-              if (a.BalancesIncluded.includes(eventInfo.BalanceId)) {
-                relatedAvatar = a;
-                return;
-              }
-            }
-          });
-
-          if (Object.keys(relatedAvatar).length == 0) {
-            avatarReward = "Unknown Avatar Reward<br/>";
-          }
-          else {
-            avatarName = ENGLISH_MAP[`avatar.avatar.rarity.${relatedAvatar.Rarity.toLowerCase()}`];
-            let visualKey = relatedAvatar['VisualKey'].replace(".png","");
-            avatarIcon = `<span class="rewardListIconWrapper"><img class='mx-1 rewardIcon' src='img/shared/avatars/${visualKey}.png'></span>`;
-  
-            avatarReward = `
-              ${avatarIcon}
-              ${avatarName} / 
-              <br/>
-            `;
-          }
-        }
-        else {
-          avatarReward = "Unknown Avatar Reward";
-        }
-        
+      let milestoneKeys = Object.keys(reward).filter(n => n.includes('MilestoneReward'));
+      if (milestoneKeys.length > 0) {
+        let rewardsList = [];
+        milestoneKeys.forEach(mst => rewardsList.push(describeScheduleRankReward(reward[mst], eventInfo)));
+        rewardsDisplay = rewardsList.join(" /<br/>");
+      }
+      else {
+        rewardsDisplay = describeScheduleRankReward(reward);
       }
 
       rewardsTable += `
         <tr>
           <td style="padding:0">${label}</td>
-          <td style="padding:0">
-            ${avatarReward}
-            <span class="rewardListIconWrapper">${getRewardIcon(reward)}</span> 
-            ${describeScheduleRankReward(reward)}
-          </td>
+          <td style="padding:0">${rewardsDisplay}</td>
         </tr>
       `;
     }
@@ -588,7 +556,7 @@ function updateSoonestOneOff(oneOffEvent, now, soonestEvents, oneOffHours) {
       ThemeId: oneOffEvent.ThemeId,
       StartTimeMillis: startTimeMillis,
       EndTimeMillis: endTimeMillis,
-      Rewards: getRewardsById(oneOffEvent.RewardId),
+      Rewards: getMilestoneRewardsById(oneOffEvent.RewardId),
       LeaderboardId: oneOffEvent.LteShortLeaderboardId,
       GlobalLeaderboardId: oneOffEvent.LeaderboardId
     });
@@ -652,7 +620,7 @@ function updateSoonestCycle(cycle, now, soonestEvents, oneOffHours, hoursPerBala
         ThemeId: themeId,
         StartTimeMillis: curStartTime.getTime(),
         EndTimeMillis: curEndTime.getTime(),
-        Rewards: getRewardsById(rewardId)
+        Rewards: getMilestoneRewardsById(rewardId)
       });
     }
     
@@ -687,12 +655,13 @@ function getHoursPerBalanceId() {
 }
 
 // Returns just the rank rewards array for a given rewardId
-function getRewardsById(rewardId) {
-  let reward = SCHEDULE_CYCLES.LteRewards.find(r => r.RewardId == rewardId);
-  if (reward) {
-    return reward.Rewards;
-  } else {
-    return [];
+function getMilestoneRewardsById(rewardId) {
+  if (!IsAges) {
+    // Returns the choice-based rewards tree
+    return SCHEDULE_CYCLES.LteMilestones.find(r => r.MilestoneId == rewardId).MilestoneRanks;
+  }
+  else {
+    return SCHEDULE_CYCLES.LteRewards.find(r => r.RewardId == rewardId).Rewards;
   }
 }
 
@@ -1234,11 +1203,27 @@ function renderMissions() {
       }
       
       title = `Rank ${rank}<span class="float-right btn-group" role="group">${buttonsHtml}</span>`;
-    } else {
+    } 
+    else {
       // A generic EVENT rank
       // Create the event rank popup.  Start with Completion Reward, if possible
-      let rankReward = eventScheduleInfo.Rewards[rank - 1];
-      let popupHtml = rankReward ? `<strong>Completion Reward:</strong><br />${getRewardIcon(rankReward, true)} ${describeScheduleRankReward(rankReward)}` : "";
+      let popupHtml = "";
+      if (rank < getData().Ranks.length) {
+        let formattedRewards = "";
+
+        if (IsAges) {
+          let rankRewards = eventScheduleInfo.Rewards[rank - 1];
+          formattedRewards = describeScheduleRankReward(rankRewards).replaceAll('"', "'");
+        }
+        else {
+          let rankRewards = eventScheduleInfo.Rewards.filter(r => r.Rank == rank)[0];
+          let rankKeys = Object.keys(rankRewards).filter(x => x.includes("MilestoneReward"));
+          let detailedRewards = rankKeys.map(r => describeScheduleRankReward(rankRewards[r]));
+          formattedRewards = detailedRewards.join("<br/>").replaceAll('"', "'");
+        }
+        
+        popupHtml = `<strong>Completion Reward(s):</strong><br />${formattedRewards}`;
+      }
       
       // On the special case of Rank 1, the popup shows the first scripted free capsule.
       let firstFreeId = getData().GachaFreeCycle[0].ScriptId;
@@ -1320,7 +1305,7 @@ function getHelpHtml(isPopup) {
     `;
     
     result += `If you want to do more advanced offline calculations, <a href="https://stiwen87.github.io">check this page out.</a> (Credit to Stiwen)<br>`
-    if (!(window.location.href).includes('/ages')) {
+    if (!IsAges) {
         result += `<a href="https://darrenskidmore.com/adcom-leaderboard/">Leaderboard tracker available here</a>! You can see your exact rank in events past and present and keep tabs on your division leaderboards.`;
     }
 
@@ -1519,30 +1504,64 @@ function getEventCurrentRankTitle() {
   return eventRankTitles[missionData.Completed.Remaining.length];
 }
 
-function describeScheduleRankReward(reward) {
+function describeScheduleRankReward(reward, includePopup = true, eventInfo = {}) {
   let rewardId = reward.RewardId;
   let singularOrPlural = (reward.Value == 1) ? "singular" : "plural";
+  let rewardIcon = `<span class="rewardListIconWrapper">${getRewardIcon(reward, false)}</span>`;
 
   switch (reward.Reward) {
     case "Resources":
-      let resName = resourceName(rewardId, singularOrPlural);
-      if (rewardId.includes('timehack')) {
-        resName = `<a tabindex="0" class="researcherName" role="button" data-html="true" data-toggle="popover" data-placement="top" data-trigger="focus" data-content="${getTimewarpPopup(rewardId)}">${resName}</a>`
-      }
-
+      let resName = resourceName(rewardId, (reward.Value != 1));
       let resValue = parseInt(reward.Value.toString().replace(",","")); // Stupid line to remove commas from SOME inputs ?
-      return `${bigNum(resValue)} ${resName}`;
+      return `${rewardIcon} ${bigNum(resValue)}x ${resName}`;
     break;
       
     case "Gacha":
       let gachaName = ENGLISH_MAP[`gacha.${rewardId}.name`].replace("Capsule", "");
-      return `${gachaName} Capsule`;
+      return `${rewardIcon} ${gachaName} Capsule`;
     break;
       
     case "Researcher":
       let researcherRarity = ENGLISH_MAP[`researcher.rarity.${rewardId}.name`];
       let wordForResearcher = ENGLISH_MAP[`conditionmodel.researcher.${singularOrPlural}`];
-      return `${reward.Value} ${researcherRarity} ${wordForResearcher}`;
+      return `${rewardIcon} ${reward.Value}x ${researcherRarity} ${wordForResearcher}`;
+    break;
+
+    case "Avatar":
+      const AvatarDat = DATA["common"].Avatars;
+      let avatarName = "";
+
+      if (reward.RewardId == "LTE AVATAR") {
+          let relatedAvatar = {};
+          AvatarDat.forEach(a => {
+            if (Object.keys(a).includes("UnlockLocation")) {
+              if ((a.UnlockLocation.ThemeId == eventInfo.ThemeId) || (a.UnlockLocation.ThemeId == THEME_DUPLICATE_OVERRIDES[eventInfo.ThemeId])) {
+                relatedAvatar = a;
+                return;
+              }
+            }
+            else if (Object.keys(a).includes("BalancesIncluded")) {
+              if (a.BalancesIncluded.includes(eventInfo.BalanceId)) {
+                relatedAvatar = a;
+                return;
+              }
+            }
+          });
+
+          if (Object.keys(relatedAvatar).length == 0) {
+            avatarReward = "Unknown Avatar Reward<br/>";
+          }
+          else {
+            avatarName = ENGLISH_MAP[`avatar.avatar.rarity.${relatedAvatar.Rarity.toLowerCase()}`];
+            let visualKey = relatedAvatar['VisualKey'].replace(".png","");
+            avatarIcon = `<span class="rewardListIconWrapper"><img class='mx-1 rewardIcon' src='img/shared/avatars/${visualKey}.png'></span>`;
+  
+            return `${avatarIcon}${avatarName}`;
+          }
+        }
+        else {
+          return "Unknown Avatar Reward";
+        }
     break;
   }
 }
@@ -1879,11 +1898,11 @@ function getResource(id) {
 }
 
 function resourceName(resourceId, isPluralized = true) {
-  if (isPluralized) {
-    return ENGLISH_MAP[`resource.${resourceId}.plural`];
-  } else {
-    return ENGLISH_MAP[`resource.${resourceId}.singular`];
+  if (resourceId.includes('timehack')) {
+    return ENGLISH_MAP[`store.bundleitem.${resourceId}.${isPluralized ? 'plural' : 'name'}`];
   }
+
+  return ENGLISH_MAP[`resource.${resourceId}.${isPluralized ? 'plural' : 'singular'}`];
 }
 
 function industryName(industryId) {
@@ -2711,7 +2730,7 @@ function getBalanceInfoPopup() {
     name = ENGLISH_MAP[`lte.${themeId}.name`];
     description = ENGLISH_MAP[`lte.${themeId}.desc`];
   } else {
-    if ((window.location.href).includes('/ages')) {
+    if (IsAges) {
       name = 'Ages';
       description = 'The main environment of AdVenture Ages!';
       lastUpdate = BALANCE_UPDATE_VERSION['main'];
@@ -2814,7 +2833,6 @@ function getBalanceInfoPopup() {
             }
             else if (rewardId.includes('timehack')) {
               resourceImageUrl = `img/shared/timewarps/${rewardId}`;
-              resourceName = `<a tabindex="0" class="researcherName" role="button" data-html="true" data-toggle="popover" data-placement="top" data-trigger="focus" data-content="${getTimewarpPopup(rewardId)}">${resourceName}</a>`
             }
 
             let resourceImage = `<img class='rewardIcon' src='${resourceImageUrl}.png'>`;
@@ -2861,11 +2879,38 @@ function getBalanceInfoPopup() {
     packAdvisory = "<p><strong>Warning: </strong>Main offers are generated dynamically. Please refer to the wiki for a more human-readable synopsis on which offers you might see.</p>"
   }
 
+  let PropagandaData = getPropagandaObject();
+  let FreeWarpAd = getData().Ads.filter(x => x["Name"] == "Time Warp")[0];
+  let MaxGachaStack = getData().FreeGachaData.MaxStackCount;
+
   return `
     <fieldset>
       <legend>${name}</legend>
       <p><em>${description}</em></p>
-      <p><strong>Balance Last Updated: </strong>${lastUpdate}</p>
+
+      <table>
+        <tr>
+          <td style="padding-right:15px"><strong>Balance Last Updated</strong></td>
+          <td>${lastUpdate}</td>
+        </tr>
+        <tr>
+          <td>30m Warp Cooldown</td>
+          <td>${getEta(FreeWarpAd.ResetValue * 3600)}</td>
+        </tr>
+        <tr>
+          <td>Time between Frees</td>
+          <td>${getEta(getData().FreeGachaData.TimeBetweenGachas)}</td>
+        </tr>
+        <tr>
+          <td>Frees Stack</td>
+          <td>${MaxGachaStack} Capsules (${MaxGachaStack + getData().SupremePassConfig.NumExtraFreeGachaCapsule} with ${ENGLISH_MAP["supreme.pass"]})</td>
+        </tr>
+        <tr>
+          <td>${PropagandaData.Name}</td>
+          <td>x${PropagandaData.Power} Mult.</td>
+        </tr>
+      </table>
+
     </fieldset>
     <hr>
     <fieldset>
@@ -2888,22 +2933,6 @@ function getBalanceInfoPopup() {
       <p><strong>Total Cost: </strong>US$${(totalPrice / 100).toFixed(2)}</p>
     </fieldset>
   `
-}
-
-function getTimewarpPopup(timewarpId) {
-  let imageDirectory = `img/shared/timewarps/${timewarpId}.png`;
-  let html = `
-  <img class='resourceIcon mr-1' src='${imageDirectory}'>${ENGLISH_MAP[`resource.${timewarpId}.singular`]}<br />
-  <b>Duration: </b>${ENGLISH_MAP[`store.${timewarpId}.name`]}<br />`;
-
-  let storeWarp = getData()["Store"].filter(item => item['InternalId'] === timewarpId);
-  if (storeWarp.length == 1) {
-    let warpPrice = storeWarp[0]["Price"];
-    let goldHtml = `<img class='mx-1 rewardIcon' src='img/shared/gold.png'>`
-    html += `<b>Cost: </b>${goldHtml}${warpPrice}<br />`;
-  }
-
-  return html;
 }
 
 function getAllIndustryPopup() {
@@ -3778,7 +3807,19 @@ function getResearcherCard(researcher, formValues) {
     </div>`;
 }
 
+function getPropagandaObject() {
+  let PropagandaId = getData().Ads.filter(x => x.Name == "Propaganda Boost")[0].Rewards[0].RewardId;
+  let PropagandaData = getData().Experiments.filter(x => x.Id == PropagandaId)[0];
+
+  return {
+    Id: PropagandaId,
+    Name: ENGLISH_MAP[`experiment.${PropagandaId}.name`],
+    Power: PropagandaData.Rewards[0].Value
+  }
+}
+
 function getPropagandaBoostCard(formValues) {
+  let PropagandaData = getPropagandaObject();
   let level = formValues.ResearcherLevels.PropagandaBoost || 0;
   
   let imgDirectory = getImageDirectory();
@@ -3786,13 +3827,13 @@ function getPropagandaBoostCard(formValues) {
   let targetIconUrl = `${imgDirectory}/multi-industry.png`;
   
   let levelText = (level == 0) ? "Inactive" : "Active";
-  let valueString = (level == 0) ? "" : "x2";
+  let valueString = (level == 0) ? "" : `x${PropagandaData.Power}`;
   
   let downVisibilityClass = (level <= 0) ? "invisible" : "visible";
   let upVisibilityClass = (level >= 1) ? "invisible" : "visible";
   
   return `
-    <a tabindex="0" class="researcherName" role="button" data-toggle="popover" data-placement="top" data-trigger="focus" data-title="Propaganda Boost" data-content="Watch ads to boost the output of all generators by 2x" data-html="true">
+    <a tabindex="0" class="researcherName" role="button" data-toggle="popover" data-placement="top" data-trigger="focus" data-title="${PropagandaData.Name}" data-content="Watch ads or purchase the ${ENGLISH_MAP['supreme.pass']} to boost the output of all generators by x${PropagandaData.Power}" data-html="true">
       <div class="researcherCard propagandaBoost mx-auto" style="background-image: url('${backgroundImageUrl}');">
         <div class="researcherIcon float-right" style="background-image: url('${targetIconUrl}');">&nbsp;</div>
         <div class="researcherLevel text-center">${levelText}</div>
@@ -3800,7 +3841,7 @@ function getPropagandaBoostCard(formValues) {
 
       <div class="my-2 text-center">
         <div class="${downVisibilityClass} float-left researcherLevelButton text-danger">
-          <a onclick="clickChangePropagandaBoost(0)" role="button" title="Disable Propaganda Boost">&#x25BC;</a>
+          <a onclick="clickChangePropagandaBoost(0)" role="button" title="Disable ${PropagandaData.Name}">&#x25BC;</a>
         </div>
         
         
@@ -3808,7 +3849,7 @@ function getPropagandaBoostCard(formValues) {
         ${valueString}
         
         <div class="${upVisibilityClass} researcherLevelButton float-right text-success">
-          <a onclick="clickChangePropagandaBoost(1)" role="button" title="Enable Propaganda Boost">&#x25B2;</a>
+          <a onclick="clickChangePropagandaBoost(1)" role="button" title="Enable ${PropagandaData.Name}">&#x25B2;</a>
         </div>
       </div>
     </a>`;
@@ -4463,7 +4504,7 @@ function hasNoGenerators(simData) {
 }
 
 // For a given generator and subset of researchers, returns the derived Speed, Power, CritChance, CritPower and CostReduction
-function getDerivedResearcherValues(generator, researchers, formValues) {
+function getDerivedResearcherValues(generator, researchers, formValues) {  
   let derivedValues = {
     Speed: 1,
     Power: 1,
@@ -4486,8 +4527,8 @@ function getDerivedResearcherValues(generator, researchers, formValues) {
     derivedValues.Power *= getValueForResearcherWithForm(powerResearcher, formValues); 
   }
   
-  if (formValues.ResearcherLevels.PropagandaBoost) {
-    derivedValues.Power *= 2;
+  if (formValues.ResearcherLevels.PropagandaBoost) { 
+    derivedValues.Power *= getPropagandaObject().Power;
   }
   
   // CritPower researchers target one/all industries (case-insensitively)
@@ -5127,7 +5168,7 @@ function keystrokeInputLogic(dom, doom) {
 
 // One-time survey modal popup
 function finalSurveyConfigData() {
-  if ((window.location.href).includes('/ages')) {
+  if (IsAges) {
     // DO NOT trigger survey for Ages... sorry Ages players
     return;
   }
