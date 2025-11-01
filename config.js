@@ -44,7 +44,7 @@ const THEME_ID_OVERRIDES = {};
 // Only includes changes to the actual balance, per the interests of the community.
 const BALANCE_UPDATE_VERSION = {
   "atlantis-bal-3": "6.47",
-  "attack-bal-20": "6.14",
+  "attack-bal-20": "6.51",
   "bamboo-bal-10": "6.15",
   "cockatrice-bal-10": "6.48",
   "cowboy-bal-2": "6.47",
@@ -63,7 +63,7 @@ const BALANCE_UPDATE_VERSION = {
   "minivillain-bal-1": "6.49",
   "ninja-bal-1": "6.14",
   "potatofactory-bal-13": "6.38",
-  "power-bal-20": "6.14",
+  "power-bal-20": "6.51",
   "santa-bal-10": "6.14",
   "space-bal-2": "6.14",
   "spooky-bal-10": "6.14",
