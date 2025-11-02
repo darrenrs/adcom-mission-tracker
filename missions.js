@@ -837,7 +837,7 @@ function initializeMainMissionData() {
   missionCompletionTimes = {};
   
   // Rank "N" data is stored in Ranks[N - 1]
-  let activeMissionCount = getData().Ranks[currentMainRank - 1].ActiveMissionCount;
+  let activeMissionCount = getData().Ranks[currentMainRank - 1] ? getData().Ranks[currentMainRank - 1].ActiveMissionCount : 3;
   missionData = {Completed: {StartingCount: 0, Remaining: []}, Current: {StartingCount: activeMissionCount, Remaining: []}, OtherRankMissionIds: []};
   
   // Assign indices for sorting
@@ -847,9 +847,9 @@ function initializeMainMissionData() {
   }
   
   // Fill in ranks
-  for (let rank of getData().Ranks) {
-    let rankMissions = missions.filter(m => m.Rank == rank.Rank);
-    missionData[rank.Rank] = {StartingCount: rankMissions.length, Remaining: rankMissions};
+  for (let rank = 1; rank <= getMissions().at(-1).Rank; rank++) {
+    let rankMissions = missions.filter(m => m.Rank == rank);
+    missionData[rank] = {StartingCount: rankMissions.length, Remaining: rankMissions};
   }
   
   for (let i = 0; i < activeMissionCount; i++) {
