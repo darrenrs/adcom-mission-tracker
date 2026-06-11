@@ -1080,7 +1080,7 @@ function getSoonestEventInfos(minEventCount = 10, maxEventCount = 20, now = Date
   // We add each to the start to reverse.
   let results = [];
   while (soonestEvents.size() > 0) {
-    results.unshift(soonestEvent.pop());
+    results.unshift(soonestEvents.pop());
   }
   
 
