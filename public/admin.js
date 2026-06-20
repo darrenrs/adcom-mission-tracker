@@ -6,6 +6,18 @@ const setStatusMessage = (message, isSuccess = false) => {
   statusNode.innerText = message;
 };
 
+const UPDATE_TIMEOUT_MESSAGE = 'Response timed out, but job is still running in the background. Please refresh the page in several minutes.';
+
+const isTimeoutResponse = (response) => {
+  return response.status === 408 || response.status === 504 || response.status === 524;
+};
+
+const isTimeoutError = (error) => {
+  const name = error?.name || '';
+  const message = error?.message || '';
+  return name === 'AbortError' || name === 'TimeoutError' || /timed?\s*out/i.test(message);
+};
+
 const getTitleIds = () => {
   const runtime = window.__RUNTIME_CONFIG__ || {};
   const titleIds = runtime.titleIds || {};
@@ -83,11 +95,21 @@ const postFormUpdateDataFile = async () => {
         return;
       }
 
+      if (isTimeoutResponse(response)) {
+        setStatusMessage(UPDATE_TIMEOUT_MESSAGE);
+        return;
+      }
+
       const message = body?.status || body?.message || body?.detail || `Server error (${response.status})`;
       setStatusMessage(typeof message === 'string' ? message : JSON.stringify(message));
     })
     .catch((error) => {
       console.error(error);
+      if (isTimeoutError(error)) {
+        setStatusMessage(UPDATE_TIMEOUT_MESSAGE);
+        return;
+      }
+
       setStatusMessage('Please check your internet connection');
     });
 };

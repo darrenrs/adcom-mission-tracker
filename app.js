@@ -1,7 +1,5 @@
 import express from 'express';
 import 'dotenv/config';
-import fs from 'node:fs';
-import path from 'node:path';
 
 const app = express();
 
@@ -23,11 +21,6 @@ const PLAYFAB_TITLE_ID_ADCOM = process.env.PLAYFAB_TITLE_ID_ADCOM;
 const PLAYFAB_TITLE_ID_AGES = process.env.PLAYFAB_TITLE_ID_AGES;
 const ASSET_SERVER = process.env.ASSET_SERVER;
 const ASSET_PUBLIC_BASE = process.env.ASSET_PUBLIC_BASE;
-
-const BALANCE_CONFIG_BY_TITLE_ENV = {
-  adcom: 'public/config_adcom.js',
-  ages: 'public/config_ages.js'
-};
 
 const getAllowedTitleIds = () => {
   return [PLAYFAB_TITLE_ID_ADCOM, PLAYFAB_TITLE_ID_AGES].filter(Boolean);
@@ -79,42 +72,21 @@ const assetUpdateUrl = () => {
   return `${stripTrailingSlashes(ASSET_SERVER)}/update`;
 };
 
-const extractBalanceIdsFromConfig = (relativeConfigPath) => {
-  try {
-    const absolutePath = path.resolve(process.cwd(), relativeConfigPath);
-    const source = fs.readFileSync(absolutePath, 'utf8');
-    const objectMatch = source.match(/BALANCE_UPDATE_VERSION\s*=\s*\{([\s\S]*?)\};/);
-    if (!objectMatch || !objectMatch[1]) {
-      return [];
-    }
-
-    const ids = [];
-    const keyMatcher = /["']([^"']+)["']\s*:/g;
-    let keyMatch = keyMatcher.exec(objectMatch[1]);
-    while (keyMatch) {
-      ids.push(keyMatch[1]);
-      keyMatch = keyMatcher.exec(objectMatch[1]);
-    }
-
-    return ids.filter((id) => id && id !== 'main');
-  } catch (error) {
-    console.error(`Failed to parse known balance IDs from "${relativeConfigPath}". ${error}`);
-    return [];
+const mapBalanceIdForAsset = (balanceId) => {
+  if (!balanceId) {
+    return balanceId;
   }
+
+  if (balanceId === 'common') {
+    return 'common';
+  }
+
+  if (balanceId === 'main' || balanceId === 'evergreen') {
+    return 'evergreen';
+  }
+
+  return balanceId.split('-')[0];
 };
-
-const getKnownBalanceIdsByTitle = () => {
-  const byTitle = {};
-  if (PLAYFAB_TITLE_ID_ADCOM) {
-    byTitle[PLAYFAB_TITLE_ID_ADCOM] = extractBalanceIdsFromConfig(BALANCE_CONFIG_BY_TITLE_ENV.adcom);
-  }
-  if (PLAYFAB_TITLE_ID_AGES) {
-    byTitle[PLAYFAB_TITLE_ID_AGES] = extractBalanceIdsFromConfig(BALANCE_CONFIG_BY_TITLE_ENV.ages);
-  }
-  return byTitle;
-};
-
-const KNOWN_BALANCE_IDS_BY_TITLE = getKnownBalanceIdsByTitle();
 
 const fetchJson = async (url) => {
   const response = await fetch(url);
@@ -258,31 +230,24 @@ app.get('/api/data/:title', async (req, res) => {
   try {
     const scheduleUrl = `${titleAssetServerBase}/schedule.json`;
     const localizationUrl = `${titleAssetServerBase}/localization.txt`;
+    const balanceManifestUrl = `${titleAssetServerBase}/balance_manifest.json`;
 
     const schedule = await fetchJson(scheduleUrl);
     const localizationRaw = await fetchText(localizationUrl);
+    const balanceManifest = await fetchJson(balanceManifestUrl);
 
-    const balanceIds = new Set(['common', 'evergreen']);
-    const knownBalanceIds = KNOWN_BALANCE_IDS_BY_TITLE[titleId] || [];
-    for (const knownBalanceId of knownBalanceIds) {
-      balanceIds.add(knownBalanceId);
+    const balanceAssetIdById = new Map([
+      ['common', 'common']
+    ]);
+
+    for (const balanceInfo of balanceManifest.balances || []) {
+      const { balanceId, assetBalanceId } = balanceInfo;
+      if (!balanceId || balanceId === 'main') {
+        continue;
+      }
+
+      balanceAssetIdById.set(balanceId, assetBalanceId || mapBalanceIdForAsset(balanceId));
     }
-
-    const mapBalanceIdForAsset = (balanceId) => {
-      if (!balanceId) {
-        return balanceId;
-      }
-
-      if (balanceId === 'common') {
-        return 'common';
-      }
-
-      if (balanceId === 'main' || balanceId === 'evergreen') {
-        return 'evergreen';
-      }
-
-      return balanceId.split('-')[0];
-    };
 
     const balanceFetchCache = {};
     const fetchBalanceForAssetId = async (assetBalanceId) => {
@@ -302,10 +267,10 @@ app.get('/api/data/:title', async (req, res) => {
       return parsedBalance;
     };
 
-    const sortedBalanceIds = Array.from(balanceIds).sort((a, b) => a.localeCompare(b));
+    const sortedBalanceIds = Array.from(balanceAssetIdById.keys()).sort((a, b) => a.localeCompare(b));
     const balanceEntries = await Promise.all(
       sortedBalanceIds.map(async (balanceId) => {
-        const assetBalanceId = mapBalanceIdForAsset(balanceId);
+        const assetBalanceId = balanceAssetIdById.get(balanceId) || mapBalanceIdForAsset(balanceId);
         const parsedBalance = await fetchBalanceForAssetId(assetBalanceId);
         return [balanceId, parsedBalance];
       })
