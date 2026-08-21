@@ -2876,7 +2876,7 @@ function toggleIconsStyle() {
 
 var StylesheetUrls = {
   light: "https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css",
-  dark: "https://stackpath.bootstrapcdn.com/bootswatch/4.3.1/cyborg/bootstrap.min.css"
+  dark: "theme-dark.css"
 };
 
 // Run whenever the style setting changes (OnClick) or is initialized.

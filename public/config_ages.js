@@ -11,7 +11,10 @@ var THEME_ID_TITLE_OVERRIDES = {
   "fusioninfrastructure": "Infrastructure",
   "fusioninnovation": "Innovation",
   "timetravel": "Anniversary",
-  "mexico": "Aztec"
+  "mexico": "Aztec",
+  "minidino": "Mini Dino",
+  "minisanta": "Mini Christmas",
+  "nature": "New World"
 };
 
 // For balances that use the same theme, provide a value that corresponds with the folder found in the "img" folder.
@@ -45,8 +48,11 @@ var BALANCE_UPDATE_VERSION = {
   "innovation-bal-1": "1.22",
   "japan-bal-2": "1.15",
   "mexico-bal-2": "1.26",
+  "minidino-bal-1": "1.35",
+  "minisanta-bal-1": "1.35",
   "monster-bal-13": "1.12",
   "music-bal-6": "1.17",
+  "nature-bal-1": "1.35",
   "scandinavia-bal-21": "1.17",
   "timetravel-bal-15": "1.16"
 };

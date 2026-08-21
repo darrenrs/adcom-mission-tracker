@@ -18,6 +18,7 @@ const THEME_ID_TITLE_OVERRIDES = {
   "minicockatrice": "Mini Cockatrice",
   "minipotatofactory": "Mini Potatofactory",
   "minisanta": "Mini Santa",
+  "minisports": "Mini Games",
   "minivacation": "Mini Vacation",
   "minivillain": "Mini Villains",
 };

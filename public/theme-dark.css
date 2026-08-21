@@ -1,0 +1,131 @@
+@import url("https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css");
+
+:root {
+    --text-col: #fff;
+    --divider-color: #43484c;
+}
+
+body {
+    background-color: #111;
+    color: #eee;
+}
+
+.btn-outline-secondary {
+    color: #acbac5;
+    border-color: #acbac5;
+}
+
+.btn-outline-success {
+    color: #28d14f;
+    border-color: #28d14f;
+}
+
+.btn-outline-danger {
+    color: #ff4c5e;
+    border-color: #ff4c5e;
+}
+
+a {
+    color: #3f9cff;
+}
+
+a:hover {
+    color: #5eacff;
+}
+
+.card, .modal-content {
+    background-color: #222;
+    color: var(--text-col);
+}
+
+.card-header {
+    background-color: rgba(255,255,255,.01);
+}
+
+.card-header, .modal-header {
+    border-bottom: 1px solid #555;
+}
+
+.close, .close:hover {
+    color: var(--text-col);
+}
+
+.dropdown-menu {
+    color: var(--text-col);
+    background-color: #222;
+    border: 1px solid rgba(255,255,255,.15);
+}
+
+.dropdown-item {
+    color: #dedede;
+}
+
+.dropdown-item:hover {
+    background-color: rgb(25,25,25);
+    color: #fff;
+}
+
+.dropdown-divider {
+    border-top-color: var(--divider-color);
+}
+
+.slider {
+    background-color: #666;
+}
+
+input:checked + .slider {
+	background-color: #56B4FF;
+}
+
+.table {
+    color: var(--text-col);
+}
+
+.table td {
+    border-top: 1px solid var(--divider-color)
+}
+
+.nav-tabs .nav-item.show .nav-link, .nav-tabs .nav-link.active, .nav-tabs .nav-link:focus {
+	color: var(--text-col);
+	background-color: #222;
+	border-color: #737475 #737475 #fff;
+}
+
+.nav-tabs .nav-link:hover {
+	border-color: var(--divider-color) var(--divider-color) #fff;
+}
+
+.form-control {
+    color: var(--text-col);
+    background-color: #222;
+    border: 1px solid #828588;
+}
+
+.form-control:focus {
+    color: var(--text-col);
+    background-color: #222;
+}
+
+.form-control:disabled {
+    background-color: #333;
+}
+
+.input-group-text {
+	color: var(--text-col);
+	background-color: rgb(39, 39, 39);
+	border: 1px solid #828588;
+	border-radius: .25rem;
+}
+
+.popover {
+    background-color: #111;
+    border: 1px solid rgba(255,255,255,.15);
+}
+
+.popover-header {
+    background-color: #222;
+}
+
+.popover-body {
+    color: var(--text-col);
+}
