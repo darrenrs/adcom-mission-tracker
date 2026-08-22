@@ -13,6 +13,8 @@
       ) - 128000 /* HIGHLIGHT */
     ) * -1000
   );
+
+  --highlight-color: rgb(255, 255, 159);
 }
 
 body {

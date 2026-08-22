@@ -4868,7 +4868,7 @@ function doProductionSim() {
   
   if (simData.Errors != 0) {
     $('#result').text(`Please fix ${simData.Errors} issue${(simData.Errors > 1)?"s":""}, and Calculate again.`);
-    $('#result').effect('highlight', {}, 2000);
+    $('#result').effect('highlight', { color: 'var(--highlight-color)' }, 2000);
     return;
   } else {
     $('#result').text("");
@@ -4918,7 +4918,7 @@ function doProductionSim() {
     }
   }
   
-  $('#result').effect('highlight', {}, 2000);
+  $('#result').effect('highlight', { color: 'var(--highlight-color)' }, 2000);
 }
 
 // Returns a string 
