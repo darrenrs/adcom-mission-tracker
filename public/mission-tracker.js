@@ -3625,18 +3625,10 @@ function getScriptedCapsulesPopup() {
 function getScriptedsByCapsule() {
     let isEvent = (currentMode != 'main');
     let balanceMissions = getData().Missions;
+    let balanceRanks = getData().Ranks;
     let scriptedData = getData().GachaScripts;
-    let researcherData = getData().Researchers;
 
-    // We wanna show the first free at the top of the table for convinence
-    // Locate the index of the first scripted free, if it exists, cut it out and move it to the front.
-    let scriptedFreeId = getData().GachaFreeCycle[0].ScriptId;
-    scriptedData = scriptedData.slice();
-    let scriptedIdx = scriptedData.findIndex(obj => obj.GachaId === scriptedFreeId);
-    if (scriptedIdx > 0) {
-        let [firstScriptObj] = scriptedData.splice(scriptedIdx, 1);
-        scriptedData.unshift(firstScriptObj);
-    }
+    let scriptIds = scriptedData.map(x => x.GachaId);
 
     let tableHtml = `
         <tr>
@@ -3646,60 +3638,82 @@ function getScriptedsByCapsule() {
         </tr>
     `;
 
-    let scienceId = (isEvent) ? 'darkscience' : 'science';
-    let scienceName = (isEvent) ? resourceName('darkscience') : resourceName('scientist');
+    // TODO: Implement a "Rank#" section for Events (harder because all missions are considered Rank 1)
 
-    scriptedData.forEach(script => {
-        // TODO: Implement a "Rank#" section for Events (harder because all missions are considered Rank 1)
-        let missionName;
-        let rankNumber = "";
+    // Free Capsule
+    let freeCapsuleScriptId = getData().GachaFreeCycle[0].ScriptId;
+    let freeCapsuleScript = scriptedData.find(x => x.GachaId == freeCapsuleScriptId);
 
-        if (script.GachaId == scriptedFreeId) {
-            let scriptMimicImage = `<span class="capsule ${script.MimicGachaId}">&nbsp;</span>`;
-            missionName = `${scriptMimicImage} First Free Capsule`;
-        }
-        else {
-            let scriptedMission = balanceMissions.filter(x => x.Reward.RewardId == script.GachaId);
-            if (scriptedMission.length == 0) {
-                // This script does not show up anywhere, hide it from the list
-                return;
-            }
-            scriptedMission = scriptedMission[0];
-            missionName = describeMission(scriptedMission);
+    tableHtml += `
+        <tr>
+            <td style='padding:5px 0'><span class="capsule ${freeCapsuleScript.MimicGachaId}">&nbsp;</span> First Free Capsule</td>
+            <td style='padding:5px 0'></td>
+            <td style='padding:5px 0'>${getScriptedCapsuleBreakdown(freeCapsuleScript)}</td>
+        </tr>
+    `;
 
-            if (!isEvent) {
-                rankNumber = scriptedMission.Rank;
-            }
-        }
+    // Missions
+    let missionsWithScripts = balanceMissions.filter(x => scriptIds.includes(x['Reward']['RewardId']));
 
-        let rewardsList = ``;
-
-        if (script.Science > 0) {
-            rewardsList += `<span class="resourceIcon ${scienceId}">&nbsp</span> ${shortBigNum(script.Science)} ${scienceName}<br/>`;
-        }
-        if (script.Gold > 0) {
-            rewardsList += `<img class="resourceIcon" src="${assetUrlForActive('shared/gold.png')}"> ${shortBigNum(script.Gold)} ${resourceName('gold')}<br/>`
-        }
-        if (script.Trophy > 0) {
-            rewardsList += `<img class="resourceIcon" src="${assetUrlForActive('shared/trophy.png')}"> ${shortBigNum(script.Trophy)} ${resourceName('trophy')}<br/>`
-        }
-
-        script.Card.forEach(rs => {
-            let rsBody = getResearcherFullDetailsHtml(researcherData.filter(r => r.Id == rs.Id)[0]);
-            let rsPopup = `<a tabindex="0" class="researcherName" role="button" data-html="true" data-toggle="popover" data-placement="bottom" data-trigger="focus" data-content="${rsBody}" data-original-title="" title="">${researcherName(rs.Id)}</a>`;
-            rewardsList += `<span class="resourceIcon cardIcon">&nbsp</span> ${shortBigNum(rs.Value)}x ${rsPopup}<br/>`;
-        });
+    missionsWithScripts.forEach(mission => {
+        let scriptedId = mission.Reward.RewardId;
+        let scripted = scriptedData.find(x => x.GachaId == scriptedId);
+        
+        let missionName = describeMission(mission);
+        let rankNumber = isEvent ? "" : mission.Rank;
 
         tableHtml += `
             <tr>
                 <td style='padding:5px 0'>${missionName}</td>
                 <td style='padding:5px 0; text-align:center'>${rankNumber}</td>
-                <td style='padding:5px 0'>${rewardsList}</td>
+                <td style='padding:5px 0'>${getScriptedCapsuleBreakdown(scripted)}</td>
+            </tr>
+        `;
+    });
+
+    // Rank-ups
+    let rankupRewardScripts = balanceRanks.filter(x => scriptIds.includes(x.RewardId ?? ''));
+
+    rankupRewardScripts.forEach(rank => {
+        let scriptedId = rank.RewardId;
+        let scripted = scriptedData.find(x => x.GachaId == scriptedId);
+
+        tableHtml += `
+            <tr>
+                <td style='padding:5px 0'><span class="capsule ${scripted.MimicGachaId}">&nbsp;</span> Completing Rank ${rank.Rank}</td>
+                <td style='padding:5px 0'></td>
+                <td style='padding:5px 0'>${getScriptedCapsuleBreakdown(scripted)}</td>
             </tr>
         `;
     });
 
     return tableHtml;
+}
+
+function getScriptedCapsuleBreakdown(script) {
+    let isEvent = (currentMode != 'main');
+    let scienceId = (isEvent) ? 'darkscience' : 'science';
+    let scienceName = (isEvent) ? resourceName('darkscience') : resourceName('scientist');
+
+    let rewardsList = ``;
+
+    if (script.Science > 0) {
+        rewardsList += `<span class="resourceIcon ${scienceId}">&nbsp</span> ${shortBigNum(script.Science)} ${scienceName}<br/>`;
+    }
+    if (script.Gold > 0) {
+        rewardsList += `<img class="resourceIcon" src="${assetUrlForActive('shared/gold.png')}"> ${shortBigNum(script.Gold)} ${resourceName('gold')}<br/>`
+    }
+    if (script.Trophy > 0) {
+        rewardsList += `<img class="resourceIcon" src="${assetUrlForActive('shared/trophy.png')}"> ${shortBigNum(script.Trophy)} ${resourceName('trophy')}<br/>`
+    }
+
+    script.Card.forEach(rs => {
+        let rsBody = getResearcherFullDetailsHtml(getData().Researchers.filter(r => r.Id == rs.Id)[0]);
+        let rsPopup = `<a tabindex="0" class="researcherName" role="button" data-html="true" data-toggle="popover" data-placement="bottom" data-trigger="focus" data-content="${rsBody}" data-original-title="" title="">${researcherName(rs.Id)}</a>`;
+        rewardsList += `<span class="resourceIcon cardIcon">&nbsp</span> ${shortBigNum(rs.Value)}x ${rsPopup}<br/>`;
+    });
+
+    return rewardsList;
 }
 
 function getScriptedsByResearcher() {
