@@ -3389,8 +3389,8 @@ function getBalanceInfoPopup() {
       if (getData()['ScheduledOffers']) {
         for (let j of getData()['ScheduledOffers']) {
           if (i['InternalId'] === j['ItemId']) {
-            let startTime = new Date(j['StartDateTimestamp'] * 1000)
-            let endTime = new Date(j['EndDateTimestamp'] * 1000)
+            let startTime = new Date(j['StartDateUTC'])
+            let endTime = new Date(j['EndDateUTC'])
             timeRange = `Available ${startTime.toLocaleDateString()} ${startTime.toLocaleTimeString()} to ${endTime.toLocaleDateString()} ${endTime.toLocaleTimeString()}`;
           }
         }
