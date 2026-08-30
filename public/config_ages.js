@@ -6,6 +6,7 @@ var POWERS = ['K', 'M', 'B', 'T', 'AA', 'BB', 'CC', 'DD', 'EE', 'FF', 'GG', 'HH'
 // Typically, the ThemeId is used directly, but some themes are poorly-named.
 var THEME_ID_TITLE_OVERRIDES = {
   "main": "Ages",
+  "aliens": "Contact",
   "fusionarchitecture": "Architecture",
   "fusioncareers": "Careers",
   "fusioninfrastructure": "Infrastructure",
@@ -39,6 +40,7 @@ var THEME_ID_OVERRIDES = {
 // Version for last balance update
 var BALANCE_UPDATE_VERSION = {
   "main": "1.22",
+  "aliens-bal-1": "1.35",
   "architecture-bal-18": "1.22",
   "careers-bal-1": "1.15",
   "christmas-bal-13": "1.14",

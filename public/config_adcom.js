@@ -53,7 +53,7 @@ const BALANCE_UPDATE_VERSION = {
   "defense-bal-21": "6.50",
   "export-bal-21": "6.50",
   "fusfarm-bal-30": "6.30",
-  "fuspet-bal-32": "6.30",
+  "fuspet-bal-32": "6.57",
   "fusscience-bal-31": "6.30",
   "fusvehicle-bal-32": "6.18",
   "hexathlon-bal-13": "6.19",

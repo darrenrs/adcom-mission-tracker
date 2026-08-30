@@ -83,7 +83,7 @@ a:hover {
     color: #fff;
 }
 
-.dropdown-divider {
+hr, .dropdown-divider {
     border-top-color: var(--divider-color);
 }
 

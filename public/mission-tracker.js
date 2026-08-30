@@ -3413,7 +3413,7 @@ function getBalanceInfoPopup() {
           case "Avatar":
             let aviDat = DATA.common.Avatars.filter(a => a.ID == rewardId);
             if (aviDat.length == 0) {
-              rewardContent = "Unknown Avatar Reward";
+              rewardContent = "<i>Unknown Avatar Reward</i>";
               break;
             }
             
@@ -3426,8 +3426,16 @@ function getBalanceInfoPopup() {
 
           case "Gacha":
             rewardId = rewardId.toLowerCase();
-            let capsuleImageUrl = `<img class='rewardIcon' src='${assetUrlForActive(`shared/gacha/${rewardId}.png`)}'>`
-            rewardContent = `x${bigNum(j['Value'])} ${capsuleImageUrl} ${ENGLISH_MAP[`gacha.${rewardId}.name`]} Capsule`;
+            
+            let capsule = getData().GachaLootTable.find(r => r.Id == rewardId);
+            if (capsule != undefined) {
+                let capsuleImageUrl = `<img class='rewardIcon' src='${assetUrlForActive(`shared/gacha/${rewardId}.png`)}'>`
+                rewardContent = `x${bigNum(j['Value'])} ${capsuleImageUrl} ${ENGLISH_MAP[`gacha.${rewardId}.name`]} Capsule`;
+            }
+            else {
+                rewardContent = `<i>Unknown Capsule: ${rewardId}</i>`;
+            }
+                
           break;
 
           case "Resources":
@@ -3435,6 +3443,10 @@ function getBalanceInfoPopup() {
 
             const isResourcePlural = (j['Value'] !== 1);
             let resourceDisplayName = resourceName(rewardId, isResourcePlural);
+
+            if (resourceDisplayName == undefined) {
+                rewardContent = `<i>Unknown Resource: ${rewardId}</i>`;
+            }
 
             let resourceFixedUrls = {
               'scientist': assetUrlForActive('main/scientist'),
@@ -3466,8 +3478,15 @@ function getBalanceInfoPopup() {
 
 
           case "Researcher":
-            let researcherInfo = `<span class="text-nowrap">${describeResearcher(getData().Researchers.find(r => r.Id == rewardId), "right")}</span>`
-            rewardContent = `x${bigNum(j['Value'])}${researcherInfo}`
+            let researcher = getData().Researchers.find(r => r.Id == rewardId);
+
+            if (researcher != undefined) {
+                let researcherInfo = `<span class="text-nowrap">${describeResearcher(researcher, "right")}</span>`;
+                rewardContent = `x${bigNum(j['Value'])}${researcherInfo}`;
+            }
+            else {
+                rewardContent = `<i>Unknown Researcher: ${rewardId}</i>`;
+            }
           break;
 
           case "Experiment": {
@@ -5045,7 +5064,7 @@ function getProductionSimDataFromForm() {
   getValueFromForm('#comrades', 0, simData, formValues, 'comrade', 'comrade');
   simData.Generators.push({Id: "comradegenerator", Resource: "comrade", QtyPerSec: comradesPerSec, Cost: []});
   simData.Counts["comradegenerator"] = 1;
-  
+
   setupSimDataGenerators(simData, industryId, formValues);
   
   // Having 0 qty of every Generator is degenerate.  Let's at least start with 1 of the first.
