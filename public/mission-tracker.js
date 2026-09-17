@@ -716,23 +716,35 @@ function loadModeSettings() {
 
   let iconSrc = assetUrlForActive(`shared/themeicons/${(currentMode == "main") ? "main" : themeId}.png`);
   let eventIcon = `<img class="scheduleIcon" src="${iconSrc}">`;
+
+  $('#mode-select-title').html(`${eventIcon} ${basicEventName}`);
+  $('#mode-select-title').addClass("show");
   
-  // The top-left dropdown always shows the current event, regardless of overrides.
+  // The top-left dropdown always shows the current event, regardless of overrides
   let trueCurrentEvent = getCurrentEventInfo();
   let trueCurrentEventTitle = THEME_ID_TITLE_OVERRIDES[trueCurrentEvent.ThemeId] || trueCurrentEvent.ThemeId;
   trueCurrentEventTitle = upperCaseFirstLetter(trueCurrentEventTitle);
   let trueEventIcon = `<img class="scheduleIcon" src="${assetUrlForActive(`shared/themeicons/${trueCurrentEvent.ThemeId}.png`)}">`;
-  
-  $('#mode-select-title').html(`${eventIcon} ${basicEventName}`);
-  $('#mode-select-title').addClass("show");
+
   $('#mode-select-event').html(`${trueEventIcon} ${trueCurrentEventTitle}`);
-  
+
+  // Override the title for "Motherland" in the dropdown menu, mainly for Ages
+  let motherlandName = getBasicEventName("main");
+  let motherlandIcon = `<img class="scheduleIcon" src="${assetUrlForActive('shared/themeicons/main.png')}">`;
+
+  $('#mode-select-main').html(`${motherlandIcon} ${motherlandName}`);
+  $('#mode-select-main').attr('title', `Switch to ${motherlandName}`);
+
+  // Attach an "active" class to the option we're currently viewing
   $(`#mode-select-main,#mode-select-event`).removeClass("active");
+
   if (currentMode == "main" || trueCurrentEvent.EndTimeMillis == eventScheduleInfo.EndTimeMillis) {
     $(`#mode-select-${currentMode}`).addClass("active");
-  } else if (window.location.href.search('eventOverride') !== -1) {
+  } 
+  else if (window.location.href.search('eventOverride') !== -1) {
     $('#mode-select-eventbal').addClass("active");
-  } else {
+  } 
+  else {
     $('#mode-select-schedule').addClass("active");
   }
   
