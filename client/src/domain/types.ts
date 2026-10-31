@@ -181,3 +181,13 @@ export interface EventInfo {
   LeaderboardId?: string;
   GlobalLeaderboardId?: string;
 }
+
+/** One step of a balance's free capsule cycle. The first step is the free capsule of event rank 1. */
+export interface GachaFreeCycleEntry {
+  ScriptId?: string;
+  [key: string]: unknown;
+}
+
+export interface GameBalance {
+  GachaFreeCycle?: GachaFreeCycleEntry[];
+}
