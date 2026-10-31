@@ -42,10 +42,22 @@ export interface Resource {
 }
 
 export interface Industry {
+  UnlockCostResourceId?: string;
+  UnlockCostResourceQty?: number;
   Id: string;
 }
 
+export interface GeneratorCost {
+  Resource: string;
+  Qty: number | string;
+}
+
 export interface Generator {
+  BaseCompletionTime?: number;
+  Generate?: { Resource: string; Qty: number };
+  Crit?: { ChancePercent: number; Multiplier: number };
+  Cost?: GeneratorCost[];
+  Unlock?: { ConditionType?: string; ConditionId?: string; Threshold: number };
   Id: string;
   Name: string;
   IndustryId?: string;
@@ -53,6 +65,7 @@ export interface Generator {
 
 export interface Researcher {
   Id: string;
+  Rarity?: string;
   Name: string;
   ModType: string;
   TargetIds: string[];

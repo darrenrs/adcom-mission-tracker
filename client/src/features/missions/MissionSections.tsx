@@ -20,7 +20,7 @@ function MissionGrid({ missions, state, shared }: { missions: BoardMission[]; st
   }
   const { etas, ...rest } = shared;
   return (
-    <ul className="grid grid-cols-1 gap-2 p-3 md:grid-cols-2 xl:grid-cols-3">
+    <ul className="grid grid-cols-1 gap-2 p-3 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
       {missions.map((mission) => (
         <MissionRow key={mission.Id} mission={mission} state={state} eta={etas[mission.Id]} {...rest} />
       ))}

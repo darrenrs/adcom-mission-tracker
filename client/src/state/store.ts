@@ -20,6 +20,7 @@ import {
 import { TITLES, type TitleConfig } from '@/domain/titles';
 import type { EventInfo, GameBalance, TrackerMode } from '@/domain/types';
 import { parseStartupParams, resolveStartup, type Startup } from '@/domain/urlParams';
+import { emptyFormValues, type FormValues } from '@/engine/model';
 import { createTrackerStorage, type TrackerStorage } from '@/storage/storage';
 import { startupSearch } from './navigation';
 
@@ -47,6 +48,8 @@ export interface Session {
   board: MissionBoard;
   completionTimes: Record<string, number>;
   etas: Record<string, number>;
+  /** The calculator's saved inputs for this mode, in the legacy `FormValues` shape. */
+  form: FormValues;
 }
 
 export interface TrackerState {
@@ -59,6 +62,8 @@ export interface TrackerState {
   clickMission(missionId: string): void;
   completeMissionsBefore(missionId: string): void;
   switchAbGroup(missionId: string): void;
+  updateForm(change: (form: FormValues) => void): void;
+  saveEta(missionId: string, seconds: number): void;
   advanceEvent(rank: number): void;
   switchTitle(): Promise<void>;
   setTheme(theme: ThemeSetting): void;
@@ -101,6 +106,12 @@ function readJson<T>(raw: string | null, fallback: T): T {
   } catch {
     return fallback;
   }
+}
+
+function readForm(raw: string | null): FormValues {
+  const form = readJson<Partial<FormValues>>(raw, {});
+  // Saves without researcher levels are an old format that legacy also discarded.
+  return form.ResearcherLevels ? { ...emptyFormValues(), ...form } : emptyFormValues();
 }
 
 function readSettings(storage: TrackerStorage, title: TitleConfig): Settings {
@@ -170,7 +181,8 @@ function buildSession(deps: TrackerDeps, title: TitleConfig, data: GameData): Se
     abGroups,
     board,
     completionTimes: {},
-    etas: {}
+    etas: {},
+    form: readForm(storage.get(modeKey(title, mode, eventInfo, 'FormValues')))
   };
 
   session.completionTimes = readJson(storage.get(modeKey(title, mode, eventInfo, 'CompletionTimes')), {});
@@ -282,6 +294,33 @@ export function createTrackerStore(deps: TrackerDeps): StoreApi<TrackerState> {
         const next = { ...session, board, completionTimes };
         persist(next);
         set({ session: next });
+      },
+
+      updateForm(change) {
+        const session = get().session;
+        if (!session) {
+          return;
+        }
+        const form = structuredClone(session.form);
+        change(form);
+        if (!session.startup.overrideActive) {
+          storage.set(modeKey(session.title, session.mode, session.eventInfo, 'FormValues'), JSON.stringify(form));
+        }
+        set({ session: { ...session, form } });
+      },
+
+      saveEta(missionId, seconds) {
+        const session = get().session;
+        const finish = deps.now() + seconds * 1000;
+        // Date cannot represent very distant finishes, and legacy does not save those either.
+        if (!session || Number.isNaN(new Date(finish).getTime())) {
+          return;
+        }
+        const etas = { ...session.etas, [missionId]: finish };
+        if (!session.startup.overrideActive) {
+          storage.set(modeKey(session.title, session.mode, session.eventInfo, etaKey(session)), JSON.stringify(etas));
+        }
+        set({ session: { ...session, etas } });
       },
 
       switchAbGroup(missionId) {
