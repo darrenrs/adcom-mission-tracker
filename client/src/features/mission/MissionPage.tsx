@@ -4,6 +4,7 @@ import { getTimeStampLocaleString } from '@/domain/format';
 import { describeMission, describeReward, type RewardPart } from '@/domain/gameText';
 import type { BoardMission, MissionBoard } from '@/domain/missions';
 import { missionIconUrl, missionRewardIcon, missionTone } from '@/domain/missionView';
+import { MissionCalculator } from '@/features/calculator/MissionCalculator';
 import type { AssetResolver } from '@/domain/assets';
 import { navigate } from '@/state/navigation';
 import { useSession, useTracker } from '@/state/store';
@@ -194,9 +195,7 @@ export function MissionPage({ missionId }: { missionId: string }) {
         )}
       </section>
 
-      <div className="rounded-xl border border-dashed border-line p-6 text-center text-sm text-muted">
-        Calculator coming in the next phase.
-      </div>
+      <MissionCalculator mission={mission} />
     </div>
   );
 }

@@ -1,0 +1,65 @@
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { parseAmount } from '@/domain/inputSteps';
+import { useSession, useTracker } from '@/state/store';
+import { amountText, applyCount, CPS_KEY, isInvalidAmount, savedTexts } from './fields';
+
+interface Options {
+  resourceId: string;
+  generatorIds: readonly string[];
+}
+
+/**
+ * The text of the Generators tab's fields. Every valid change is saved to the form straight away, so nothing is
+ * lost by leaving the page, and the fields start with what was saved.
+ */
+export function useCountFields({ resourceId, generatorIds }: Options) {
+  const session = useSession();
+  const updateForm = useTracker((state) => state.updateForm);
+  const { powers } = session.title;
+  const [texts, setTexts] = useState(() => savedTexts(session.form, resourceId, generatorIds, powers));
+  const latest = useRef(texts);
+  latest.current = texts;
+
+  const save = useCallback(
+    (key: string, text: string) => {
+      const value = parseAmount(text, powers);
+      if (!Number.isNaN(value)) {
+        updateForm((form) => applyCount(form, resourceId, key, value, Date.now()));
+      }
+    },
+    [powers, resourceId, updateForm]
+  );
+
+  const setText = useCallback(
+    (key: string, text: string) => {
+      setTexts((previous) => ({ ...previous, [key]: text }));
+      save(key, text);
+    },
+    [save]
+  );
+
+  /** Replaces several fields at once and saves them together, as Import does. */
+  const setMany = useCallback(
+    (next: Record<string, string>) => {
+      setTexts((previous) => ({ ...previous, ...next }));
+      for (const [key, text] of Object.entries(next)) {
+        save(key, text);
+      }
+    },
+    [save]
+  );
+
+  // The Trades tab works out comrades per second and writes it over this field, as it did in legacy.
+  const total = session.form.Trades.TotalComrades;
+  useEffect(() => {
+    if (parseAmount(latest.current[CPS_KEY] ?? '', powers) !== total) {
+      setTexts((previous) => ({ ...previous, [CPS_KEY]: amountText(total, powers) }));
+    }
+  }, [total, powers]);
+
+  const invalid = useCallback((key: string) => isInvalidAmount(texts[key] ?? '', powers), [texts, powers]);
+
+  return { texts, latest, setText, setMany, invalid };
+}
+
+export type CountFields = ReturnType<typeof useCountFields>;
