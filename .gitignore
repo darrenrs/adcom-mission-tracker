@@ -9,3 +9,8 @@ node_modules/
 # Extra
 .DS_Store
 Thumbs.db
+
+# Client build
+dist/
+test-results/
+playwright-report/
