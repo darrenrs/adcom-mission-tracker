@@ -1,0 +1,102 @@
+import { describe, expect, it } from 'vitest';
+import {
+  advanceEventToRank,
+  applyAbGroups,
+  availableAbGroups,
+  boardSections,
+  clickMission,
+  createBoard,
+  missionsForGroups,
+  nextAbGroups,
+  normalizeAbGroups
+} from './missions';
+import type { Balance, Mission } from './types';
+
+const mission = (id: string): Mission => ({
+  Id: id,
+  Condition: { ConditionType: 'ResourceQuantity', ConditionId: 'potato', Threshold: 1 },
+  Reward: { Reward: 'Gacha', RewardId: 'wood' }
+});
+
+const rankInfo = (rank: number, missions: number) => ({
+  Rank: String(rank),
+  Missions: String(missions),
+  ActiveMissionCount: 3
+});
+
+// Three shown missions, then a small rank, then a stretch rank.
+const balance: Balance = {
+  Missions: ['a', 'b', 'c', 'd', 'e', 'f'].map(mission),
+  Ranks: [rankInfo(1, 0), rankInfo(2, 1), rankInfo(3, 1), rankInfo(4, 1)]
+};
+
+describe('advanceEventToRank', () => {
+  // Legacy looped one step too far here and filled Current with undefined, crashing the page.
+  it('moves on to the next rank when the target rank runs out', () => {
+    const board = createBoard('event', balance, []);
+    advanceEventToRank(board, 3);
+
+    expect(board.current.map((m) => m.Id)).toEqual(['e', 'f']);
+    expect(board.current.every(Boolean)).toBe(true);
+    expect(boardSections(board).flatMap((s) => s.missions).every(Boolean)).toBe(true);
+  });
+});
+
+describe('clickMission', () => {
+  it('ignores a mission that is not Current or Completed', () => {
+    const board = createBoard('event', balance, []);
+    expect(clickMission(board, 'f')).toBeNull();
+  });
+
+  it('round-trips a completed mission back to its original place', () => {
+    const board = createBoard('event', balance, []);
+    const before = board.current.map((m) => m.Id);
+
+    expect(clickMission(board, 'a')).toBe('completed');
+    expect(clickMission(board, 'a')).toBe('undone');
+    expect(board.current.map((m) => m.Id)).toEqual(before);
+  });
+});
+
+describe('A/B mission groups', () => {
+  const abMission = (id: string, config: string, threshold: number): Mission => ({
+    ...mission(id),
+    AbTestConfig: config,
+    Condition: { ConditionType: 'ResourceQuantity', ConditionId: 'potato', Threshold: threshold }
+  });
+
+  // The same mission id exists in both groups, with different requirements.
+  const abBalance: Balance = {
+    Missions: [mission('a'), abMission('b', 'Test|B', 200), abMission('b', 'Test|A', 100), mission('c'), mission('d')],
+    Ranks: [rankInfo(1, 0), rankInfo(2, 1), rankInfo(3, 1)]
+  };
+
+  it('sorts groups regardless of balance order', () => {
+    expect(availableAbGroups(abBalance)).toEqual({ Test: ['A', 'B'] });
+  });
+
+  it('starts players in the first group and drops retired tests', () => {
+    expect(normalizeAbGroups([], abBalance)).toEqual(['Test|A']);
+    expect(normalizeAbGroups(['Old|A', 'Test|B'], abBalance)).toEqual(['Test|B']);
+  });
+
+  it('shows only the missions of the current group', () => {
+    expect(missionsForGroups(abBalance, ['Test|A']).map((m) => m.Condition.Threshold)).toEqual([1, 100, 1, 1]);
+  });
+
+  it('cycles through groups and wraps around', () => {
+    expect(nextAbGroups(abBalance, ['Test|A'], 'b')).toEqual(['Test|B']);
+    expect(nextAbGroups(abBalance, ['Test|B'], 'b')).toEqual(['Test|A']);
+    expect(nextAbGroups(abBalance, ['Test|A'], 'a')).toBeNull();
+  });
+
+  it('swaps a mission to the new group without moving it', () => {
+    const board = createBoard('event', abBalance, ['Test|A']);
+    const order = board.current.map((m) => m.Id);
+
+    applyAbGroups(board, abBalance, ['Test|B']);
+
+    expect(board.current.map((m) => m.Id)).toEqual(order);
+    expect(board.current.find((m) => m.Id === 'b')?.Condition.Threshold).toBe(200);
+  });
+});
