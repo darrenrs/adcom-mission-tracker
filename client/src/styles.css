@@ -73,6 +73,12 @@ body {
   -webkit-text-size-adjust: 100%;
 }
 
+/* Tapping through missions quickly should not trigger double-tap zoom. */
+button,
+a {
+  touch-action: manipulation;
+}
+
 :focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;

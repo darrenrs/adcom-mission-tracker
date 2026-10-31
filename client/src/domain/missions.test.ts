@@ -10,6 +10,7 @@ import {
   nextAbGroups,
   normalizeAbGroups
 } from './missions';
+import { groupByRank } from './missionView';
 import type { Balance, Mission } from './types';
 
 const mission = (id: string): Mission => ({
@@ -98,5 +99,19 @@ describe('A/B mission groups', () => {
 
     expect(board.current.map((m) => m.Id)).toEqual(order);
     expect(board.current.find((m) => m.Id === 'b')?.Condition.Threshold).toBe(200);
+  });
+});
+
+describe('groupByRank', () => {
+  it('sorts ranks but keeps completion order inside each rank', () => {
+    const board = createBoard('event', balance, []);
+    for (const id of ['b', 'a', 'c', 'd', 'e']) {
+      clickMission(board, id);
+    }
+
+    const groups = groupByRank(board.completed);
+    expect(groups.map((group) => group.rank)).toEqual([...groups.map((group) => group.rank)].sort((a, b) => a - b));
+    const rankOne = groups.find((group) => group.rank === 1);
+    expect(rankOne?.missions.map((m) => m.Id).slice(0, 2)).toEqual(['b', 'a']);
   });
 });

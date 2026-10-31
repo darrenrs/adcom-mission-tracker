@@ -120,7 +120,6 @@ function RewardView({ parts, mode, assets }: { parts: RewardPart[]; mode: 'main'
 export function MissionPage({ missionId }: { missionId: string }) {
   const session = useSession();
   const clickMission = useTracker((state) => state.clickMission);
-  const icons = useTracker((state) => state.settings.icons);
   const found = useMemo(() => findMission(session.board, missionId), [session.board, missionId]);
 
   if (!found) {
@@ -140,7 +139,7 @@ export function MissionPage({ missionId }: { missionId: string }) {
   const { mission, status } = found;
   const { text: ctx, assets, mode, completionTimes } = session;
   const description = describeMission(ctx, mission);
-  const iconUrl = icons === 'none' ? null : missionIconUrl(description, assets);
+  const iconUrl = missionIconUrl(description, assets);
   const reward = missionRewardIcon(mission, ctx.balance, assets);
   const parts = describeReward(ctx, mission.Reward);
   const completedAt = completionTimes[mission.Id];

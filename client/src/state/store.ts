@@ -24,12 +24,9 @@ import { startupSearch } from './navigation';
 
 export type TitleKey = 'adcom' | 'ages';
 export type ThemeSetting = 'system' | 'light' | 'dark';
-export type IconSetting = 'image' | 'none';
 
 export interface Settings {
   theme: ThemeSetting;
-  icons: IconSetting;
-  listView: boolean;
   completedVisible: boolean;
 }
 
@@ -62,8 +59,6 @@ export interface TrackerState {
   advanceEvent(rank: number): void;
   switchTitle(): Promise<void>;
   setTheme(theme: ThemeSetting): void;
-  setIcons(icons: IconSetting): void;
-  setListView(listView: boolean): void;
   setCompletedVisible(visible: boolean): void;
   resetMode(): void;
   resetAll(): void;
@@ -116,8 +111,6 @@ function readSettings(storage: TrackerStorage, title: TitleConfig): Settings {
 
   return {
     theme: theme === 'light' || theme === 'dark' ? theme : 'system',
-    icons: storage.get('IconConfig') === 'none' ? 'none' : 'image',
-    listView: storage.get('ListStyleActiveConfig') === 'true',
     completedVisible: completedVisible === 'true'
   };
 }
@@ -309,16 +302,6 @@ export function createTrackerStore(deps: TrackerDeps): StoreApi<TrackerState> {
           storage.set('StyleConfig', theme);
         }
         updateSettings({ theme });
-      },
-
-      setIcons(icons) {
-        storage.set('IconConfig', icons);
-        updateSettings({ icons });
-      },
-
-      setListView(listView) {
-        storage.set('ListStyleActiveConfig', String(listView));
-        updateSettings({ listView });
       },
 
       setCompletedVisible(completedVisible) {

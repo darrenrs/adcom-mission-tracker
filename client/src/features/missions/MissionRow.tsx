@@ -15,7 +15,6 @@ export interface RowShared {
   ctx: GameTextContext;
   assets: AssetResolver;
   etas: Record<string, number>;
-  showIcon: boolean;
   onToggle(missionId: string): void;
   onSwitchAb(missionId: string): void;
 }
@@ -57,7 +56,7 @@ interface MissionRowProps extends Omit<RowShared, 'etas'> {
   eta: number | undefined;
 }
 
-function MissionRowView({ mission, state, eta, ctx, assets, showIcon, onToggle, onSwitchAb }: MissionRowProps) {
+function MissionRowView({ mission, state, eta, ctx, assets, onToggle, onSwitchAb }: MissionRowProps) {
   const description = useMemo(() => describeMission(ctx, mission), [ctx, mission]);
   const iconUrl = useMemo(() => missionIconUrl(description, assets), [description, assets]);
   const reward = useMemo(() => missionRewardIcon(mission, ctx.balance, assets), [mission, ctx.balance, assets]);
@@ -76,7 +75,7 @@ function MissionRowView({ mission, state, eta, ctx, assets, showIcon, onToggle, 
         className="flex min-h-12 min-w-0 flex-1 items-center gap-3 rounded-lg px-3 py-2 text-left enabled:hover:bg-raised/60 enabled:active:bg-raised disabled:cursor-not-allowed"
       >
         <StatusIcon state={state} />
-        {showIcon && iconUrl && (
+        {iconUrl && (
           <img src={iconUrl} alt="" width={32} height={32} loading="lazy" decoding="async" className="size-8 shrink-0 object-contain" />
         )}
         <span className="min-w-0 flex-1">

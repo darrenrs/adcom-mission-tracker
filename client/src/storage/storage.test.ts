@@ -18,8 +18,6 @@ function memoryBackend(initial: Record<string, string> = {}) {
 const LEGACY_SAVE = {
   activeTitle: 'adcom',
   StyleConfig: 'dark',
-  IconConfig: 'image',
-  ListStyleActiveConfig: 'false',
   CurrentMode: 'event',
   abTestGroups: 'Test|A',
   'main-Completed': 'M0001,M0002',
@@ -38,13 +36,15 @@ const LEGACY_SAVE = {
   'Ages-event-1700000000000-Completed': 'A2'
 };
 
+const RETIRED = { IconConfig: 'none', ListStyleActiveConfig: 'true' };
+
 const OTHER_TOOLS = { playerId: 'ABC123', 'gng-save': '{}', theme: 'dark', 'flowfree-progress': '1' };
 
 describe('tracker storage', () => {
   let backend: ReturnType<typeof memoryBackend>;
 
   beforeEach(() => {
-    backend = memoryBackend({ ...LEGACY_SAVE, ...OTHER_TOOLS, surveyModalAck: '1' });
+    backend = memoryBackend({ ...LEGACY_SAVE, ...RETIRED, ...OTHER_TOOLS, surveyModalAck: '1' });
   });
 
   it('recognises every legacy key family and nothing else', () => {
@@ -63,7 +63,9 @@ describe('tracker storage', () => {
       expect(backend.map.get(STORAGE_PREFIX + key)).toBe(value);
       expect(backend.map.get(key)).toBe(value);
     }
-    expect(backend.map.has(`${STORAGE_PREFIX}surveyModalAck`)).toBe(false);
+    for (const key of [...Object.keys(RETIRED), 'surveyModalAck']) {
+      expect(backend.map.has(STORAGE_PREFIX + key), key).toBe(false);
+    }
     expect(backend.map.has(`${STORAGE_PREFIX}playerId`)).toBe(false);
   });
 

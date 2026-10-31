@@ -2,12 +2,18 @@
 
 export const STORAGE_PREFIX = 'adcom-mission-tracker:';
 
-const LEGACY_EXACT_KEYS = new Set(['activeTitle', 'StyleConfig', 'IconConfig', 'ListStyleActiveConfig']);
+const LEGACY_EXACT_KEYS = new Set(['activeTitle', 'StyleConfig']);
+/** Settings that no longer exist. They are not carried over, but Reset All still removes them. */
+const RETIRED_KEYS = new Set(['IconConfig', 'ListStyleActiveConfig']);
 const LEGACY_KEY_PATTERN =
   /^(?:Ages-)?(?:CurrentMode|abTestGroups|main-(?:Completed|CompletedVisible|CurrentRank|CompletionTimes|FormValues|MissionEtas-\d+)|event-\d+-(?:Completed|CompletionTimes|FormValues|MissionEtas))$/;
 
 export function isLegacyKey(key: string): boolean {
   return LEGACY_EXACT_KEYS.has(key) || LEGACY_KEY_PATTERN.test(key);
+}
+
+function isTrackerKey(key: string): boolean {
+  return key.startsWith(STORAGE_PREFIX) || isLegacyKey(key) || RETIRED_KEYS.has(key);
 }
 
 type Backend = Pick<Storage, 'getItem' | 'setItem' | 'removeItem' | 'key' | 'length'>;
@@ -67,7 +73,7 @@ export function createTrackerStorage(backend: Backend): TrackerStorage {
     resetAll: () =>
       guarded(() => {
         for (const key of allKeys(backend)) {
-          if (key.startsWith(STORAGE_PREFIX) || isLegacyKey(key)) {
+          if (isTrackerKey(key)) {
             backend.removeItem(key);
           }
         }

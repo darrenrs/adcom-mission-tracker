@@ -22,14 +22,43 @@ test.afterEach(async ({ page }) => {
   expect((page as Page & { errors?: string[] }).errors).toEqual([]);
 });
 
-test('shows sections in the legacy order', async ({ page }) => {
+test('groups missions into Completed, Current and Upcoming', async ({ page }) => {
   await page.goto('?mode=event');
   await expect(missionButtons(page, 'Complete').first()).toBeVisible();
 
   const headings = await sectionHeadings(page);
-  expect(headings[0]).toContain('Completed');
-  expect(headings[1]).toContain('Current');
-  expect(headings[2]).toContain('Rank 1');
+  expect(headings.map((heading) => heading.split('\n')[0])).toEqual(['Completed', 'Current', 'Upcoming']);
+
+  const upcoming = await page.getByRole('heading', { level: 3, name: /^Rank \d+$/ }).allInnerTexts();
+  const ranks = upcoming.map((heading) => Number(heading.replace('Rank ', '')));
+  expect(ranks).toEqual([...ranks].sort((a, b) => a - b));
+  expect(ranks.length).toBeGreaterThan(1);
+});
+
+test('Motherland Upcoming has no rank subsections', async ({ page }) => {
+  await page.goto('?rank=5');
+  await expect(page.getByRole('heading', { level: 2, name: 'Upcoming' })).toBeVisible();
+  await expect(page.getByRole('heading', { level: 3, name: /^Rank \d+$/ })).toHaveCount(0);
+});
+
+test('advances an event from the Current section and groups Completed by rank', async ({ page }) => {
+  await page.goto('?mode=event');
+  await page.getByRole('button', { name: 'Advance to rank' }).click();
+  await page.getByLabel(/Rank to advance to/).fill('3');
+  await page.getByRole('button', { name: 'Go', exact: true }).click();
+
+  await expect(page.getByRole('region', { name: 'Completed in Rank 1' })).toBeVisible();
+  await expect(page.getByRole('region', { name: 'Completed in Rank 2' })).toBeVisible();
+  await expect(page.getByRole('region', { name: 'Completed in Rank 3' })).toHaveCount(0);
+  await expect(page.getByRole('heading', { level: 2, name: 'Current' })).toBeInViewport();
+});
+
+test('settings no longer offer icon or list view toggles', async ({ page }) => {
+  await page.goto('?mode=main');
+  await page.getByRole('button', { name: 'Settings' }).click();
+  const sheet = page.getByRole('dialog');
+  await expect(sheet.getByText('Theme', { exact: true }).first()).toBeVisible();
+  await expect(sheet.getByText(/Mission icons|List view|Advance to rank/)).toHaveCount(0);
 });
 
 test('moves a mission to Completed and back, and keeps it across a reload', async ({ page }) => {
@@ -87,7 +116,7 @@ test('Reset All keeps data from other tools', async ({ page }) => {
 
 test('switches game and keeps old links working', async ({ page }) => {
   await page.goto('?rank=5');
-  await expect(page.getByRole('heading', { level: 2, name: /Rank 5/ })).toBeVisible();
+  await expect(page.getByText(/^Rank 5 \(/)).toBeVisible();
 
   await page.getByRole('button', { name: 'Switch game' }).click();
   await expect(page).toHaveTitle(/Ages/);

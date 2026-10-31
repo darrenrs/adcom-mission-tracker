@@ -11,7 +11,7 @@ import {
   type GameTextContext,
   type MissionDescription
 } from './gameText';
-import { availableAbGroups, type MissionBoard } from './missions';
+import { availableAbGroups, type BoardMission, type MissionBoard } from './missions';
 import type { EventInfo, GameBalance, Mission, ScheduleReward } from './types';
 
 export type MissionTone = 'danger' | 'success' | 'neutral';
@@ -309,6 +309,25 @@ export function eventRankDetails(rank: number, source: EventRankSource): EventRa
 }
 
 /** The rank typed into a field, or null when it is not a whole number from 1 to `max`. */
+export interface RankGroup {
+  rank: number;
+  missions: BoardMission[];
+}
+
+/** Groups missions by rank, lowest rank first. Each group keeps the order of the list it came from. */
+export function groupByRank(missions: readonly BoardMission[]): RankGroup[] {
+  const groups = new Map<number, BoardMission[]>();
+  for (const mission of missions) {
+    const group = groups.get(mission.Rank);
+    if (group) {
+      group.push(mission);
+    } else {
+      groups.set(mission.Rank, [mission]);
+    }
+  }
+  return [...groups].sort(([a], [b]) => a - b).map(([rank, group]) => ({ rank, missions: group }));
+}
+
 export function parseRankInput(text: string, max: number): number | null {
   if (!/^\s*\d+\s*$/.test(text)) {
     return null;

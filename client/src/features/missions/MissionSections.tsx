@@ -1,8 +1,8 @@
 import * as Collapsible from '@radix-ui/react-collapsible';
 import { ChevronDown, Info } from 'lucide-react';
-import { memo, useMemo, type ReactNode } from 'react';
-import type { BoardMission } from '@/domain/missions';
-import { currentRankLabel, eventRankDetails, type EventRankDetails } from '@/domain/missionView';
+import { memo, useMemo, useRef, type ReactNode } from 'react';
+import { boardSections, type BoardMission } from '@/domain/missions';
+import { currentRankLabel, eventRankDetails, groupByRank, type EventRankDetails } from '@/domain/missionView';
 import { useTracker, type Session } from '@/state/store';
 import { HelpText } from './HelpText';
 import { MissionRow, type RowShared, type RowState } from './MissionRow';
@@ -31,13 +31,34 @@ function MissionGrid({ missions, state, shared }: { missions: BoardMission[]; st
 
 interface SectionProps {
   session: Session;
-  missions: BoardMission[];
   shared: RowShared;
 }
 
-export function CompletedSection({ session, missions, shared }: SectionProps) {
+const rankHeading = 'text-sm font-semibold text-muted';
+
+/** Events group completed missions by rank. Within a rank they stay in completion order. */
+export function CompletedSection({ session, shared }: SectionProps) {
+  const { board, mode } = session;
   const open = useTracker((state) => state.settings.completedVisible);
   const setOpen = useTracker((state) => state.setCompletedVisible);
+  const groups = useMemo(() => groupByRank(board.completed), [board.completed]);
+
+  let body = <HelpText session={session} />;
+  if (board.completed.length > 0) {
+    body =
+      mode === 'main' ? (
+        <MissionGrid missions={board.completed} state="completed" shared={shared} />
+      ) : (
+        <>
+          {groups.map(({ rank, missions }) => (
+            <section key={rank} aria-label={`Completed in Rank ${rank}`} className="border-t border-line first:border-t-0">
+              <h3 className={`px-4 pt-3 ${rankHeading}`}>Rank {rank}</h3>
+              <MissionGrid missions={missions} state="completed" shared={shared} />
+            </section>
+          ))}
+        </>
+      );
+  }
 
   return (
     <Collapsible.Root open={open} onOpenChange={setOpen} asChild>
@@ -46,51 +67,68 @@ export function CompletedSection({ session, missions, shared }: SectionProps) {
           <Collapsible.Trigger className="flex min-h-14 w-full items-center gap-3 rounded-xl px-4 py-2 text-left hover:bg-raised/60">
             <span className="text-base font-semibold">Completed</span>
             <span className="rounded-full bg-raised px-2 py-0.5 text-xs font-medium text-muted">
-              {missions.length}
+              {board.completed.length}
               <span className="sr-only"> completed missions</span>
             </span>
             <ChevronDown aria-hidden size={20} className="ml-auto text-muted transition-transform group-data-[state=open]:rotate-180" />
           </Collapsible.Trigger>
         </h2>
-        <Collapsible.Content>
-          {missions.length === 0 ? <HelpText session={session} /> : <MissionGrid missions={missions} state="completed" shared={shared} />}
-        </Collapsible.Content>
+        <Collapsible.Content>{body}</Collapsible.Content>
       </section>
     </Collapsible.Root>
   );
 }
 
-export function CurrentSection({ session, missions, shared }: SectionProps) {
+export function CurrentSection({ session, shared }: SectionProps) {
+  const { board, mode, balance } = session;
+  const max = balance.Ranks?.length ?? 0;
+  const rank = board.mainRank;
+  const finished = mode === 'main' && board.current.length === 0;
+  const section = useRef<HTMLElement>(null);
+
+  // Advancing fills Completed, which sits above this section and would push it off screen.
+  const keepInView = () => requestAnimationFrame(() => section.current?.scrollIntoView());
+
   return (
-    <Card>
+    <section ref={section} className="scroll-mt-16 rounded-xl border border-line bg-surface sm:scroll-mt-28">
       <div className={headerRow}>
         <h2 className="text-base font-semibold">Current</h2>
-        <span className="ml-auto text-sm text-muted">Rank {currentRankLabel(session.board)}</span>
-      </div>
-      <MissionGrid missions={missions} state="current" shared={shared} />
-    </Card>
-  );
-}
-
-export function MainRankSection({ session, rank, missions, shared }: SectionProps & { rank: number }) {
-  const { board, balance } = session;
-  const max = balance.Ranks?.length ?? 0;
-  const finished = missions.length === 0 && board.current.length === 0;
-
-  return (
-    <Card>
-      <div className={headerRow}>
-        <h2 className="text-base font-semibold">Rank {rank}</h2>
-        <RankControls rank={rank} max={max} />
+        <span className="ml-auto text-base font-semibold">Rank {currentRankLabel(board)}</span>
+        <RankControls isEvent={mode === 'event'} rank={rank} max={max} onAdvanced={keepInView} />
       </div>
       {finished ? (
         <div className="space-y-1 px-4 pb-4 text-sm">
           <p>Congratulations on completing all missions in Rank {rank}!</p>
-          {rank < max && <p>To go to the next rank, use the right arrow button in the header above.</p>}
+          {rank < max && <p>To go to the next rank, use the right arrow button above.</p>}
         </div>
       ) : (
-        <MissionGrid missions={missions} state="locked" shared={shared} />
+        <MissionGrid missions={board.current} state="current" shared={shared} />
       )}
+    </section>
+  );
+}
+
+/** Motherland shows the rest of its one rank. Events show every later rank, each with its own heading. */
+export function UpcomingSection({ session, shared }: SectionProps) {
+  const { board, mode } = session;
+  const groups = boardSections(board).flatMap(({ key, missions }) =>
+    typeof key === 'number' && missions.length > 0 ? [{ rank: key, missions }] : []
+  );
+
+  if (groups.length === 0) {
+    return null;
+  }
+
+  return (
+    <Card>
+      <div className={headerRow}>
+        <h2 className="text-base font-semibold">Upcoming</h2>
+      </div>
+      {mode === 'main'
+        ? groups.map(({ rank, missions }) => <MissionGrid key={rank} missions={missions} state="locked" shared={shared} />)
+        : groups.map(({ rank, missions }) => (
+            <EventRankGroup key={rank} session={session} rank={rank} missions={missions} shared={shared} />
+          ))}
     </Card>
   );
 }
@@ -149,7 +187,7 @@ function DetailsPanel({ details }: { details: EventRankDetails }) {
   );
 }
 
-function EventRankSectionView({ session, rank, missions, shared }: SectionProps & { rank: number }) {
+function EventRankGroupView({ session, rank, missions, shared }: SectionProps & { rank: number; missions: BoardMission[] }) {
   const { text, assets, eventInfo, data } = session;
   const common = data.balances['common'];
   const details = useMemo(
@@ -159,9 +197,9 @@ function EventRankSectionView({ session, rank, missions, shared }: SectionProps 
 
   return (
     <Collapsible.Root asChild>
-      <section className="group rounded-xl border border-line bg-surface">
-        <div className={headerRow}>
-          <h2 className="text-base font-semibold">Rank {rank}</h2>
+      <section aria-label={`Upcoming in Rank ${rank}`} className="border-t border-line">
+        <div className="flex min-h-11 items-center gap-3 px-4 pt-2">
+          <h3 className={rankHeading}>Rank {rank}</h3>
           {details.hasContent && (
             <Collapsible.Trigger
               aria-label={`Rank ${rank} details`}
@@ -172,7 +210,7 @@ function EventRankSectionView({ session, rank, missions, shared }: SectionProps 
             </Collapsible.Trigger>
           )}
         </div>
-        <Collapsible.Content>
+        <Collapsible.Content className="mt-2">
           <DetailsPanel details={details} />
         </Collapsible.Content>
         <MissionGrid missions={missions} state="locked" shared={shared} />
@@ -181,4 +219,4 @@ function EventRankSectionView({ session, rank, missions, shared }: SectionProps 
   );
 }
 
-export const EventRankSection = memo(EventRankSectionView);
+const EventRankGroup = memo(EventRankGroupView);
