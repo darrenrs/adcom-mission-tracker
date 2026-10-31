@@ -8,6 +8,7 @@ import { advanceEventToRank, clickMission, createBoard, normalizeAbGroups, type 
 import {
   currentRankLabel,
   describeScheduleReward,
+  hasCalculator,
   missionIconUrl,
   missionRewardIcon,
   missionTone,
@@ -29,7 +30,7 @@ import {
   type Legacy
 } from './harness';
 
-const tally = { tone: 0, missionIcons: 0, rewardIcons: 0, scheduleIcons: 0, scheduleText: 0, rankLabels: 0 };
+const tally = { calculator: 0, tone: 0, missionIcons: 0, rewardIcons: 0, scheduleIcons: 0, scheduleText: 0, rankLabels: 0 };
 const anomalies = new Map<string, number>();
 
 function note(kind: string) {
@@ -168,6 +169,12 @@ describe.skipIf(!assetsAvailable).each(TITLE_KEYS)('mission view matches legacy 
 
         for (const mission of balance.Missions) {
           const label = `${mission.Id} (${titleKey} ${balanceId})`;
+          const calculator = legacyValue('renderCalculator', () => legacy.call<string>('renderCalculator', mission));
+          if (calculator !== null) {
+            tally.calculator++;
+            expect(hasCalculator(mission), label).toBe(calculator !== 'Mission type currently unsupported.');
+          }
+
           const button = legacyValue('renderMissionButton', () =>
             legacy.call<string>('renderMissionButton', mission, 'Current', {})
           );

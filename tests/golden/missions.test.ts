@@ -8,10 +8,12 @@ import {
   applySave,
   boardSections,
   clickMission,
+  completeMissionsBefore,
   createBoard,
   nextAbGroups,
   normalizeAbGroups,
   serializeCompleted,
+  upcomingMissions,
   type MissionBoard
 } from '@/domain/missions';
 import type { Balance, TrackerMode } from '@/domain/types';
@@ -117,6 +119,39 @@ describe.skipIf(!hasAssets)('mission order matches the legacy tracker', () => {
         throw new Error(`Balance data changed since capture. Run "npm run golden" on the matching master.`);
       }
       replay(trace, balance);
+    });
+  }
+});
+
+describe.skipIf(!hasAssets)('completing everything before a future mission', () => {
+  const eventTraces = fixture.traces.filter((trace) => trace.mode === 'event' && trace.seed === 1);
+  const mainRanks = fixture.traces.filter((trace) => trace.title === 'adcom' && trace.mode === 'main' && trace.rank % 25 === 0);
+
+  for (const trace of [...eventTraces, ...mainRanks]) {
+    it(`${trace.title} ${trace.mode} ${trace.balanceId} rank ${trace.rank}`, () => {
+      const balance = loadBalance(trace.title, trace.balanceId);
+      const abGroups = normalizeAbGroups([], balance);
+      const count = upcomingMissions(createBoard(trace.mode, balance, abGroups, trace.rank)).length;
+
+      for (const position of [0, 1, Math.floor(count / 2), count - 1]) {
+        const board = createBoard(trace.mode, balance, abGroups, trace.rank);
+        const target = upcomingMissions(board)[position];
+        if (!target) {
+          continue;
+        }
+        const total = board.current.length + upcomingMissions(board).length;
+
+        completeMissionsBefore(board, target.Id);
+
+        expect(board.current.map((m) => m.Id)).toContain(target.Id);
+        expect([...board.current, ...upcomingMissions(board)].every((m) => m.Index >= target.Index)).toBe(true);
+        expect(board.completed.length + board.current.length + upcomingMissions(board).length).toBe(total);
+
+        // What the player sees must survive a reload.
+        const reloaded = createBoard(trace.mode, balance, abGroups, trace.rank);
+        applySave(reloaded, serializeCompleted(board));
+        expect(snapshot(reloaded, null)).toEqual(snapshot(board, null));
+      }
     });
   }
 });

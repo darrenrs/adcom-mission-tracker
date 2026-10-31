@@ -10,6 +10,7 @@ import {
   applyAbGroups,
   applySave,
   clickMission,
+  completeMissionsBefore,
   createBoard,
   nextAbGroups,
   normalizeAbGroups,
@@ -28,6 +29,7 @@ export type ThemeSetting = 'system' | 'light' | 'dark';
 export interface Settings {
   theme: ThemeSetting;
   completedVisible: boolean;
+  howToUseVisible: boolean;
 }
 
 /** Everything derived from one title, mode and event. Replaced as a whole when any of those change. */
@@ -55,11 +57,13 @@ export interface TrackerState {
   boot(): Promise<void>;
   syncLocation(): void;
   clickMission(missionId: string): void;
+  completeMissionsBefore(missionId: string): void;
   switchAbGroup(missionId: string): void;
   advanceEvent(rank: number): void;
   switchTitle(): Promise<void>;
   setTheme(theme: ThemeSetting): void;
   setCompletedVisible(visible: boolean): void;
+  setHowToUseVisible(visible: boolean): void;
   resetMode(): void;
   resetAll(): void;
 }
@@ -104,14 +108,15 @@ function readSettings(storage: TrackerStorage, title: TitleConfig): Settings {
   const visibleKey = `${title.gameSaveKeyPrefix}main-CompletedVisible`;
   let completedVisible = storage.get(visibleKey);
   if (completedVisible === null) {
-    // New saves start open, so that first-time players see the help text.
+    // New saves start open, as in legacy.
     completedVisible = String(storage.get(`${title.gameSaveKeyPrefix}main-Completed`) === null);
     storage.set(visibleKey, completedVisible);
   }
 
   return {
     theme: theme === 'light' || theme === 'dark' ? theme : 'system',
-    completedVisible: completedVisible === 'true'
+    completedVisible: completedVisible === 'true',
+    howToUseVisible: storage.get('HowToUseVisible') !== 'false'
   };
 }
 
@@ -264,6 +269,21 @@ export function createTrackerStore(deps: TrackerDeps): StoreApi<TrackerState> {
         set({ session: next });
       },
 
+      completeMissionsBefore(missionId) {
+        const session = get().session;
+        if (!session) {
+          return;
+        }
+        const board = cloneBoard(session.board);
+        const completed = completeMissionsBefore(board, missionId);
+        const now = deps.now();
+        const completionTimes = { ...session.completionTimes, ...Object.fromEntries(completed.map((m) => [m.Id, now])) };
+
+        const next = { ...session, board, completionTimes };
+        persist(next);
+        set({ session: next });
+      },
+
       switchAbGroup(missionId) {
         const session = get().session;
         const abGroups = session && nextAbGroups(session.balance, session.abGroups, missionId);
@@ -308,6 +328,11 @@ export function createTrackerStore(deps: TrackerDeps): StoreApi<TrackerState> {
         const title = get().session?.title ?? readTitle(storage);
         storage.set(`${title.gameSaveKeyPrefix}main-CompletedVisible`, String(completedVisible));
         updateSettings({ completedVisible });
+      },
+
+      setHowToUseVisible(howToUseVisible) {
+        storage.set('HowToUseVisible', String(howToUseVisible));
+        updateSettings({ howToUseVisible });
       },
 
       resetMode() {

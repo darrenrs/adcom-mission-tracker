@@ -15,7 +15,7 @@ export function Footer() {
   }, []);
 
   return (
-    <footer className="mx-auto w-full max-w-6xl space-y-1 px-4 pb-24 text-xs text-muted sm:pb-6">
+    <footer className="mx-auto w-full max-w-360 space-y-1 px-4 pb-24 text-xs text-muted sm:pb-6">
       <p>
         Issues or suggestions? The project is on{' '}
         <a className="underline" href="https://github.com/darrenrs/adcom-mission-tracker">

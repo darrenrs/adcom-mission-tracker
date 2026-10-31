@@ -309,6 +309,17 @@ export function eventRankDetails(rank: number, source: EventRankSource): EventRa
 }
 
 /** The rank typed into a field, or null when it is not a whole number from 1 to `max`. */
+const CALCULATOR_CONDITIONS = new Set(['ResourceQuantity', 'IndustryUnlocked', 'ResourcesEarnedSinceSubscription']);
+
+/** Whether the mission page can calculate this mission. Science has no calculator, as in legacy. */
+export function hasCalculator(mission: Mission): boolean {
+  const { ConditionType: type, ConditionId: id } = mission.Condition;
+  if (!CALCULATOR_CONDITIONS.has(type)) {
+    return false;
+  }
+  return type === 'IndustryUnlocked' || !['scientist', 'darkscience'].includes(id.toLowerCase());
+}
+
 export interface RankGroup {
   rank: number;
   missions: BoardMission[];

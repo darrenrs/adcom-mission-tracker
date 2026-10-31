@@ -4,8 +4,9 @@ import type { AssetResolver } from '@/domain/assets';
 import { getMissionEtaString } from '@/domain/format';
 import { describeMission, type GameTextContext } from '@/domain/gameText';
 import type { BoardMission } from '@/domain/missions';
-import { abSwitchLabel, missionIconUrl, missionRewardIcon, missionTone, type MissionTone } from '@/domain/missionView';
+import { abSwitchLabel, hasCalculator, missionIconUrl, missionRewardIcon, missionTone, type MissionTone } from '@/domain/missionView';
 import { navigate } from '@/state/navigation';
+import { CalculatorBadge } from './CalculatorBadge';
 import { useMinuteClock } from './useMinuteClock';
 
 export type RowState = 'current' | 'completed' | 'locked';
@@ -16,6 +17,7 @@ export interface RowShared {
   assets: AssetResolver;
   etas: Record<string, number>;
   onToggle(missionId: string): void;
+  onRequestCompleteBefore(missionId: string): void;
   onSwitchAb(missionId: string): void;
 }
 
@@ -47,7 +49,7 @@ function StatusIcon({ state }: { state: RowState }) {
 const STATE_PREFIX: Record<RowState, string> = {
   current: 'Complete mission: ',
   completed: 'Undo completed mission: ',
-  locked: 'Locked mission: '
+  locked: 'Upcoming mission: '
 };
 
 interface MissionRowProps extends Omit<RowShared, 'etas'> {
@@ -56,23 +58,23 @@ interface MissionRowProps extends Omit<RowShared, 'etas'> {
   eta: number | undefined;
 }
 
-function MissionRowView({ mission, state, eta, ctx, assets, onToggle, onSwitchAb }: MissionRowProps) {
+function MissionRowView({ mission, state, eta, ctx, assets, onToggle, onRequestCompleteBefore, onSwitchAb }: MissionRowProps) {
   const description = useMemo(() => describeMission(ctx, mission), [ctx, mission]);
   const iconUrl = useMemo(() => missionIconUrl(description, assets), [description, assets]);
   const reward = useMemo(() => missionRewardIcon(mission, ctx.balance, assets), [mission, ctx.balance, assets]);
   const locked = state === 'locked';
   const done = state === 'completed';
   const abLabel = mission.AbTestConfig ? abSwitchLabel(ctx.balance, mission.AbTestConfig) : null;
+  const calculator = hasCalculator(mission);
 
   return (
     <li
-      className={`flex items-stretch rounded-lg border border-l-4 ${TONE_CLASS[missionTone(mission)]} ${locked ? 'opacity-60' : ''}`}
+      className={`flex items-stretch rounded-lg border border-l-4 ${TONE_CLASS[missionTone(mission)]}`}
     >
       <button
         type="button"
-        disabled={locked}
-        onClick={() => onToggle(mission.Id)}
-        className="flex min-h-12 min-w-0 flex-1 items-center gap-3 rounded-lg px-3 py-2 text-left enabled:hover:bg-raised/60 enabled:active:bg-raised disabled:cursor-not-allowed"
+        onClick={() => (locked ? onRequestCompleteBefore(mission.Id) : onToggle(mission.Id))}
+        className={`flex min-h-12 min-w-0 flex-1 items-center gap-3 rounded-lg px-3 py-2 text-left hover:bg-raised/60 active:bg-raised ${locked ? 'opacity-60' : ''}`}
       >
         <StatusIcon state={state} />
         {iconUrl && (
@@ -88,32 +90,35 @@ function MissionRowView({ mission, state, eta, ctx, assets, onToggle, onSwitchAb
       </button>
 
       {abLabel && (
-        <button type="button" disabled={locked} onClick={() => onSwitchAb(mission.Id)} aria-label={abLabel} title={abLabel} className={sideButton}>
+        <button type="button" onClick={() => onSwitchAb(mission.Id)} aria-label={abLabel} title={abLabel} className={sideButton}>
           <ArrowLeftRight aria-hidden size={18} />
         </button>
       )}
 
+      {/* Future missions stay open to planning, as in legacy. */}
       <button
         type="button"
-        disabled={locked}
         onClick={() => navigate({ mission: mission.Id })}
-        aria-label={`Reward and calculator for ${description.text}${reward.scripted ? ' (scripted reward)' : ''}`}
-        title="Mission info and calculator"
+        aria-label={`${calculator ? 'Reward and calculator' : 'Reward'} for ${description.text}${reward.scripted ? ' (scripted reward)' : ''}`}
+        title={calculator ? 'Open calculator and reward' : 'Open reward'}
         className={`${sideButton} min-w-14 pr-1`}
       >
-        {reward.url ? (
-          <img
-            src={reward.url}
-            alt=""
-            width={32}
-            height={32}
-            loading="lazy"
-            decoding="async"
-            className={`size-8 object-contain ${reward.scripted ? 'rounded-full ring-2 ring-accent ring-offset-2 ring-offset-surface' : ''}`}
-          />
-        ) : (
-          <Gift aria-hidden size={24} />
-        )}
+        <span className="relative">
+          {reward.url ? (
+            <img
+              src={reward.url}
+              alt=""
+              width={32}
+              height={32}
+              loading="lazy"
+              decoding="async"
+              className={`size-8 object-contain ${reward.scripted ? 'rounded-full ring-2 ring-accent ring-offset-2 ring-offset-surface' : ''}`}
+            />
+          ) : (
+            <Gift aria-hidden size={24} />
+          )}
+          {calculator && <CalculatorBadge />}
+        </span>
       </button>
     </li>
   );

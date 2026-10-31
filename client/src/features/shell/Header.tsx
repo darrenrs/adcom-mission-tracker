@@ -21,7 +21,7 @@ export function Header() {
   const otherGame = title.isAges ? 'adcom' : 'ages';
 
   return (
-    <header className="mx-auto flex h-14 w-full max-w-6xl items-center gap-2 px-3 sm:px-4">
+    <header className="mx-auto flex h-14 w-full max-w-360 items-center gap-2 px-3 sm:px-4">
       <DropdownMenu.Root>
         <DropdownMenu.Trigger className="flex min-h-11 min-w-0 items-center gap-2 rounded-lg px-2 font-semibold hover:bg-raised">
           <img src={displayIcon} alt="" className="size-7 shrink-0 object-contain" />

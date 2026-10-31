@@ -281,6 +281,43 @@ export function clickMission(board: MissionBoard, missionId: string): 'completed
   return null;
 }
 
+/** Missions waiting behind Current. Motherland works one rank at a time, so only that rank counts. */
+export function upcomingMissions(board: MissionBoard): BoardMission[] {
+  if (board.mode === 'main') {
+    return board.ranks.get(board.mainRank) ?? [];
+  }
+  return [...board.ranks.keys()].sort((a, b) => a - b).flatMap((rank) => board.ranks.get(rank) ?? []);
+}
+
+/** Incomplete missions that come before `missionId`, in mission order. Empty if it is not an upcoming mission. */
+export function missionsBefore(board: MissionBoard, missionId: string): BoardMission[] {
+  const upcoming = upcomingMissions(board);
+  const target = upcoming.find((m) => m.Id === missionId);
+  if (!target) {
+    return [];
+  }
+  return [...board.current, ...upcoming].filter((m) => m.Index < target.Index).sort(byIndex);
+}
+
+/** Completes everything before an upcoming mission, which then moves up into Current. */
+export function completeMissionsBefore(board: MissionBoard, missionId: string): BoardMission[] {
+  const earlier = missionsBefore(board, missionId);
+  const ids = new Set(earlier.map((m) => m.Id));
+  const keepLater = (list: BoardMission[]) => list.filter((m) => !ids.has(m.Id));
+
+  board.completed.push(...earlier);
+  board.current = keepLater(board.current);
+  board.ranks = new Map([...board.ranks].map(([rank, list]) => [rank, keepLater(list)]));
+
+  if (board.mode === 'event') {
+    fillEventCurrent(board, 1);
+  } else {
+    const rankMissions = board.ranks.get(board.mainRank) ?? [];
+    board.current.push(...rankMissions.splice(0, board.currentSize - board.current.length));
+  }
+  return earlier;
+}
+
 /** Event only: marks every mission below `targetRank` complete and refills Current from there. */
 export function advanceEventToRank(board: MissionBoard, targetRank: number): void {
   const eligibleRanks = [...board.ranks.keys()].filter((rank) => rank <= targetRank).sort((a, b) => a - b);

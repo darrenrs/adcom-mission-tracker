@@ -6,6 +6,7 @@ import {
   boardSections,
   clickMission,
   createBoard,
+  missionsBefore,
   missionsForGroups,
   nextAbGroups,
   normalizeAbGroups
@@ -113,5 +114,24 @@ describe('groupByRank', () => {
     expect(groups.map((group) => group.rank)).toEqual([...groups.map((group) => group.rank)].sort((a, b) => a - b));
     const rankOne = groups.find((group) => group.rank === 1);
     expect(rankOne?.missions.map((m) => m.Id).slice(0, 2)).toEqual(['b', 'a']);
+  });
+});
+
+describe('completeMissionsBefore', () => {
+  it('stays inside the Motherland rank on display', () => {
+    const motherland: Balance = {
+      Missions: [
+        { ...mission('r1'), Rank: 1 },
+        { ...mission('a'), Rank: 2 },
+        { ...mission('b'), Rank: 2 },
+        { ...mission('c'), Rank: 2 },
+        { ...mission('d'), Rank: 2 }
+      ],
+      Ranks: [rankInfo(1, 0), { ...rankInfo(2, 0), ActiveMissionCount: 1 }]
+    };
+    const board = createBoard('main', motherland, [], 2);
+
+    expect(missionsBefore(board, 'c').map((m) => m.Id)).toEqual(['a', 'b']);
+    expect(missionsBefore(board, 'r1')).toEqual([]);
   });
 });

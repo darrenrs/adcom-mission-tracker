@@ -4,7 +4,6 @@ import { memo, useMemo, useRef, type ReactNode } from 'react';
 import { boardSections, type BoardMission } from '@/domain/missions';
 import { currentRankLabel, eventRankDetails, groupByRank, type EventRankDetails } from '@/domain/missionView';
 import { useTracker, type Session } from '@/state/store';
-import { HelpText } from './HelpText';
 import { MissionRow, type RowShared, type RowState } from './MissionRow';
 import { RankControls } from './RankControls';
 
@@ -43,7 +42,7 @@ export function CompletedSection({ session, shared }: SectionProps) {
   const setOpen = useTracker((state) => state.setCompletedVisible);
   const groups = useMemo(() => groupByRank(board.completed), [board.completed]);
 
-  let body = <HelpText session={session} />;
+  let body = <p className="px-4 pb-4 text-sm text-muted">No completed missions yet.</p>;
   if (board.completed.length > 0) {
     body =
       mode === 'main' ? (

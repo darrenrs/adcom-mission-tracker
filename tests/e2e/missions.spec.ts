@@ -27,7 +27,7 @@ test('groups missions into Completed, Current and Upcoming', async ({ page }) =>
   await expect(missionButtons(page, 'Complete').first()).toBeVisible();
 
   const headings = await sectionHeadings(page);
-  expect(headings.map((heading) => heading.split('\n')[0])).toEqual(['Completed', 'Current', 'Upcoming']);
+  expect(headings.map((heading) => heading.split('\n')[0])).toEqual(['How to use', 'Completed', 'Current', 'Upcoming']);
 
   const upcoming = await page.getByRole('heading', { level: 3, name: /^Rank \d+$/ }).allInnerTexts();
   const ranks = upcoming.map((heading) => Number(heading.replace('Rank ', '')));
@@ -51,6 +51,45 @@ test('advances an event from the Current section and groups Completed by rank', 
   await expect(page.getByRole('region', { name: 'Completed in Rank 2' })).toBeVisible();
   await expect(page.getByRole('region', { name: 'Completed in Rank 3' })).toHaveCount(0);
   await expect(page.getByRole('heading', { level: 2, name: 'Current' })).toBeInViewport();
+});
+
+test('How to use stays hidden once hidden', async ({ page }) => {
+  await page.goto('?mode=main');
+  await expect(page.getByText('Tap a')).toHaveCount(2);
+
+  await page.getByRole('button', { name: 'How to use' }).click();
+  await expect(page.getByText('Tap a')).toHaveCount(0);
+
+  await page.reload();
+  await expect(page.getByRole('button', { name: 'How to use' })).toBeVisible();
+  await expect(page.getByText('Tap a')).toHaveCount(0);
+});
+
+test('a future mission asks before completing everything ahead of it', async ({ page }) => {
+  await page.goto('?mode=event');
+  const target = page.getByRole('button', { name: /^Upcoming mission/ }).nth(5);
+  const name = ((await target.innerText()).split('\n').at(-1) ?? '').trim();
+
+  await target.click();
+  const dialog = page.getByRole('dialog');
+  await expect(dialog).toContainText(name);
+  await dialog.getByRole('button', { name: 'Cancel' }).click();
+  await expect(missionButtons(page, 'Undo completed')).toHaveCount(0);
+
+  await target.click();
+  await page.getByRole('dialog').getByRole('button', { name: /^Mark \d+ missions? complete$/ }).click();
+  await expect(missionButtons(page, 'Complete').filter({ hasText: name })).toHaveCount(1);
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+
+  await page.reload();
+  await expect(missionButtons(page, 'Complete').filter({ hasText: name })).toHaveCount(1);
+});
+
+test('a future mission still opens its calculator page', async ({ page }) => {
+  await page.goto('?mode=event');
+  await page.getByRole('region', { name: /^Upcoming in Rank/ }).first().getByRole('button', { name: /^Reward/ }).first().click();
+  await expect(page).toHaveURL(/mission=/);
+  await expect(page.getByRole('button', { name: 'Back' })).toBeVisible();
 });
 
 test('settings no longer offer icon or list view toggles', async ({ page }) => {
@@ -125,7 +164,7 @@ test('switches game and keeps old links working', async ({ page }) => {
 
 test('opens the mission page and returns with Back', async ({ page }) => {
   await page.goto('?mode=main');
-  await page.getByRole('button', { name: /^Reward and calculator for/ }).first().click();
+  await page.getByRole('button', { name: /^Reward/ }).first().click();
   await expect(page).toHaveURL(/mission=/);
 
   await page.getByRole('button', { name: 'Back' }).click();
