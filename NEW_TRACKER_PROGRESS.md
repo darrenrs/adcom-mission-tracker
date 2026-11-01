@@ -1,22 +1,24 @@
 # New Tracker: Progress and Handoff
 
-**Status:** Phase 3 is complete. Paused at the owner's request to fix display issues before Phase 4.
-**Branch:** `new-tracker`, 7 commits ahead of `master` when this file was written. It has not been pushed.
+**Status:** The 31 October layout brief is built and waiting for the owner's review. Phase 4 has not started.
+**Branch:** `new-tracker`. It has not been pushed.
 **Last updated:** 31 October 2026.
 
 Start here when picking the work up. Nothing on this branch is deployed, because `deploy.yml` only deploys `master`.
 
 ## Next step
 
-1. Plan the owner's 31 October layout brief: one page with `title` and `mode` URL parameters, a rank control in the top bar, a new default Game View tab, Production changes, and links moved to Settings. The plan needs approval before any code. Their screenshots show how the game presents information. They are not a request to copy the game's visual style.
-2. Build it, then wait for the owner's go-ahead before starting Phase 4.
+1. The owner reviews the layout brief work and sends the rest of their notes. They said more is coming, and that calculation tests will follow.
+2. Wait for the owner's go-ahead before starting Phase 4.
 
 ## Ground rules from the owner
 
 - All work stays on `new-tracker`. Nothing goes to `master` yet.
 - The plan comes before the code. Phase reviews are the owner's call.
 - The frontend is React and Vite. Do not reopen that decision.
-- Only two legacy behaviours are strictly preserved: mission order, and clicking a mission to move it between incomplete and completed, in both directions.
+- Clicking a mission moves it between incomplete and completed, in both directions. Lists always follow the balance's internal mission order.
+- Old tracker links are not supported. This is a total revamp, and legacy code should be kept to a minimum.
+- The game's screenshots show how it presents information. They are not a request to copy its visual style.
 - Avoid modal-heavy layouts. The page should look like 2026 without confusing players. The future-mission confirmation is a modal the owner asked for.
 - All storage keys start with `adcom-mission-tracker:`.
 - When a lot of code is being written, Opus may hand it to Sonnet subagents to save usage.
@@ -30,6 +32,7 @@ Start here when picking the work up. Nothing on this branch is deployed, because
 | 1. Core | Domain logic, storage, mission logic | Done |
 | 2. Missions | Design system, shell, Missions tab, settings | Done and reviewed, with changes below |
 | 3. Calculators | Engine, calculator on mission pages, Production tab | Done. Owner found display issues still to fix |
+| 3b. Layout brief | URL scheme, rank in the top bar, Game View tab, Production rework | Built. Owner review pending |
 | 4. Parity | Events and Reference tabs, Docker build, remove legacy `public/` files | Not started. Owner review afterwards |
 | 5. PDF features | See the list under Phase 5 | Not started. Each group reviewed separately |
 | 6. Test independence | Remove every test's dependency on legacy code | Not started. Must finish before any merge to `master` |
@@ -37,7 +40,7 @@ Start here when picking the work up. Nothing on this branch is deployed, because
 ### Phase 4 scope
 
 - **Events tab:** schedule, all events, balance information. Their current placeholder is `client/src/features/events/EventsPage.tsx`.
-- **Reference tab:** airdrops, capsules, scripted capsules, avatar unlocks, help, keyboard shortcuts. Its placeholder is `client/src/features/reference/ReferencePage.tsx`.
+- **Reference tab:** airdrops, capsules, scripted capsules, avatar unlocks, help. Its placeholder is `client/src/features/reference/ReferencePage.tsx`.
 - **Build:** change `app.js` to serve `dist`, add a Node build stage to the `Dockerfile`, and move `admin.html`, `admin.js` and the CSS they need into `client/public/` unchanged.
 - **Cleanup:** remove the legacy files in `public/`, but only after every feature has moved over. `npm run golden` reads legacy code from `master`, not from `public/`.
 
@@ -70,7 +73,8 @@ The work:
 - Events have rank subsections in Completed and Upcoming. Motherland has no subsections.
 - Every list displays in the balance's internal mission order, never by completion time. Saves still record completion order, so old saves and rollback are unaffected.
 - The mission page has no complete or undo button. Missions are only toggled from the list.
-- Advance to rank and the rank arrows live in Current. The rank label matches the "Current" heading size.
+- Rank lives in the centre of the top bar with a progress bar. Tapping it opens the arrows and rank input. On phones the mode selector shrinks to its icon.
+- Motherland moves freely between ranks. Events only move forward, and `>` or the input marks earlier missions complete.
 - A collapsible "How to use" card sits above Completed with four bullets. Its hidden state is saved. The removed help content will be restored later by the owner, by hand.
 - The grid goes up to four columns from the 1536px breakpoint, and the page width is 1440px.
 
@@ -79,6 +83,25 @@ The work:
 - Clicking a future mission opens a confirmation to complete everything before it. In Motherland this covers only the rank on screen.
 - A calculator badge on the capsule appears only on missions that have a calculator.
 - Capsules and A/B switches stay usable on future missions, as in legacy.
+
+**URL**
+- `title=adcom|ages` and `mode=evergreen|lte` always show in the URL. `rank`, `view` and `mission` stay.
+- `at=<millis>` opens the schedule entry running at that time. `balance=<id>` previews an event with no schedule entry, and its progress is temporary.
+- Modes are `evergreen` and `lte` internally. Saved keys and values still say `main` and `event`, so saves keep working.
+
+**Game View**
+- It is the default tab. Only the generator bars move. Numbers change only when typed.
+- The green generator box is a label and does nothing when tapped.
+- Own missions link to the entered amounts, in both directions. Other missions save typed progress per mission, under `MissionProgress`, and the calculator's Mission Progress field shares it.
+- Mission cards stack on phones and sit three across from 640px, because the capsule beside the requirement leaves too little width on a phone.
+- Beta placeholders until the owner decides: generators show base output for all owned per cycle, or per second under a 0.5s cycle. Unlock missions use a typed 0/1.
+
+**Production and other**
+- Generators show one column per industry from `md` up. Researcher cards are about 75% of their old size, with Max on each card plus Max all and Set all to 0.
+- Custom researcher values are gone. Saved custom levels load as 0.
+- Propaganda starts on. An explicit off in a save stays off.
+- GitHub, Privacy, Terms and the build id are in Settings. The footer keeps only the fan content notice.
+- Only plain Up and Down remain as keyboard input.
 
 **Not wanted yet:** an Undo prompt after completing a mission, and collapsing older Completed ranks. The owner declined both for now.
 
@@ -89,6 +112,7 @@ The work:
 - **Longer offline ETAs:** offline Own missions that cost generators can be much longer than before. Legacy ignored those costs, so its answers were too optimistic.
 - **Comparison with legacy:** on sampled missions, online results are within 3% and offline resource goals within 1%. The engine has not been checked against real in-game numbers yet.
 - **Legacy bugs not carried over:** the Advance To Rank off-by-one, and Reset All wiping other tools' data.
+- **Calculator defaults changed:** with propaganda on by default, new saves calculate with the boost applied.
 - **Save compatibility:** old saves are copied under the new prefix and the originals are kept, for rollback. The `IconConfig` and `ListStyleActiveConfig` settings are not carried over.
 - **Still open on `master`, outside this work:** the `/api/import` security issue and the unprotected admin page. The leaderboard crash and unauthenticated Discord account writes are also open, in its own repo.
 - **First load is still slow.** The API payload is unchanged, because this work is front-end only.
@@ -126,7 +150,7 @@ npm run build
 
 `npm run golden` recaptures mission traces from `master`. Run it only when balance data changes. If the data has changed, the mission tests fail and tell you to run it. This command goes away in Phase 6.
 
-At the last commit, all 1,254 unit tests and 42 browser tests passed.
+At the last commit, all 1,250 unit tests and 86 browser tests passed, and `npm run build` succeeded.
 
 ## Where things are
 
@@ -136,7 +160,7 @@ At the last commit, all 1,254 unit tests and 42 browser tests passed.
 | `client/src/engine/` | Production formula, goals, ranges, Web Worker |
 | `client/src/storage/` | Prefixed keys, migration, reset |
 | `client/src/state/` | Zustand store and URL navigation |
-| `client/src/features/` | Screens: missions, mission, calculator, production, settings, shell |
+| `client/src/features/` | Screens: game, missions, mission, calculator, production, settings, shell |
 | `tests/golden/` | Mission traces captured from legacy code |
 | `tests/legacy/` | Comparisons against the real legacy functions on `master`. Temporary, removed in Phase 6 |
 | `tests/e2e/` | Playwright tests at phone and desktop widths |

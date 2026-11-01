@@ -147,6 +147,41 @@ test('a generator bar runs at the cycle time once it is owned and automated', as
   await expect(farmers.getByRole('button', { name: 'Edit number of Farmers' })).toHaveText('3');
 });
 
+test('keeps completions, rank and researcher levels from a save made before this work', async ({ page }) => {
+  await page.goto('?view=production&mode=evergreen&rank=2');
+  await page.getByRole('tab', { name: 'Researchers' }).click();
+  await page.getByRole('textbox', { name: /^Level of Ringo Ringlet/ }).fill('2');
+
+  // Rebuild the save under the old unprefixed keys, as the live site wrote them.
+  await page.evaluate(() => {
+    const prefix = 'adcom-mission-tracker:';
+    const form = localStorage.getItem(`${prefix}main-FormValues`) as string;
+    localStorage.clear();
+    localStorage.setItem('CurrentMode', 'main');
+    localStorage.setItem('main-CurrentRank', '2');
+    localStorage.setItem('main-Completed', 'M0004');
+    localStorage.setItem('main-FormValues', form);
+  });
+
+  await page.goto('?view=missions');
+  await expect(page.getByRole('button', { name: /^Rank 2, 1 of/ })).toBeVisible();
+  await expect(page.getByRole('button', { name: /^Undo completed mission/ })).toHaveCount(1);
+
+  await page.goto('?view=production');
+  await page.getByRole('tab', { name: 'Researchers' }).click();
+  await expect(page.getByRole('textbox', { name: /^Level of Ringo Ringlet/ })).toHaveValue('2');
+});
+
+test('fits five industries with the selected amount readable at the narrowest phone', async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 640 });
+  await page.goto('?title=ages&mode=evergreen');
+  const amount = page.getByRole('button', { name: /amount$/ });
+  await expect(amount).toBeVisible();
+  expect((await amount.boundingBox())?.width).toBeGreaterThan(40);
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+  expect(overflow).toBeLessThanOrEqual(0);
+});
+
 test('never scrolls sideways', async ({ page }) => {
   await openGame(page);
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);

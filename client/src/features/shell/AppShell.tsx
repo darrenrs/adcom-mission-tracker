@@ -22,7 +22,7 @@ function Tabs({ className }: { className: string }) {
           type="button"
           aria-current={active === view ? 'page' : undefined}
           onClick={() => navigate({ view: view === 'game' ? null : view, mission: null, researcher: null })}
-          className="flex min-h-14 flex-1 flex-col items-center justify-center gap-0.5 text-xs font-medium text-muted transition-colors hover:text-ink aria-[current=page]:text-accent sm:min-h-11 sm:flex-none sm:flex-row sm:gap-2 sm:border-b-2 sm:border-transparent sm:px-3 sm:text-sm sm:aria-[current=page]:border-accent"
+          className="flex min-h-14 min-w-0 flex-1 flex-col items-center justify-center gap-0.5 text-[11px] font-medium whitespace-nowrap text-muted transition-colors hover:text-ink aria-[current=page]:text-accent sm:min-h-11 sm:flex-none sm:flex-row sm:gap-2 sm:border-b-2 sm:border-transparent sm:px-3 sm:text-sm sm:aria-[current=page]:border-accent"
         >
           <Icon aria-hidden size={20} />
           {label}

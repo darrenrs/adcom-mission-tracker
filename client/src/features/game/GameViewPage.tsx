@@ -151,7 +151,7 @@ function IndustrySelector({ activeId }: { activeId: string }) {
 
         if (industry.Id === activeId) {
           return (
-            <li key={industry.Id} className={`flex min-w-0 flex-1 items-center gap-1 px-2 ${box}`} aria-current="true">
+            <li key={industry.Id} className={`flex min-w-24 flex-1 items-center gap-1 px-2 ${box}`} aria-current="true">
               {icon}
               <EditableAmount
                 label={`${name} amount`}
@@ -170,7 +170,7 @@ function IndustrySelector({ activeId }: { activeId: string }) {
               aria-label={`Show ${name}`}
               title={name}
               onClick={() => setActiveIndustry(industry.Id)}
-              className={`flex size-14 items-center justify-center hover:bg-raised ${box}`}
+              className={`flex size-11 items-center justify-center hover:bg-raised sm:size-14 ${box}`}
             >
               {icon}
             </button>
