@@ -6,7 +6,7 @@ import { describeMission, type GameTextContext } from '@/domain/gameText';
 import { parseLocalization } from '@/domain/localization';
 import { advanceLteToRank, clickMission, createBoard, normalizeAbGroups, type MissionBoard } from '@/domain/missions';
 import {
-  currentRankLabel,
+  rankProgress,
   describeScheduleReward,
   hasCalculator,
   missionIconUrl,
@@ -71,6 +71,15 @@ function allScheduleRewards(schedule: ReturnType<typeof loadSchedule>): Schedule
     }
   }
   return rewards;
+}
+
+/** The label legacy showed, built from the numbers the top bar now uses. */
+function currentRankLabel(board: MissionBoard): string {
+  const { rank, done, total, finished } = rankProgress(board);
+  if (finished) {
+    return 'Complete!';
+  }
+  return total ? `${rank} (${done}/${total})` : String(rank);
 }
 
 const STUBS = `
@@ -279,7 +288,7 @@ describe.skipIf(!assetsAvailable).each(TITLE_KEYS)('mission view matches legacy 
   }
 });
 
-describe('currentRankLabel', () => {
+describe('rankProgress', () => {
   const balance = {
     Missions: Array.from({ length: 4 }, (_, index) => ({
       Id: `m${index}`,

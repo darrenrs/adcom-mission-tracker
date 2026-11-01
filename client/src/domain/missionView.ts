@@ -100,38 +100,38 @@ export function rewardIconUrl(reward: ScheduleReward, assets: AssetResolver): st
   return path.toLowerCase().endsWith('.png') ? path : `${path}.png`;
 }
 
-const lteRankTitles = new WeakMap<MissionBoard['rankSizes'], string[]>();
-
-/** One label per number of completed event missions: `3 (1/5)` is rank 3 with one of five done. */
-function lteRankLabels(board: MissionBoard): string[] {
-  let labels = lteRankTitles.get(board.rankSizes);
-  if (!labels) {
-    labels = [];
-    for (let rank = 1; rank <= board.rankCount; rank++) {
-      const size = board.rankSizes.get(rank);
-      if (size !== undefined) {
-        for (let done = 0; done < size; done++) {
-          labels.push(`${rank} (${done}/${size})`);
-        }
-      }
-    }
-    lteRankTitles.set(board.rankSizes, labels);
-  }
-  return labels;
+export interface RankProgress {
+  rank: number;
+  /** Missions completed in this rank. */
+  done: number;
+  /** Missions in this rank. Zero when the rank has none. */
+  total: number;
+  /** Every mission of the event is complete. */
+  finished: boolean;
 }
 
-/** The rank shown next to Current, such as `12 (2/9)`. */
-export function currentRankLabel(board: MissionBoard): string {
+/** The rank on display and how far through it the player is. Event completions count through the ranks in order. */
+export function rankProgress(board: MissionBoard): RankProgress {
   if (board.mode === 'lte') {
-    return lteRankLabels(board)[board.completed.length] ?? 'Complete!';
+    let left = board.completed.length;
+    let last = { rank: 1, size: 0 };
+    for (let rank = 1; rank <= board.rankCount; rank++) {
+      const size = board.rankSizes.get(rank);
+      if (size === undefined) {
+        continue;
+      }
+      if (left < size) {
+        return { rank, done: left, total: size, finished: false };
+      }
+      left -= size;
+      last = { rank, size };
+    }
+    return { rank: last.rank, done: last.size, total: last.size, finished: last.size > 0 };
   }
 
-  const size = board.rankSizes.get(board.evergreenRank);
-  if (size === undefined) {
-    return String(board.evergreenRank);
-  }
+  const size = board.rankSizes.get(board.evergreenRank) ?? 0;
   const waiting = board.ranks.get(board.evergreenRank)?.length ?? 0;
-  return `${board.evergreenRank} (${size - waiting - board.current.length}/${size})`;
+  return { rank: board.evergreenRank, done: size ? size - waiting - board.current.length : 0, total: size, finished: false };
 }
 
 export interface ScheduleRewardView {

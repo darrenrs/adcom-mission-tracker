@@ -67,10 +67,10 @@ test('Motherland Upcoming has no rank subsections', async ({ page }) => {
   await expect(page.getByRole('heading', { level: 3, name: /^Rank \d+$/ })).toHaveCount(0);
 });
 
-test('advances an event from the Current section and groups Completed by rank', async ({ page }) => {
+test('advances an event from the top bar and groups Completed by rank', async ({ page }) => {
   await page.goto('?mode=lte');
-  await page.getByRole('button', { name: 'Advance to rank' }).click();
-  await page.getByLabel(/Rank to advance to/).fill('3');
+  await page.getByRole('button', { name: /^Rank \d+, .* Change rank$/ }).click();
+  await page.getByLabel(/Rank to go to/).fill('3');
   await page.getByRole('button', { name: 'Go', exact: true }).click();
 
   await expect(page.getByRole('region', { name: 'Completed in Rank 1' })).toBeVisible();
@@ -181,11 +181,38 @@ test('Reset All keeps data from other tools', async ({ page }) => {
 
 test('switches game and opens a rank from its link', async ({ page }) => {
   await page.goto('?rank=5');
-  await expect(page.getByText(/^Rank 5 \(/)).toBeVisible();
+  await expect(page.getByRole('button', { name: /^Rank 5, / })).toBeVisible();
 
   await page.getByRole('button', { name: 'Switch game' }).click();
   await expect(page).toHaveTitle(/Ages/);
   await expect(page.locator('html')).toHaveAttribute('data-title', 'ages');
+});
+
+test('moves between Motherland ranks from the top bar', async ({ page }) => {
+  await page.goto('?mode=evergreen&rank=5');
+  const rank = page.getByRole('button', { name: /^Rank 5, / });
+  await expect(rank).toContainText('Rank 5');
+  await expect(rank).toContainText(/\d+\/\d+/);
+
+  await rank.click();
+  await page.getByRole('button', { name: 'Go forward to Rank 6' }).click();
+  await expect(page.getByRole('button', { name: /^Rank 6, / })).toBeVisible();
+  await expect(page).toHaveURL(/rank=6/);
+  await expect(page).toHaveURL(/mode=evergreen/);
+
+  await page.getByRole('button', { name: 'Go back to Rank 5' }).click();
+  await expect(page.getByRole('button', { name: /^Rank 5, / })).toBeVisible();
+
+  await page.getByLabel(/Rank to go to/).fill('9999');
+  await page.getByRole('button', { name: 'Go', exact: true }).click();
+  await expect(page.getByRole('alert')).toContainText('Invalid rank');
+});
+
+test('events only move forward', async ({ page }) => {
+  await page.goto('?mode=lte');
+  await page.getByRole('button', { name: /^Rank \d+, .* Change rank$/ }).click();
+  await expect(page.getByText('All missions in earlier ranks will be marked as complete.')).toBeVisible();
+  await expect(page.getByRole('button', { name: /^Go back to Rank/ })).toHaveCount(0);
 });
 
 test('always shows the game and mode in the URL, and Back can change game', async ({ page }) => {

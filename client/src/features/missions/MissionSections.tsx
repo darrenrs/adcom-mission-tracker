@@ -1,11 +1,13 @@
 import * as Collapsible from '@radix-ui/react-collapsible';
 import { ChevronDown, Info } from 'lucide-react';
-import { memo, useMemo, useRef, type ReactNode } from 'react';
+import { memo, useMemo, type ReactNode } from 'react';
 import { boardSections, type BoardMission } from '@/domain/missions';
-import { currentRankLabel, lteRankDetails, groupByRank, inMissionOrder, type LteRankDetails } from '@/domain/missionView';
+import { lteRankDetails, groupByRank, inMissionOrder, type LteRankDetails } from '@/domain/missionView';
 import { useTracker, type Session } from '@/state/store';
 import { MissionRow, type RowShared, type RowState } from './MissionRow';
-import { RankControls } from './RankControls';
+
+/** Advancing fills Completed, so the rank control scrolls back to this section. */
+export const CURRENT_SECTION_ID = 'current-missions';
 
 const headerRow = 'flex min-h-14 flex-wrap items-center gap-x-3 gap-y-2 px-4 py-2';
 
@@ -84,22 +86,16 @@ export function CurrentSection({ session, shared }: SectionProps) {
   const max = balance.Ranks?.length ?? 0;
   const rank = board.evergreenRank;
   const finished = mode === 'evergreen' && board.current.length === 0;
-  const section = useRef<HTMLElement>(null);
-
-  // Advancing fills Completed, which sits above this section and would push it off screen.
-  const keepInView = () => requestAnimationFrame(() => section.current?.scrollIntoView());
 
   return (
-    <section ref={section} className="scroll-mt-16 rounded-xl border border-line bg-surface sm:scroll-mt-28">
+    <section id={CURRENT_SECTION_ID} className="scroll-mt-16 rounded-xl border border-line bg-surface sm:scroll-mt-28">
       <div className={headerRow}>
         <h2 className="text-base font-semibold">Current</h2>
-        <span className="ml-auto text-base font-semibold">Rank {currentRankLabel(board)}</span>
-        <RankControls isLte={mode === 'lte'} rank={rank} max={max} onAdvanced={keepInView} />
       </div>
       {finished ? (
         <div className="space-y-1 px-4 pb-4 text-sm">
           <p>Congratulations on completing all missions in Rank {rank}!</p>
-          {rank < max && <p>To go to the next rank, use the right arrow button above.</p>}
+          {rank < max && <p>To go to the next rank, tap the rank at the top of the page.</p>}
         </div>
       ) : (
         <MissionGrid missions={board.current} state="current" shared={shared} />
