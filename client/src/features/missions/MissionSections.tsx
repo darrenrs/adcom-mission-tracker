@@ -2,7 +2,7 @@ import * as Collapsible from '@radix-ui/react-collapsible';
 import { ChevronDown, Info } from 'lucide-react';
 import { memo, useMemo, useRef, type ReactNode } from 'react';
 import { boardSections, type BoardMission } from '@/domain/missions';
-import { currentRankLabel, eventRankDetails, groupByRank, type EventRankDetails } from '@/domain/missionView';
+import { currentRankLabel, eventRankDetails, groupByRank, inMissionOrder, type EventRankDetails } from '@/domain/missionView';
 import { useTracker, type Session } from '@/state/store';
 import { MissionRow, type RowShared, type RowState } from './MissionRow';
 import { RankControls } from './RankControls';
@@ -15,13 +15,14 @@ function Card({ children }: { children: ReactNode }) {
 
 /** DOM order is mission order, and grid auto-flow reads it left to right, top to bottom. */
 function MissionGrid({ missions, state, shared }: { missions: BoardMission[]; state: RowState; shared: RowShared }) {
-  if (missions.length === 0) {
+  const ordered = useMemo(() => inMissionOrder(missions), [missions]);
+  if (ordered.length === 0) {
     return null;
   }
   const { etas, ...rest } = shared;
   return (
     <ul className="grid grid-cols-1 gap-2 p-3 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
-      {missions.map((mission) => (
+      {ordered.map((mission) => (
         <MissionRow key={mission.Id} mission={mission} state={state} eta={etas[mission.Id]} {...rest} />
       ))}
     </ul>
@@ -35,7 +36,7 @@ interface SectionProps {
 
 const rankHeading = 'text-sm font-semibold text-muted';
 
-/** Events group completed missions by rank. Within a rank they stay in completion order. */
+/** Events group completed missions by rank. */
 export function CompletedSection({ session, shared }: SectionProps) {
   const { board, mode } = session;
   const open = useTracker((state) => state.settings.completedVisible);

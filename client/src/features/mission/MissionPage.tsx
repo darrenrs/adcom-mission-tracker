@@ -7,7 +7,7 @@ import { missionIconUrl, missionRewardIcon, missionTone } from '@/domain/mission
 import { MissionCalculator } from '@/features/calculator/MissionCalculator';
 import type { AssetResolver } from '@/domain/assets';
 import { navigate } from '@/state/navigation';
-import { useSession, useTracker } from '@/state/store';
+import { useSession } from '@/state/store';
 
 type MissionStatus = 'current' | 'completed' | 'upcoming';
 
@@ -120,7 +120,6 @@ function RewardView({ parts, mode, assets }: { parts: RewardPart[]; mode: 'main'
 
 export function MissionPage({ missionId }: { missionId: string }) {
   const session = useSession();
-  const clickMission = useTracker((state) => state.clickMission);
   const found = useMemo(() => findMission(session.board, missionId), [session.board, missionId]);
 
   if (!found) {
@@ -182,17 +181,6 @@ export function MissionPage({ missionId }: { missionId: string }) {
           <p className="mt-4 text-sm text-muted">Completed {getTimeStampLocaleString(completedAt)}</p>
         )}
 
-        {status !== 'upcoming' && (
-          <button
-            type="button"
-            onClick={() => clickMission(mission.Id)}
-            className={`mt-4 min-h-11 rounded-lg px-4 text-sm font-medium ${
-              status === 'current' ? 'bg-accent text-white dark:text-black' : 'border border-line bg-surface text-ink hover:bg-raised'
-            }`}
-          >
-            {status === 'current' ? 'Complete mission' : 'Undo completion'}
-          </button>
-        )}
       </section>
 
       <MissionCalculator mission={mission} />

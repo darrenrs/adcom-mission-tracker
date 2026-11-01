@@ -2,14 +2,14 @@
 
 **Status:** Phase 3 is complete. Paused at the owner's request to fix display issues before Phase 4.
 **Branch:** `new-tracker`, 7 commits ahead of `master` when this file was written. It has not been pushed.
-**Last updated:** 30 October 2026.
+**Last updated:** 31 October 2026.
 
 Start here when picking the work up. Nothing on this branch is deployed, because `deploy.yml` only deploys `master`.
 
 ## Next step
 
-1. Get the list of display issues from the owner. They have not been described yet.
-2. Fix them, then wait for the owner's go-ahead before starting Phase 4.
+1. Plan the owner's 31 October layout brief: one page with `title` and `mode` URL parameters, a rank control in the top bar, a new default Game View tab, Production changes, and links moved to Settings. The plan needs approval before any code. Their screenshots show how the game presents information. They are not a request to copy the game's visual style.
+2. Build it, then wait for the owner's go-ahead before starting Phase 4.
 
 ## Ground rules from the owner
 
@@ -20,6 +20,7 @@ Start here when picking the work up. Nothing on this branch is deployed, because
 - Avoid modal-heavy layouts. The page should look like 2026 without confusing players. The future-mission confirmation is a modal the owner asked for.
 - All storage keys start with `adcom-mission-tracker:`.
 - When a lot of code is being written, Opus may hand it to Sonnet subagents to save usage.
+- No test may depend on a previous commit's code once development is done. Pinning the comparison tests to an old commit is not acceptable. See Phase 6.
 
 ## Phases
 
@@ -31,6 +32,7 @@ Start here when picking the work up. Nothing on this branch is deployed, because
 | 3. Calculators | Engine, calculator on mission pages, Production tab | Done. Owner found display issues still to fix |
 | 4. Parity | Events and Reference tabs, Docker build, remove legacy `public/` files | Not started. Owner review afterwards |
 | 5. PDF features | See the list under Phase 5 | Not started. Each group reviewed separately |
+| 6. Test independence | Remove every test's dependency on legacy code | Not started. Must finish before any merge to `master` |
 
 ### Phase 4 scope
 
@@ -45,11 +47,29 @@ Custom propaganda value, Store section, airdrops in the result, trade calculator
 
 The Motherland capsule table stays out until the evergreen capsule formula is known.
 
+### Phase 6 scope
+
+Legacy comparisons stay in use through Phases 4 and 5, because they prove the ports are right. They end with development. Two things depend on legacy code today:
+
+- `tests/legacy/` reads `public/` from `master` through `git show` every time it runs, so these tests break when the new tracker reaches `master`.
+- `tests/golden/mission-traces.json` is already a stored file, but `npm run golden` recaptures it from `master`, and `tests/golden/missions.test.ts` tells you to do that when a balance changes.
+
+The work:
+
+1. Do one last full run against legacy, and explain any difference.
+2. Replace the comparisons with tests that hold their own inputs and expected values. Keep representative and edge cases, not the millions of generated ones.
+3. Freeze the Missions and Ranks data the mission traces need into the repo, so a balance update in `adcom-assets` cannot fail them.
+4. Add rule-based mission tests that run over the live balances, so new events are still checked without any capture step.
+5. Delete `tests/legacy/`, `scripts/capture-golden.mjs` and the `golden` script in `package.json`.
+6. Confirm the suite passes on a checkout with no `master` branch and no legacy files in history, such as a fresh copy of the tree.
+
 ## Decisions from reviews
 
 **Missions layout**
 - Missions sit in three containers, in this order: Completed, Current, Upcoming.
-- Events have rank subsections in Completed and Upcoming, and Completed keeps completion order within each rank. Motherland has no subsections.
+- Events have rank subsections in Completed and Upcoming. Motherland has no subsections.
+- Every list displays in the balance's internal mission order, never by completion time. Saves still record completion order, so old saves and rollback are unaffected.
+- The mission page has no complete or undo button. Missions are only toggled from the list.
 - Advance to rank and the rank arrows live in Current. The rank label matches the "Current" heading size.
 - A collapsible "How to use" card sits above Completed with four bullets. Its hidden state is saved. The removed help content will be restored later by the owner, by hand.
 - The grid goes up to four columns from the 1536px breakpoint, and the page width is 1440px.
@@ -104,7 +124,7 @@ npm run test:e2e
 npm run build
 ```
 
-`npm run golden` recaptures mission traces from `master`. Run it only when balance data changes. If the data has changed, the mission tests fail and tell you to run it.
+`npm run golden` recaptures mission traces from `master`. Run it only when balance data changes. If the data has changed, the mission tests fail and tell you to run it. This command goes away in Phase 6.
 
 At the last commit, all 1,254 unit tests and 42 browser tests passed.
 
@@ -118,7 +138,7 @@ At the last commit, all 1,254 unit tests and 42 browser tests passed.
 | `client/src/state/` | Zustand store and URL navigation |
 | `client/src/features/` | Screens: missions, mission, calculator, production, settings, shell |
 | `tests/golden/` | Mission traces captured from legacy code |
-| `tests/legacy/` | Comparisons against the real legacy functions on `master` |
+| `tests/legacy/` | Comparisons against the real legacy functions on `master`. Temporary, removed in Phase 6 |
 | `tests/e2e/` | Playwright tests at phone and desktop widths |
 
 **Reference material outside this repo:**

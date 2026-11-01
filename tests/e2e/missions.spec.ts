@@ -22,6 +22,32 @@ test.afterEach(async ({ page }) => {
   expect((page as Page & { errors?: string[] }).errors).toEqual([]);
 });
 
+test('Completed follows mission order, not the order they were completed in', async ({ page }) => {
+  await page.goto('?mode=event');
+  await expect(missionButtons(page, 'Complete').first()).toBeVisible();
+
+  const missionName = (label: string | null) => label?.replace(/^.*mission:\s*/, '').trim();
+  const names = async (prefix: 'Complete' | 'Undo completed') =>
+    (await missionButtons(page, prefix).evaluateAll((buttons) => buttons.map((button) => button.getAttribute('aria-label') ?? button.textContent))).map(
+      missionName
+    );
+
+  const current = await names('Complete');
+  await missionButtons(page, 'Complete').nth(2).click();
+  await expect(missionButtons(page, 'Undo completed')).toHaveCount(1);
+  await missionButtons(page, 'Complete').first().click();
+  await expect(missionButtons(page, 'Undo completed')).toHaveCount(2);
+
+  expect(await names('Undo completed')).toEqual([current[0], current[2]]);
+});
+
+test('the mission page has no complete or undo button', async ({ page }) => {
+  await page.goto('?mode=event');
+  await page.getByRole('button', { name: /^Reward/ }).first().click();
+  await expect(page.getByRole('heading', { name: 'Reward', exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: /^(Complete mission|Undo completion)$/ })).toHaveCount(0);
+});
+
 test('groups missions into Completed, Current and Upcoming', async ({ page }) => {
   await page.goto('?mode=event');
   await expect(missionButtons(page, 'Complete').first()).toBeVisible();

@@ -325,6 +325,11 @@ export interface RankGroup {
   missions: BoardMission[];
 }
 
+/** A copy of the list in the balance's own mission order, whatever order the missions were completed in. */
+export function inMissionOrder(missions: readonly BoardMission[]): BoardMission[] {
+  return [...missions].sort((a, b) => a.Rank - b.Rank || a.Index - b.Index);
+}
+
 /** Groups missions by rank, lowest rank first. Each group keeps the order of the list it came from. */
 export function groupByRank(missions: readonly BoardMission[]): RankGroup[] {
   const groups = new Map<number, BoardMission[]>();
