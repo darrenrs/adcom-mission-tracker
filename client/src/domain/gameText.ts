@@ -229,7 +229,7 @@ export function getResearcherBasicDetails(ctx: GameTextContext, researcher: Rese
 /** What a mission asks for, plus which icon goes with it. */
 export function describeMission(ctx: GameTextContext, mission: Mission): MissionDescription {
   const { ConditionType: conditionType, ConditionId: id, Threshold: threshold } = mission.Condition;
-  const inEvent = ctx.mode === 'event';
+  const inLte = ctx.mode === 'lte';
   const describe = (
     body: string,
     iconResourceId: string,
@@ -247,7 +247,7 @@ export function describeMission(ctx: GameTextContext, mission: Mission): Mission
       return describe(
         `${show(ctx.localization['mission.researchersupgradedsincesubscription.any.simplename'])} (${threshold})`,
         'upgrade',
-        inEvent ? 'event' : 'balance'
+        inLte ? 'event' : 'balance'
       );
 
     case 'ResourceQuantity':
@@ -266,7 +266,7 @@ export function describeMission(ctx: GameTextContext, mission: Mission): Mission
       return describe(`Collect Cards (${threshold})`, 'card', 'shared');
 
     case 'ResourcesSpentSinceSubscription':
-      return describe(`Spend ${show(resourceName(ctx, id))} (${threshold})`, id, inEvent ? 'event' : 'balance');
+      return describe(`Spend ${show(resourceName(ctx, id))} (${threshold})`, id, inLte ? 'event' : 'balance');
 
     default:
       return { text: `Unknown mission condition: ${conditionType}`, iconResourceId: null, conditionType, iconSource: 'balance' };
@@ -279,8 +279,8 @@ export function describeRewardIndividual(ctx: GameTextContext, reward: { RewardI
   const amount = bigNum(reward.Value ?? NaN, ctx.title.powers);
 
   if (reward.RewardId === 'science' || reward.RewardId === 'scientist') {
-    const id = ctx.mode === 'main' ? 'science' : 'darkscience';
-    const name = show(ctx.mode === 'main' ? resourceName(ctx, 'scientist') : resourceName(ctx, id));
+    const id = ctx.mode === 'evergreen' ? 'science' : 'darkscience';
+    const name = show(ctx.mode === 'evergreen' ? resourceName(ctx, 'scientist') : resourceName(ctx, id));
     // Legacy shows a text icon here, which is a space; other rewards show an image, which is not text.
     return { kind: 'resource', id, value, text: `${amount} ${name}`, amount, name };
   }

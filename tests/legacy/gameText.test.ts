@@ -66,15 +66,15 @@ function legacyValue<T>(label: string, run: () => T): T | null {
 }
 
 function modeOf(balanceId: string): TrackerMode {
-  return balanceId === 'evergreen' ? 'main' : 'event';
+  return balanceId === 'evergreen' ? 'evergreen' : 'lte';
 }
 
 /** Where legacy's icon URL points, in the terms `describeMission` reports. */
 function iconSourceOfUrl(directory: string, mode: TrackerMode): 'balance' | 'shared' | 'event' {
   if (directory === 'shared') return 'shared';
   if (directory === 'event') return 'event';
-  if (directory === 'main' && mode === 'main') return 'balance';
-  if (directory.startsWith('event/') && mode === 'event') return 'balance';
+  if (directory === 'main' && mode === 'evergreen') return 'balance';
+  if (directory.startsWith('event/') && mode === 'lte') return 'balance';
   throw new Error(`unexpected icon directory ${directory}`);
 }
 
@@ -244,7 +244,7 @@ describe.skipIf(!assetsAvailable)('game text matches legacy', () => {
       const second = balances.find((b) => b.Resources?.[0] && b.Resources[0].Id !== first.Resources?.[0]?.Id) ?? first;
       const localization = parseLocalization(loadLocalizationBase64(key));
       for (const balance of [first, second, first]) {
-        const ctx = context(key, balance, 'main', localization);
+        const ctx = context(key, balance, 'evergreen', localization);
         for (const resource of balance.Resources ?? []) {
           comparisons++;
           expect(getResource(ctx, resource.Id)).toBe(resource);

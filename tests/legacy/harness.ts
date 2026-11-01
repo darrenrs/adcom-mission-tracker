@@ -6,7 +6,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';
 import type { TitleKey } from '@/domain/titles';
-import type { GameBalance, LteScheduleData, TrackerMode } from '@/domain/types';
+import type { GameBalance, LteScheduleData } from '@/domain/types';
 
 export const ROOT = path.resolve(import.meta.dirname, '../..');
 export const ASSETS = process.env.ADCOM_ASSETS_DATA ?? path.resolve(ROOT, '../adcom-assets/data');
@@ -172,7 +172,8 @@ export function createLegacy(title: TitleKey, page: LegacyPageOptions = {}): Leg
       vm.runInContext('__setNow(...__args)', sandbox);
     },
     configure({ balances, balanceId, localization }) {
-      const mode: TrackerMode = balanceId === 'evergreen' ? 'main' : 'event';
+      // Legacy code still calls the modes main and event.
+      const mode = balanceId === 'evergreen' ? 'main' : 'event';
       const data: Record<string, GameBalance> = { ...balances };
       if (mode === 'event') {
         data.event = balances[balanceId] as GameBalance;

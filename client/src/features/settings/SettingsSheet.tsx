@@ -1,7 +1,7 @@
 import * as Dialog from '@radix-ui/react-dialog';
 import { X } from 'lucide-react';
 import { useId, useState, type ReactNode } from 'react';
-import { getBasicEventName } from '@/domain/schedule';
+import { getBasicLteName } from '@/domain/schedule';
 import { useSession, useTracker, type ThemeSetting } from '@/state/store';
 
 const quietButton = 'min-h-11 rounded-lg border border-line px-4 text-sm font-medium hover:bg-raised';
@@ -97,10 +97,10 @@ function SettingsBody({ onClose }: { onClose: () => void }) {
   const setTheme = useTracker((state) => state.setTheme);
   const resetMode = useTracker((state) => state.resetMode);
   const resetAll = useTracker((state) => state.resetAll);
-  const { mode, eventInfo, title } = session;
+  const { mode, lteInfo, title } = session;
 
   const modeName =
-    mode === 'main' ? getBasicEventName('main', title) : `${getBasicEventName(eventInfo?.ThemeId ?? 'main', title)} event`;
+    mode === 'evergreen' ? getBasicLteName('main', title) : `${getBasicLteName(lteInfo?.ThemeId ?? 'main', title)} event`;
 
   return (
     <div className="space-y-4">

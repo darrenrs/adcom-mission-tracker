@@ -33,7 +33,7 @@ export interface Balance {
   [key: string]: unknown;
 }
 
-export type TrackerMode = 'main' | 'event';
+export type TrackerMode = 'evergreen' | 'lte';
 
 export interface Resource {
   Id: string;
@@ -184,7 +184,7 @@ export interface LteScheduleData {
 /** Empty slots appear when an event is opened by `eventOverride`, which has no reward data. */
 export type EventRewards = (MilestoneRank | ScheduleReward | undefined)[];
 
-export interface EventInfo {
+export interface LteInfo {
   LteId: string | number;
   BalanceId: string;
   ThemeId: string;

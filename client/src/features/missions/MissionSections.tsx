@@ -2,7 +2,7 @@ import * as Collapsible from '@radix-ui/react-collapsible';
 import { ChevronDown, Info } from 'lucide-react';
 import { memo, useMemo, useRef, type ReactNode } from 'react';
 import { boardSections, type BoardMission } from '@/domain/missions';
-import { currentRankLabel, eventRankDetails, groupByRank, inMissionOrder, type EventRankDetails } from '@/domain/missionView';
+import { currentRankLabel, lteRankDetails, groupByRank, inMissionOrder, type LteRankDetails } from '@/domain/missionView';
 import { useTracker, type Session } from '@/state/store';
 import { MissionRow, type RowShared, type RowState } from './MissionRow';
 import { RankControls } from './RankControls';
@@ -46,7 +46,7 @@ export function CompletedSection({ session, shared }: SectionProps) {
   let body = <p className="px-4 pb-4 text-sm text-muted">No completed missions yet.</p>;
   if (board.completed.length > 0) {
     body =
-      mode === 'main' ? (
+      mode === 'evergreen' ? (
         <MissionGrid missions={board.completed} state="completed" shared={shared} />
       ) : (
         <>
@@ -82,8 +82,8 @@ export function CompletedSection({ session, shared }: SectionProps) {
 export function CurrentSection({ session, shared }: SectionProps) {
   const { board, mode, balance } = session;
   const max = balance.Ranks?.length ?? 0;
-  const rank = board.mainRank;
-  const finished = mode === 'main' && board.current.length === 0;
+  const rank = board.evergreenRank;
+  const finished = mode === 'evergreen' && board.current.length === 0;
   const section = useRef<HTMLElement>(null);
 
   // Advancing fills Completed, which sits above this section and would push it off screen.
@@ -94,7 +94,7 @@ export function CurrentSection({ session, shared }: SectionProps) {
       <div className={headerRow}>
         <h2 className="text-base font-semibold">Current</h2>
         <span className="ml-auto text-base font-semibold">Rank {currentRankLabel(board)}</span>
-        <RankControls isEvent={mode === 'event'} rank={rank} max={max} onAdvanced={keepInView} />
+        <RankControls isLte={mode === 'lte'} rank={rank} max={max} onAdvanced={keepInView} />
       </div>
       {finished ? (
         <div className="space-y-1 px-4 pb-4 text-sm">
@@ -124,16 +124,16 @@ export function UpcomingSection({ session, shared }: SectionProps) {
       <div className={headerRow}>
         <h2 className="text-base font-semibold">Upcoming</h2>
       </div>
-      {mode === 'main'
+      {mode === 'evergreen'
         ? groups.map(({ rank, missions }) => <MissionGrid key={rank} missions={missions} state="locked" shared={shared} />)
         : groups.map(({ rank, missions }) => (
-            <EventRankGroup key={rank} session={session} rank={rank} missions={missions} shared={shared} />
+            <LteRankGroup key={rank} session={session} rank={rank} missions={missions} shared={shared} />
           ))}
     </Card>
   );
 }
 
-function DetailsPanel({ details }: { details: EventRankDetails }) {
+function DetailsPanel({ details }: { details: LteRankDetails }) {
   const { completionRewards, firstFreeCapsule, researchers, researchersLabel } = details;
 
   return (
@@ -187,12 +187,12 @@ function DetailsPanel({ details }: { details: EventRankDetails }) {
   );
 }
 
-function EventRankGroupView({ session, rank, missions, shared }: SectionProps & { rank: number; missions: BoardMission[] }) {
-  const { text, assets, eventInfo, data } = session;
+function LteRankGroupView({ session, rank, missions, shared }: SectionProps & { rank: number; missions: BoardMission[] }) {
+  const { text, assets, lteInfo, data } = session;
   const common = data.balances['common'];
   const details = useMemo(
-    () => eventRankDetails(rank, { ctx: text, assets, eventInfo, common }),
-    [rank, text, assets, eventInfo, common]
+    () => lteRankDetails(rank, { ctx: text, assets, lteInfo, common }),
+    [rank, text, assets, lteInfo, common]
   );
 
   return (
@@ -219,4 +219,4 @@ function EventRankGroupView({ session, rank, missions, shared }: SectionProps & 
   );
 }
 
-const EventRankGroup = memo(EventRankGroupView);
+const LteRankGroup = memo(LteRankGroupView);

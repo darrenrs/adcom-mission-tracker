@@ -8,14 +8,14 @@ const iconButton =
   'flex size-11 shrink-0 items-center justify-center rounded-lg border border-line text-muted hover:bg-raised hover:text-ink';
 
 interface AdvanceFormProps {
-  isEvent: boolean;
+  isLte: boolean;
   max: number;
   onClose(): void;
   onAdvanced(): void;
 }
 
-function AdvanceForm({ isEvent, max, onClose, onAdvanced }: AdvanceFormProps) {
-  const advanceEvent = useTracker((state) => state.advanceEvent);
+function AdvanceForm({ isLte, max, onClose, onAdvanced }: AdvanceFormProps) {
+  const advanceLte = useTracker((state) => state.advanceLte);
   const [value, setValue] = useState('');
   const [invalid, setInvalid] = useState(false);
   const input = useRef<HTMLInputElement>(null);
@@ -31,8 +31,8 @@ function AdvanceForm({ isEvent, max, onClose, onAdvanced }: AdvanceFormProps) {
       return;
     }
     onClose();
-    if (isEvent) {
-      advanceEvent(rank);
+    if (isLte) {
+      advanceLte(rank);
       onAdvanced();
     } else {
       navigateStartup({ rank: String(rank) });
@@ -69,7 +69,7 @@ function AdvanceForm({ isEvent, max, onClose, onAdvanced }: AdvanceFormProps) {
           <X aria-hidden size={18} />
         </button>
       </div>
-      {isEvent && <p className="text-sm text-muted">All missions in earlier ranks will be marked as complete.</p>}
+      {isLte && <p className="text-sm text-muted">All missions in earlier ranks will be marked as complete.</p>}
       {invalid && (
         <p id={`${id}-error`} role="alert" className="text-sm text-danger">
           Invalid rank. Enter a whole number from 1 to {max}.
@@ -80,13 +80,13 @@ function AdvanceForm({ isEvent, max, onClose, onAdvanced }: AdvanceFormProps) {
 }
 
 /** Motherland gets previous and next as well. An event only moves forward, by advancing. */
-export function RankControls({ isEvent, rank, max, onAdvanced }: { isEvent: boolean; rank: number; max: number; onAdvanced(): void }) {
+export function RankControls({ isLte, rank, max, onAdvanced }: { isLte: boolean; rank: number; max: number; onAdvanced(): void }) {
   const [advancing, setAdvancing] = useState(false);
 
   return (
     <>
       <div className="flex w-full items-center gap-1.5 sm:w-auto">
-        {!isEvent && rank > 1 && (
+        {!isLte && rank > 1 && (
           <button
             type="button"
             aria-label={`Go back to Rank ${rank - 1}`}
@@ -105,7 +105,7 @@ export function RankControls({ isEvent, rank, max, onAdvanced }: { isEvent: bool
         >
           Advance to rank
         </button>
-        {!isEvent && rank < max && (
+        {!isLte && rank < max && (
           <button
             type="button"
             aria-label={`Go forward to Rank ${rank + 1}`}
@@ -117,7 +117,7 @@ export function RankControls({ isEvent, rank, max, onAdvanced }: { isEvent: bool
           </button>
         )}
       </div>
-      {advancing && <AdvanceForm isEvent={isEvent} max={max} onClose={() => setAdvancing(false)} onAdvanced={onAdvanced} />}
+      {advancing && <AdvanceForm isLte={isLte} max={max} onClose={() => setAdvancing(false)} onAdvanced={onAdvanced} />}
     </>
   );
 }

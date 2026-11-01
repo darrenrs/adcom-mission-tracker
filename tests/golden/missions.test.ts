@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import {
-  advanceEventToRank,
+  advanceLteToRank,
   applyAbGroups,
   applySave,
   boardSections,
@@ -46,6 +46,10 @@ const ASSETS = process.env.ADCOM_ASSETS_DATA ?? path.resolve(ROOT, '../adcom-ass
 const TITLE_IDS: Record<string, string> = { adcom: '6bf5', ages: 'dc4bb' };
 
 const fixture = JSON.parse(fs.readFileSync(path.join(import.meta.dirname, 'mission-traces.json'), 'utf8')) as Fixture;
+// The traces were captured from legacy code, which calls the modes main and event.
+for (const trace of fixture.traces) {
+  trace.mode = (trace.mode as string) === 'main' ? 'evergreen' : 'lte';
+}
 const hash = (value: unknown) => createHash('sha1').update(JSON.stringify(value)).digest('hex').slice(0, 12);
 
 function loadBalance(title: string, balanceId: string): Balance {
@@ -87,7 +91,7 @@ function replay(trace: Trace, balance: Balance): void {
       rank = arg as number;
       board = boot();
     } else if (op === 'advance') {
-      advanceEventToRank(board, arg as number);
+      advanceLteToRank(board, arg as number);
       save = serializeCompleted(board);
     } else if (op === 'ab') {
       const next = nextAbGroups(balance, abGroups, arg as string);
@@ -124,10 +128,10 @@ describe.skipIf(!hasAssets)('mission order matches the legacy tracker', () => {
 });
 
 describe.skipIf(!hasAssets)('completing everything before a future mission', () => {
-  const eventTraces = fixture.traces.filter((trace) => trace.mode === 'event' && trace.seed === 1);
-  const mainRanks = fixture.traces.filter((trace) => trace.title === 'adcom' && trace.mode === 'main' && trace.rank % 25 === 0);
+  const lteTraces = fixture.traces.filter((trace) => trace.mode === 'lte' && trace.seed === 1);
+  const evergreenRanks = fixture.traces.filter((trace) => trace.title === 'adcom' && trace.mode === 'evergreen' && trace.rank % 25 === 0);
 
-  for (const trace of [...eventTraces, ...mainRanks]) {
+  for (const trace of [...lteTraces, ...evergreenRanks]) {
     it(`${trace.title} ${trace.mode} ${trace.balanceId} rank ${trace.rank}`, () => {
       const balance = loadBalance(trace.title, trace.balanceId);
       const abGroups = normalizeAbGroups([], balance);

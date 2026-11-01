@@ -274,12 +274,12 @@ describe.skipIf(!assetsAvailable).each(TITLE_KEYS)('asset paths match legacy (%s
 
   const configs: Config[] = [
     // Main mode ignores the event on display, so give it one.
-    { mode: 'main', balanceId: null, themeId: null, balance: evergreen, label: 'main' },
-    { mode: 'main', balanceId: Object.keys(balances).find((id) => id !== 'evergreen') ?? null, themeId: 'crusade', balance: evergreen, label: 'main with event info' },
-    { mode: 'event', balanceId: null, themeId: null, balance: evergreen, label: 'event without info' },
+    { mode: 'evergreen', balanceId: null, themeId: null, balance: evergreen, label: 'evergreen' },
+    { mode: 'evergreen', balanceId: Object.keys(balances).find((id) => id !== 'evergreen') ?? null, themeId: 'crusade', balance: evergreen, label: 'main with event info' },
+    { mode: 'lte', balanceId: null, themeId: null, balance: evergreen, label: 'event without info' },
     ...Object.keys(balances)
       .filter((id) => id !== 'evergreen')
-      .map((id): Config => ({ mode: 'event', balanceId: id, themeId: themeOf(id), balance: balances[id] as GameBalance, label: id }))
+      .map((id): Config => ({ mode: 'lte', balanceId: id, themeId: themeOf(id), balance: balances[id] as GameBalance, label: id }))
   ];
 
   const stateFor = (base: BaseVariant) => {
@@ -300,7 +300,7 @@ describe.skipIf(!assetsAvailable).each(TITLE_KEYS)('asset paths match legacy (%s
        eventScheduleInfo = __info;
        if (__mode === 'event') { DATA.event = __balance; }`,
       {
-        __mode: config.mode,
+        __mode: config.mode === 'lte' ? 'event' : 'main',
         __info: config.balanceId || config.themeId ? { BalanceId: config.balanceId ?? undefined, ThemeId: config.themeId ?? undefined, EndTimeMillis: 1 } : {},
         __balance: config.balance
       }
@@ -474,7 +474,7 @@ describe('deliberate differences from legacy', () => {
   const resolver = createAssetResolver({
     assetBaseByTitleId: { '6bf5': '/assets/6bf5' },
     title: { key: 'adcom', titleId: '6bf5', themeIdOverrides: {}, themeDuplicateOverrides: {} },
-    mode: 'main'
+    mode: 'evergreen'
   });
 
   it('serves the local images from a configurable base', () => {
@@ -482,7 +482,7 @@ describe('deliberate differences from legacy', () => {
     const mounted = createAssetResolver({
       assetBaseByTitleId: {},
       title: { key: 'adcom', titleId: '6bf5', themeIdOverrides: {}, themeDuplicateOverrides: {} },
-      mode: 'main',
+      mode: 'evergreen',
       localImageBase: '/tracker/img/'
     });
     expect(mounted.legacyPath('img/adcom/shared/calendar.png')).toBe('/tracker/img/calendar.png');

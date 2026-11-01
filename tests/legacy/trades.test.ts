@@ -42,7 +42,7 @@ function mulberry32(seed: number) {
   };
 }
 
-const modeOf = (balanceId: string): TrackerMode => (balanceId === 'evergreen' ? 'main' : 'event');
+const modeOf = (balanceId: string): TrackerMode => (balanceId === 'evergreen' ? 'evergreen' : 'lte');
 
 function randomForm(balance: GameBalance, random: () => number): FormValues {
   const form = emptyFormValues();

@@ -7,6 +7,7 @@ import { missionIconUrl, missionRewardIcon, missionTone } from '@/domain/mission
 import { MissionCalculator } from '@/features/calculator/MissionCalculator';
 import type { AssetResolver } from '@/domain/assets';
 import { navigate } from '@/state/navigation';
+import type { TrackerMode } from '@/domain/types';
 import { useSession } from '@/state/store';
 
 type MissionStatus = 'current' | 'completed' | 'upcoming';
@@ -66,7 +67,7 @@ function PartIcon({ src }: { src: string }) {
   return <img src={src} alt="" width={24} height={24} loading="lazy" className="inline-block size-6 object-contain" />;
 }
 
-function partIconUrl(part: RewardPart, mode: 'main' | 'event', assets: AssetResolver): string {
+function partIconUrl(part: RewardPart, mode: TrackerMode, assets: AssetResolver): string {
   switch (part.kind) {
     case 'capsule':
       return assets.active(`shared/gacha/${part.id}.png`);
@@ -74,13 +75,13 @@ function partIconUrl(part: RewardPart, mode: 'main' | 'event', assets: AssetReso
       return assets.active('shared/card.png');
     default:
       if (part.id === 'science' || part.id === 'darkscience') {
-        return assets.active(mode === 'main' ? 'main/darkscience.png' : 'event/darkscience.png');
+        return assets.active(mode === 'evergreen' ? 'main/darkscience.png' : 'event/darkscience.png');
       }
       return part.id === 'gold' ? assets.active('shared/gold.png') : assets.active(`main/${part.id}.png`);
   }
 }
 
-function RewardView({ parts, mode, assets }: { parts: RewardPart[]; mode: 'main' | 'event'; assets: AssetResolver }) {
+function RewardView({ parts, mode, assets }: { parts: RewardPart[]; mode: TrackerMode; assets: AssetResolver }) {
   const lead = parts.filter((part) => part.kind === 'text' || part.kind === 'capsule');
   const items = parts.filter((part) => part.kind === 'resource' || part.kind === 'card');
 

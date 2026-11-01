@@ -126,9 +126,9 @@ describe.skipIf(!assetsAvailable).each(TITLE_KEYS)('engine against the legacy ca
   it('matches on sampled missions', () => {
     for (const [balanceId, balance] of Object.entries(balances)) {
       if (balanceId === 'evergreen') {
-        sample(balanceId, 'main', balance.Missions);
+        sample(balanceId, 'evergreen', balance.Missions);
       } else {
-        sample(balanceId, 'event', balance.Missions);
+        sample(balanceId, 'lte', balance.Missions);
       }
     }
     expect(report['online']?.length).toBeGreaterThan(20);

@@ -89,7 +89,7 @@ describe('tracker store', () => {
 
     location.search = '?rank=2';
     store.getState().syncLocation();
-    expect(store.getState().session?.board.mainRank).toBe(2);
+    expect(store.getState().session?.board.evergreenRank).toBe(2);
     expect(ids(store.getState().session?.board.current)).toEqual(['n1']);
   });
 

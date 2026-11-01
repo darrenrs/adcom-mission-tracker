@@ -2,7 +2,7 @@
 // versions over the real schedules and compares every result.
 
 import { upperCaseFirstLetter } from './format';
-import type { EventInfo, EventRewards, LteCycle, LteOneOff, LteScheduleData } from './types';
+import type { LteInfo, EventRewards, LteCycle, LteOneOff, LteScheduleData } from './types';
 
 const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 const HOUR_MILLIS = 3600000;
@@ -149,16 +149,16 @@ function hoursFor(hoursPerBalanceId: Record<string, number>, balanceId: string |
 }
 
 export function updateSoonestOneOff(
-  oneOffEvent: LteOneOff,
+  oneOffLte: LteOneOff,
   now: number,
-  soonestEvents: PriorityQueue<EventInfo>,
-  mostRecentEvent: PriorityQueue<EventInfo>,
+  soonestLtes: PriorityQueue<LteInfo>,
+  mostRecentLte: PriorityQueue<LteInfo>,
   oneOffHours: Set<number>,
   schedule: LteScheduleData,
   isAges: boolean
 ): void {
-  const startTimeMillis = getScheduleTimeMillis(oneOffEvent.StartTime);
-  const endTimeMillis = getScheduleTimeMillis(oneOffEvent.EndTime);
+  const startTimeMillis = getScheduleTimeMillis(oneOffLte.StartTime);
+  const endTimeMillis = getScheduleTimeMillis(oneOffLte.EndTime);
   oneOffHours.add(endTimeMillis);
 
   for (
@@ -170,32 +170,32 @@ export function updateSoonestOneOff(
   }
 
   // Non-legacy one-offs don't have a unique identifier, so the end time's timestamp is used.
-  const lteId = oneOffEvent.LegacyLteId || endTimeMillis;
+  const lteId = oneOffLte.LegacyLteId || endTimeMillis;
 
-  const event: EventInfo = {
+  const event: LteInfo = {
     LteId: lteId,
-    BalanceId: oneOffEvent.BalanceId,
-    ThemeId: oneOffEvent.ThemeId,
+    BalanceId: oneOffLte.BalanceId,
+    ThemeId: oneOffLte.ThemeId,
     StartTimeMillis: startTimeMillis,
     EndTimeMillis: endTimeMillis,
-    Rewards: getMilestoneRewardsById(oneOffEvent.RewardId, schedule, isAges),
-    LeaderboardId: oneOffEvent.LteShortLeaderboardId,
-    GlobalLeaderboardId: oneOffEvent.LeaderboardId
+    Rewards: getMilestoneRewardsById(oneOffLte.RewardId, schedule, isAges),
+    LeaderboardId: oneOffLte.LteShortLeaderboardId,
+    GlobalLeaderboardId: oneOffLte.LeaderboardId
   };
 
   if (now < endTimeMillis) {
-    soonestEvents.push(event);
+    soonestLtes.push(event);
   } else {
     // In the past, but might be more recent than the best guess. The queue keeps the lowest end time, so
     // this is really the oldest past one-off: legacy behaviour, which only matters when nothing is upcoming.
-    mostRecentEvent.push(event);
+    mostRecentLte.push(event);
   }
 }
 
 export function updateSoonestCycle(
   cycle: LteCycle,
   now: number,
-  soonestEvents: PriorityQueue<EventInfo>,
+  soonestLtes: PriorityQueue<LteInfo>,
   oneOffHours: Set<number>,
   hoursPerBalanceId: Record<string, number>,
   schedule: LteScheduleData,
@@ -223,7 +223,7 @@ export function updateSoonestCycle(
   // From the first start time, calculate the first end time, then step through the end times until now < EndTime.
   const balanceIds = cycle.LteBalanceIds;
   let curCycleIndex = 0;
-  let eventsFound = 0;
+  let ltesFound = 0;
   const curEndTime = new Date(firstStartTime);
   let durationHours = hoursFor(hoursPerBalanceId, balanceIds[0]);
   curEndTime.setUTCHours(curEndTime.getUTCHours() + durationHours);
@@ -231,7 +231,7 @@ export function updateSoonestCycle(
 
   const cycleEndTime = getScheduleTimeMillis(cycle.EndTime);
 
-  while (curEndTime.getTime() <= cycleEndTime && eventsFound < soonestEvents.maxSize) {
+  while (curEndTime.getTime() <= cycleEndTime && ltesFound < soonestLtes.maxSize) {
     // Move forward one week at a time until it's not replaced with a one-off.
     while (oneOffHours.has(curEndTime.getTime()) || oneOffHours.has(curEndTime.getTime() - durationMillis)) {
       curEndTime.setUTCDate(curEndTime.getUTCDate() + 7);
@@ -243,7 +243,7 @@ export function updateSoonestCycle(
     const nextDurationHours = hoursFor(hoursPerBalanceId, nextBalanceId);
 
     if (balanceId !== undefined && now < curEndTime.getTime() && curEndTime.getTime() < cycleEndTime) {
-      eventsFound += 1;
+      ltesFound += 1;
 
       const rewardId = cycle.LteRewardIds[curCycleIndex % cycle.LteRewardIds.length];
       // Legacy crashes when the schedule names a balance it has no data for. Such an event is left out here.
@@ -252,7 +252,7 @@ export function updateSoonestCycle(
       curStartTime.setUTCHours(curStartTime.getUTCHours() - durationHours);
 
       if (balanceData) {
-        soonestEvents.push({
+        soonestLtes.push({
           LteId: curEndTime.getTime(),
           BalanceId: balanceId,
           ThemeId: balanceData.ThemeId,
@@ -272,42 +272,42 @@ export function updateSoonestCycle(
 }
 
 /**
- * The soonest events whose end time is after `now`, soonest first. At most `maxEventCount` are searched,
- * and the list is cut after the last new theme, but never below `minEventCount`.
+ * The soonest events whose end time is after `now`, soonest first. At most `maxLteCount` are searched,
+ * and the list is cut after the last new theme, but never below `minLteCount`.
  */
-export function getSoonestEventInfos(
+export function getSoonestLteInfos(
   schedule: LteScheduleData,
   now: number,
   isAges: boolean,
-  minEventCount = 10,
-  maxEventCount = 20
-): EventInfo[] {
+  minLteCount = 10,
+  maxLteCount = 20
+): LteInfo[] {
   // Search events where EndTime > Now and keep the ones with the lowest EndTime.
-  const soonestEvents = new PriorityQueue<EventInfo>(maxEventCount, (value) => value.EndTimeMillis);
+  const soonestLtes = new PriorityQueue<LteInfo>(maxLteCount, (value) => value.EndTimeMillis);
   // The most recent concluded event no matter what, as a failsafe
-  const mostRecentEvent = new PriorityQueue<EventInfo>(1, (value) => value.EndTimeMillis);
+  const mostRecentLte = new PriorityQueue<LteInfo>(1, (value) => value.EndTimeMillis);
 
   // oneOffHours holds each hour (millis from Epoch) contained in all one-offs, so cycles can see where one interrupts.
   const oneOffHours = new Set<number>();
 
-  for (const oneOffEvent of schedule.LteOneOff) {
-    updateSoonestOneOff(oneOffEvent, now, soonestEvents, mostRecentEvent, oneOffHours, schedule, isAges);
+  for (const oneOffLte of schedule.LteOneOff) {
+    updateSoonestOneOff(oneOffLte, now, soonestLtes, mostRecentLte, oneOffHours, schedule, isAges);
   }
 
   const currentCycles = schedule.LteSchedule.filter((cycle) => now < getScheduleTimeMillis(cycle.EndTime));
   const hoursPerBalanceId = getHoursPerBalanceId(schedule);
 
   for (const cycle of currentCycles) {
-    updateSoonestCycle(cycle, now, soonestEvents, oneOffHours, hoursPerBalanceId, schedule, isAges);
+    updateSoonestCycle(cycle, now, soonestLtes, oneOffHours, hoursPerBalanceId, schedule, isAges);
   }
 
   // Popping goes from latest to soonest, so each goes to the front.
-  const results: EventInfo[] = [];
-  while (soonestEvents.size() > 0) {
-    results.unshift(soonestEvents.pop() as EventInfo);
+  const results: LteInfo[] = [];
+  while (soonestLtes.size() > 0) {
+    results.unshift(soonestLtes.pop() as LteInfo);
   }
 
-  // Cut after the last new theme: the least needed to see every theme, or at least `minEventCount`.
+  // Cut after the last new theme: the least needed to see every theme, or at least `minLteCount`.
   const foundThemes = new Set<string>();
   let lastNewIndex = 0;
 
@@ -319,16 +319,16 @@ export function getSoonestEventInfos(
   });
 
   if (results.length > 0) {
-    return results.slice(0, Math.max(minEventCount, lastNewIndex + 1));
+    return results.slice(0, Math.max(minLteCount, lastNewIndex + 1));
   }
 
-  const failsafe = mostRecentEvent.pop();
+  const failsafe = mostRecentLte.pop();
   return failsafe ? [failsafe] : [];
 }
 
 /** The event running at `now`, or the next to end. `undefined` only for a schedule with no events at all. */
-export function getCurrentEventInfo(schedule: LteScheduleData, now: number, isAges: boolean): EventInfo | undefined {
-  return getSoonestEventInfos(schedule, now, isAges, 1, 1)[0];
+export function getCurrentLteInfo(schedule: LteScheduleData, now: number, isAges: boolean): LteInfo | undefined {
+  return getSoonestLteInfos(schedule, now, isAges, 1, 1)[0];
 }
 
 export interface ThemeNames {
@@ -344,7 +344,7 @@ function lookup(map: Readonly<Record<string, string>>, key: string): string | un
 }
 
 /** The name shown for a theme or balance id (`crusade-bal-1`, `crusade`, `main`, `evergreen`). */
-export function getBasicEventName(themeIdInput: string, title: ThemeNames): string {
+export function getBasicLteName(themeIdInput: string, title: ThemeNames): string {
   let themeId = themeIdInput.toLowerCase();
 
   if (themeId.includes('-bal-')) {

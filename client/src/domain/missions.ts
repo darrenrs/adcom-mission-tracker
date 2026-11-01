@@ -12,14 +12,14 @@ export interface BoardMission extends Mission {
 export interface MissionBoard {
   mode: TrackerMode;
   /** Motherland rank on display. Unused for events. */
-  mainRank: number;
+  evergreenRank: number;
   rankCount: number;
   completed: BoardMission[];
   current: BoardMission[];
   currentSize: number;
   ranks: Map<number, BoardMission[]>;
   rankSizes: Map<number, number>;
-  /** Saved Motherland completions from ranks other than `mainRank`. */
+  /** Saved Motherland completions from ranks other than `evergreenRank`. */
   otherRankMissionIds: string[];
 }
 
@@ -67,10 +67,10 @@ export function missionsForGroups(balance: Balance, abGroups: string[]): Mission
   return balance.Missions.filter((m) => !m.AbTestConfig || groups.has(m.AbTestConfig));
 }
 
-function emptyBoard(mode: TrackerMode, mainRank: number, rankCount: number, currentSize: number): MissionBoard {
+function emptyBoard(mode: TrackerMode, evergreenRank: number, rankCount: number, currentSize: number): MissionBoard {
   return {
     mode,
-    mainRank,
+    evergreenRank,
     rankCount,
     completed: [],
     current: [],
@@ -81,10 +81,10 @@ function emptyBoard(mode: TrackerMode, mainRank: number, rankCount: number, curr
   };
 }
 
-function createEventBoard(balance: Balance, missions: Mission[]): MissionBoard {
+function createLteBoard(balance: Balance, missions: Mission[]): MissionBoard {
   const ranks = balance.Ranks ?? [];
   const activeCount = ranks[1]?.ActiveMissionCount ?? DEFAULT_ACTIVE_MISSIONS;
-  const board = emptyBoard('event', 1, ranks.length, activeCount);
+  const board = emptyBoard('lte', 1, ranks.length, activeCount);
 
   let rank = 0;
   let missionsLeft = 0;
@@ -120,10 +120,10 @@ function createEventBoard(balance: Balance, missions: Mission[]): MissionBoard {
   return board;
 }
 
-function createMainBoard(balance: Balance, missions: Mission[], mainRank: number): MissionBoard {
+function createEvergreenBoard(balance: Balance, missions: Mission[], evergreenRank: number): MissionBoard {
   const ranks = balance.Ranks ?? [];
-  const activeCount = ranks[mainRank - 1]?.ActiveMissionCount ?? DEFAULT_ACTIVE_MISSIONS;
-  const board = emptyBoard('main', mainRank, ranks.length, activeCount);
+  const activeCount = ranks[evergreenRank - 1]?.ActiveMissionCount ?? DEFAULT_ACTIVE_MISSIONS;
+  const board = emptyBoard('evergreen', evergreenRank, ranks.length, activeCount);
   const indexed = missions.map((mission, index): BoardMission => ({ ...mission, Rank: mission.Rank ?? 0, Index: index }));
   const lastRank = indexed.at(-1)?.Rank ?? 0;
 
@@ -133,17 +133,17 @@ function createMainBoard(balance: Balance, missions: Mission[], mainRank: number
     board.rankSizes.set(rank, rankMissions.length);
   }
 
-  const available = board.ranks.get(mainRank) ?? [];
+  const available = board.ranks.get(evergreenRank) ?? [];
   board.current.push(...available.splice(0, activeCount));
   return board;
 }
 
-export function createBoard(mode: TrackerMode, balance: Balance, abGroups: string[], mainRank = 1): MissionBoard {
+export function createBoard(mode: TrackerMode, balance: Balance, abGroups: string[], evergreenRank = 1): MissionBoard {
   const missions = missionsForGroups(balance, abGroups);
-  return mode === 'main' ? createMainBoard(balance, missions, mainRank) : createEventBoard(balance, missions);
+  return mode === 'evergreen' ? createEvergreenBoard(balance, missions, evergreenRank) : createLteBoard(balance, missions);
 }
 
-function applyEventSave(board: MissionBoard, savedIds: string[]): void {
+function applyLteSave(board: MissionBoard, savedIds: string[]): void {
   const sources = [...[...board.ranks.keys()].sort((a, b) => a - b).map((rank) => board.ranks.get(rank) ?? []), board.current];
 
   // Walking the saved list keeps completion order.
@@ -160,10 +160,10 @@ function applyEventSave(board: MissionBoard, savedIds: string[]): void {
     }
   }
 
-  fillEventCurrent(board, 1);
+  fillLteCurrent(board, 1);
 }
 
-function fillEventCurrent(board: MissionBoard, firstRank: number): void {
+function fillLteCurrent(board: MissionBoard, firstRank: number): void {
   for (let rank = firstRank; rank <= board.rankCount && board.current.length < board.currentSize; rank++) {
     const available = board.ranks.get(rank);
     while (available && available.length > 0 && board.current.length < board.currentSize) {
@@ -172,8 +172,8 @@ function fillEventCurrent(board: MissionBoard, firstRank: number): void {
   }
 }
 
-function applyMainSave(board: MissionBoard, savedIds: string[]): void {
-  const rankMissions = board.ranks.get(board.mainRank) ?? [];
+function applyEvergreenSave(board: MissionBoard, savedIds: string[]): void {
+  const rankMissions = board.ranks.get(board.evergreenRank) ?? [];
   const inRank = new Set([...board.current, ...rankMissions].map((m) => m.Id));
 
   for (const id of savedIds) {
@@ -200,16 +200,16 @@ export function applySave(board: MissionBoard, saved: string | null): void {
     return;
   }
   const ids = saved.split(',');
-  if (board.mode === 'event') {
-    applyEventSave(board, ids);
+  if (board.mode === 'lte') {
+    applyLteSave(board, ids);
   } else {
-    applyMainSave(board, ids);
+    applyEvergreenSave(board, ids);
   }
 }
 
 export function serializeCompleted(board: MissionBoard): string {
   const ids = board.completed.map((m) => m.Id);
-  return (board.mode === 'event' ? ids : [...ids, ...board.otherRankMissionIds]).join(',');
+  return (board.mode === 'lte' ? ids : [...ids, ...board.otherRankMissionIds]).join(',');
 }
 
 function byIndex(a: BoardMission, b: BoardMission): number {
@@ -217,8 +217,8 @@ function byIndex(a: BoardMission, b: BoardMission): number {
 }
 
 function refillCurrent(board: MissionBoard): void {
-  if (board.mode === 'main') {
-    const next = board.ranks.get(board.mainRank)?.shift();
+  if (board.mode === 'evergreen') {
+    const next = board.ranks.get(board.evergreenRank)?.shift();
     if (next) {
       board.current.push(next);
     }
@@ -283,8 +283,8 @@ export function clickMission(board: MissionBoard, missionId: string): 'completed
 
 /** Missions waiting behind Current. Motherland works one rank at a time, so only that rank counts. */
 export function upcomingMissions(board: MissionBoard): BoardMission[] {
-  if (board.mode === 'main') {
-    return board.ranks.get(board.mainRank) ?? [];
+  if (board.mode === 'evergreen') {
+    return board.ranks.get(board.evergreenRank) ?? [];
   }
   return [...board.ranks.keys()].sort((a, b) => a - b).flatMap((rank) => board.ranks.get(rank) ?? []);
 }
@@ -309,17 +309,17 @@ export function completeMissionsBefore(board: MissionBoard, missionId: string): 
   board.current = keepLater(board.current);
   board.ranks = new Map([...board.ranks].map(([rank, list]) => [rank, keepLater(list)]));
 
-  if (board.mode === 'event') {
-    fillEventCurrent(board, 1);
+  if (board.mode === 'lte') {
+    fillLteCurrent(board, 1);
   } else {
-    const rankMissions = board.ranks.get(board.mainRank) ?? [];
+    const rankMissions = board.ranks.get(board.evergreenRank) ?? [];
     board.current.push(...rankMissions.splice(0, board.currentSize - board.current.length));
   }
   return earlier;
 }
 
 /** Event only: marks every mission below `targetRank` complete and refills Current from there. */
-export function advanceEventToRank(board: MissionBoard, targetRank: number): void {
+export function advanceLteToRank(board: MissionBoard, targetRank: number): void {
   const eligibleRanks = [...board.ranks.keys()].filter((rank) => rank <= targetRank).sort((a, b) => a - b);
 
   for (const list of [board.current, ...eligibleRanks.map((rank) => board.ranks.get(rank) ?? [])]) {
@@ -333,7 +333,7 @@ export function advanceEventToRank(board: MissionBoard, targetRank: number): voi
     }
   }
 
-  fillEventCurrent(board, targetRank);
+  fillLteCurrent(board, targetRank);
 }
 
 /** Returns the saved group list after moving a mission's test to its next group, or null if it has none. */
@@ -382,8 +382,8 @@ export function boardSections(board: MissionBoard): BoardSection[] {
     { key: 'Current', missions: board.current }
   ];
 
-  if (board.mode === 'main') {
-    sections.push({ key: board.mainRank, missions: board.ranks.get(board.mainRank) ?? [] });
+  if (board.mode === 'evergreen') {
+    sections.push({ key: board.evergreenRank, missions: board.ranks.get(board.evergreenRank) ?? [] });
     return sections;
   }
 

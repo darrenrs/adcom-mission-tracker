@@ -12,14 +12,14 @@ function Banner({ children }: { children: ReactNode }) {
 }
 
 export function Banners({ session }: { session: Session }) {
-  const { title, mode, board, eventInfo, startup } = session;
+  const { title, mode, board, lteInfo, startup } = session;
   const datamined =
-    (mode === 'main' && title.datamineWarningMinRank !== undefined && board.mainRank >= title.datamineWarningMinRank) ||
-    (mode === 'event' && title.datamineWarningThemeId !== undefined && eventInfo?.ThemeId === title.datamineWarningThemeId);
+    (mode === 'evergreen' && title.datamineWarningMinRank !== undefined && board.evergreenRank >= title.datamineWarningMinRank) ||
+    (mode === 'lte' && title.datamineWarningThemeId !== undefined && lteInfo?.ThemeId === title.datamineWarningThemeId);
 
   return (
     <>
-      {eventInfo === null && (
+      {lteInfo === null && (
         <Banner>There is no additional schedule data. Please contact @enigma.code or @catster via Discord to update the schedule.</Banner>
       )}
       {datamined && (
@@ -27,7 +27,7 @@ export function Banners({ session }: { session: Session }) {
           This mission list has been <strong>datamined</strong> from a future version and may not be final.
         </Banner>
       )}
-      {startup.isFakeEvent && <Banner>This event is new content, and will be added to the Tracker shortly before the event begins.</Banner>}
+      {startup.isFakeLte && <Banner>This event is new content, and will be added to the Tracker shortly before the event begins.</Banner>}
       {startup.overrideActive && (
         <Banner>
           You are in <strong>Event Override</strong> mode. Event progress is temporary.

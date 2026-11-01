@@ -1,7 +1,7 @@
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 import { ChevronDown, Settings } from 'lucide-react';
 import { useState } from 'react';
-import { getCurrentEventInfo, getBasicEventName } from '@/domain/schedule';
+import { getCurrentLteInfo, getBasicLteName } from '@/domain/schedule';
 import { SettingsSheet } from '@/features/settings/SettingsSheet';
 import { navigateStartup } from '@/state/navigation';
 import { useSession, useTracker } from '@/state/store';
@@ -13,11 +13,11 @@ export function Header() {
   const session = useSession();
   const switchTitle = useTracker((state) => state.switchTitle);
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const { title, mode, eventInfo, assets, data } = session;
+  const { title, mode, lteInfo, assets, data } = session;
 
-  const liveEvent = getCurrentEventInfo(data.schedule, Date.now(), title.isAges);
-  const displayName = getBasicEventName(mode === 'main' ? 'main' : (eventInfo?.ThemeId ?? 'main'), title);
-  const displayIcon = assets.active(`shared/themeicons/${mode === 'main' ? 'main' : eventInfo?.ThemeId}.png`);
+  const liveLte = getCurrentLteInfo(data.schedule, Date.now(), title.isAges);
+  const displayName = getBasicLteName(mode === 'evergreen' ? 'main' : (lteInfo?.ThemeId ?? 'main'), title);
+  const displayIcon = assets.active(`shared/themeicons/${mode === 'evergreen' ? 'main' : lteInfo?.ThemeId}.png`);
   const otherGame = title.isAges ? 'adcom' : 'ages';
 
   return (
@@ -36,12 +36,12 @@ export function Header() {
           >
             <DropdownMenu.Item className={menuItem} onSelect={() => navigateStartup({ mode: 'main' })}>
               <img src={assets.active('shared/themeicons/main.png')} alt="" className="size-6 object-contain" />
-              {getBasicEventName('main', title)}
+              {getBasicLteName('main', title)}
             </DropdownMenu.Item>
-            {liveEvent && (
+            {liveLte && (
               <DropdownMenu.Item className={menuItem} onSelect={() => navigateStartup({ mode: 'event' })}>
-                <img src={assets.active(`shared/themeicons/${liveEvent.ThemeId}.png`)} alt="" className="size-6 object-contain" />
-                {getBasicEventName(liveEvent.ThemeId, title)}
+                <img src={assets.active(`shared/themeicons/${liveLte.ThemeId}.png`)} alt="" className="size-6 object-contain" />
+                {getBasicLteName(liveLte.ThemeId, title)}
               </DropdownMenu.Item>
             )}
           </DropdownMenu.Content>

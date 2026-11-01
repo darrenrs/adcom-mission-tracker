@@ -1,16 +1,16 @@
 // Compares the TypeScript schedule maths with the legacy functions, run from master over the real schedules.
 import { afterAll, describe, expect, it } from 'vitest';
 import {
-  getBasicEventName,
-  getCurrentEventInfo,
+  getBasicLteName,
+  getCurrentLteInfo,
   getHoursPerBalanceId,
   getMilestoneRewardsById,
   getScheduleTimeMillis,
-  getSoonestEventInfos,
+  getSoonestLteInfos,
   PriorityQueue
 } from '@/domain/schedule';
 import { TITLES } from '@/domain/titles';
-import type { EventInfo, LteScheduleData } from '@/domain/types';
+import type { LteInfo, LteScheduleData } from '@/domain/types';
 import { assetsAvailable, createLegacy, loadSchedule, TITLE_KEYS, type Legacy } from './harness';
 
 const counts = { current: 0, soonest: 0, basicName: 0, other: 0, queue: 0 };
@@ -72,9 +72,9 @@ describe.skipIf(!assetsAvailable).each(TITLE_KEYS)('schedule matches legacy (%s)
   legacy.run('SCHEDULE_CYCLES = __schedule; IsAges = __isAges;', { __schedule: schedule, __isAges: isAges });
 
   const legacyEvents = (now: number, min: number, max: number) =>
-    legacyJson<EventInfo[]>(legacy, 'getSoonestEventInfos(__min, __max, __now)', { __min: min, __max: max, __now: now });
+    legacyJson<LteInfo[]>(legacy, 'getSoonestEventInfos(__min, __max, __now)', { __min: min, __max: max, __now: now });
 
-  it('getCurrentEventInfo and getSoonestEventInfos agree at every sampled time', () => {
+  it('getCurrentEventInfo and getSoonestLteInfos agree at every sampled time', () => {
     const times = new Set(sampleTimes(schedule, titleKey === 'adcom' ? 1 : 2));
 
     // Boundaries of generated cycle events are only known once an implementation has produced them.
@@ -90,11 +90,11 @@ describe.skipIf(!assetsAvailable).each(TITLE_KEYS)('schedule matches legacy (%s)
     expect(times.size).toBeGreaterThan(200);
 
     for (const now of times) {
-      const expectedCurrent = legacyJson<EventInfo | undefined>(legacy, 'getCurrentEventInfo(__now)', { __now: now });
-      expect(plain(getCurrentEventInfo(schedule, now, isAges)), `current ${now}`).toEqual(expectedCurrent);
+      const expectedCurrent = legacyJson<LteInfo | undefined>(legacy, 'getCurrentEventInfo(__now)', { __now: now });
+      expect(plain(getCurrentLteInfo(schedule, now, isAges)), `current ${now}`).toEqual(expectedCurrent);
       counts.current++;
 
-      expect(plain(getSoonestEventInfos(schedule, now, isAges)), `soonest ${now}`).toEqual(legacyEvents(now, 10, 20));
+      expect(plain(getSoonestLteInfos(schedule, now, isAges)), `soonest ${now}`).toEqual(legacyEvents(now, 10, 20));
       counts.soonest++;
     }
   });
@@ -107,7 +107,7 @@ describe.skipIf(!assetsAvailable).each(TITLE_KEYS)('schedule matches legacy (%s)
     for (const [min, max] of sizes) {
       for (let i = 0; i < 12; i++) {
         const now = Math.floor(start + random() * (end - start));
-        expect(plain(getSoonestEventInfos(schedule, now, isAges, min, max)), `${min}/${max} at ${now}`).toEqual(
+        expect(plain(getSoonestLteInfos(schedule, now, isAges, min, max)), `${min}/${max} at ${now}`).toEqual(
           legacyEvents(now, min, max)
         );
         counts.soonest++;
@@ -118,9 +118,9 @@ describe.skipIf(!assetsAvailable).each(TITLE_KEYS)('schedule matches legacy (%s)
   it('keeps legacy ordering: soonest first, and a cut after the last new theme', () => {
     // A time when the weekly cycles still ran, so most events are generated rather than one-offs.
     const now = titleKey === 'adcom' ? Date.UTC(2023, 5, 1) : Date.UTC(2024, 1, 1);
-    const events = getSoonestEventInfos(schedule, now, isAges);
+    const events = getSoonestLteInfos(schedule, now, isAges);
     expect(events.length).toBeGreaterThanOrEqual(10);
-    expect(events.every((event, i) => i === 0 || (events[i - 1] as EventInfo).EndTimeMillis <= event.EndTimeMillis)).toBe(true);
+    expect(events.every((event, i) => i === 0 || (events[i - 1] as LteInfo).EndTimeMillis <= event.EndTimeMillis)).toBe(true);
   });
 
   it('getScheduleTimeMillis agrees with and without the trailing Z', () => {
@@ -173,7 +173,7 @@ describe.skipIf(!assetsAvailable).each(TITLE_KEYS)('schedule matches legacy (%s)
     for (const value of [...Object.values(title.themeIdOverrides), ...Object.values(title.themeDuplicateOverrides)]) names.add(value);
 
     for (const name of names) {
-      expect(getBasicEventName(name, title), name).toBe(legacy.call<string>('getBasicEventName', name));
+      expect(getBasicLteName(name, title), name).toBe(legacy.call<string>('getBasicEventName', name));
       counts.basicName++;
     }
     expect(names.size).toBeGreaterThan(30);
@@ -206,8 +206,8 @@ describe('legacy defects the port avoids', () => {
   const empty: LteScheduleData = { LteBalanceData: [], LteOneOff: [], LteSchedule: [] };
 
   it('returns no event for an empty schedule instead of an undefined entry', () => {
-    expect(getSoonestEventInfos(empty, 0, false)).toEqual([]);
-    expect(getCurrentEventInfo(empty, 0, false)).toBeUndefined();
+    expect(getSoonestLteInfos(empty, 0, false)).toEqual([]);
+    expect(getCurrentLteInfo(empty, 0, false)).toBeUndefined();
   });
 
   it('does not loop forever on a cycle whose StartTime does not parse', () => {
@@ -225,7 +225,7 @@ describe('legacy defects the port avoids', () => {
         }
       ]
     };
-    expect(getSoonestEventInfos(broken, 0, false)).toEqual([]);
+    expect(getSoonestLteInfos(broken, 0, false)).toEqual([]);
   });
 
   it('stops at a balance it has no duration for instead of crashing', () => {
@@ -243,7 +243,7 @@ describe('legacy defects the port avoids', () => {
         }
       ]
     };
-    expect(getSoonestEventInfos(missing, 0, false).map((event) => event.BalanceId)).toEqual(['a-bal-1']);
+    expect(getSoonestLteInfos(missing, 0, false).map((event) => event.BalanceId)).toEqual(['a-bal-1']);
   });
 });
 

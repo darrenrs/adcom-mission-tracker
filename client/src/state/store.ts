@@ -6,7 +6,7 @@ import { loadGameData, readRuntimeConfig, type GameData, type RuntimeConfig } fr
 import type { GameTextContext } from '@/domain/gameText';
 import { parseLocalization } from '@/domain/localization';
 import {
-  advanceEventToRank,
+  advanceLteToRank,
   applyAbGroups,
   applySave,
   clickMission,
@@ -18,7 +18,7 @@ import {
   type MissionBoard
 } from '@/domain/missions';
 import { TITLES, type TitleConfig } from '@/domain/titles';
-import type { EventInfo, GameBalance, TrackerMode } from '@/domain/types';
+import type { LteInfo, GameBalance, TrackerMode } from '@/domain/types';
 import { parseStartupParams, resolveStartup, type Startup } from '@/domain/urlParams';
 import { emptyFormValues, type FormValues } from '@/engine/model';
 import { createTrackerStorage, type TrackerStorage } from '@/storage/storage';
@@ -40,7 +40,7 @@ export interface Session {
   localization: Readonly<Record<string, string>>;
   startup: Startup;
   mode: TrackerMode;
-  eventInfo: EventInfo | null;
+  lteInfo: LteInfo | null;
   balance: GameBalance;
   text: GameTextContext;
   assets: AssetResolver;
@@ -64,7 +64,7 @@ export interface TrackerState {
   switchAbGroup(missionId: string): void;
   updateForm(change: (form: FormValues) => void): void;
   saveEta(missionId: string, seconds: number): void;
-  advanceEvent(rank: number): void;
+  advanceLte(rank: number): void;
   switchTitle(): Promise<void>;
   setTheme(theme: ThemeSetting): void;
   setCompletedVisible(visible: boolean): void;
@@ -88,13 +88,13 @@ function readTitle(storage: TrackerStorage): TitleConfig {
 }
 
 /** Storage key for data that belongs to Motherland or one event of one game. */
-function modeKey(title: TitleConfig, mode: TrackerMode, eventInfo: EventInfo | null, key: string): string {
-  const scope = mode === 'event' ? `event-${eventInfo?.EndTimeMillis ?? 0}` : 'main';
+function modeKey(title: TitleConfig, mode: TrackerMode, lteInfo: LteInfo | null, key: string): string {
+  const scope = mode === 'lte' ? `event-${lteInfo?.EndTimeMillis ?? 0}` : 'main';
   return `${title.gameSaveKeyPrefix}${scope}-${key}`;
 }
 
 function etaKey(session: Pick<Session, 'mode' | 'board'>): string {
-  return session.mode === 'main' ? `MissionEtas-${session.board.mainRank}` : 'MissionEtas';
+  return session.mode === 'evergreen' ? `MissionEtas-${session.board.evergreenRank}` : 'MissionEtas';
 }
 
 function readJson<T>(raw: string | null, fallback: T): T {
@@ -149,16 +149,16 @@ function buildSession(deps: TrackerDeps, title: TitleConfig, data: GameData): Se
   }
 
   const mode = startup.mode;
-  const eventInfo = startup.eventInfo;
-  const balance = ((mode === 'main' ? data.balances['evergreen'] : startup.eventBalance) ?? EMPTY_BALANCE) as GameBalance;
+  const lteInfo = startup.lteInfo;
+  const balance = ((mode === 'evergreen' ? data.balances['evergreen'] : startup.lteBalance) ?? EMPTY_BALANCE) as GameBalance;
   const localization = parseLocalization(data.localizationBase64);
 
   const savedGroups = storage.get(`${prefix}abTestGroups`);
   const abGroups = normalizeAbGroups(savedGroups ? savedGroups.split('||') : [], balance);
   storage.set(`${prefix}abTestGroups`, abGroups.join('||'));
 
-  const board = createBoard(mode, balance, abGroups, startup.mainRank);
-  applySave(board, storage.get(modeKey(title, mode, eventInfo, 'Completed')));
+  const board = createBoard(mode, balance, abGroups, startup.evergreenRank);
+  applySave(board, storage.get(modeKey(title, mode, lteInfo, 'Completed')));
 
   const session: Session = {
     title,
@@ -166,15 +166,15 @@ function buildSession(deps: TrackerDeps, title: TitleConfig, data: GameData): Se
     localization,
     startup,
     mode,
-    eventInfo,
+    lteInfo,
     balance,
     text: { balance, localization, title, mode },
     assets: createAssetResolver({
       assetBaseByTitleId: deps.runtime.assetBaseByTitleId,
       title,
       mode,
-      balanceId: eventInfo?.BalanceId ?? null,
-      themeId: eventInfo?.ThemeId ?? null,
+      balanceId: lteInfo?.BalanceId ?? null,
+      themeId: lteInfo?.ThemeId ?? null,
       experiments: balance.Experiments ?? null,
       titleIds: deps.runtime.titleIds
     }),
@@ -182,11 +182,11 @@ function buildSession(deps: TrackerDeps, title: TitleConfig, data: GameData): Se
     board,
     completionTimes: {},
     etas: {},
-    form: readForm(storage.get(modeKey(title, mode, eventInfo, 'FormValues')))
+    form: readForm(storage.get(modeKey(title, mode, lteInfo, 'FormValues')))
   };
 
-  session.completionTimes = readJson(storage.get(modeKey(title, mode, eventInfo, 'CompletionTimes')), {});
-  session.etas = readJson(storage.get(modeKey(title, mode, eventInfo, etaKey(session))), {});
+  session.completionTimes = readJson(storage.get(modeKey(title, mode, lteInfo, 'CompletionTimes')), {});
+  session.etas = readJson(storage.get(modeKey(title, mode, lteInfo, etaKey(session))), {});
   return session;
 }
 
@@ -220,9 +220,9 @@ export function createTrackerStore(deps: TrackerDeps): StoreApi<TrackerState> {
       if (session.startup.overrideActive) {
         return;
       }
-      const { title, mode, eventInfo, board, completionTimes } = session;
-      storage.set(modeKey(title, mode, eventInfo, 'Completed'), serializeCompleted(board));
-      storage.set(modeKey(title, mode, eventInfo, 'CompletionTimes'), JSON.stringify(completionTimes));
+      const { title, mode, lteInfo, board, completionTimes } = session;
+      storage.set(modeKey(title, mode, lteInfo, 'Completed'), serializeCompleted(board));
+      storage.set(modeKey(title, mode, lteInfo, 'CompletionTimes'), JSON.stringify(completionTimes));
     };
 
     const updateSettings = (change: Partial<Settings>) => set({ settings: { ...get().settings, ...change } });
@@ -304,7 +304,7 @@ export function createTrackerStore(deps: TrackerDeps): StoreApi<TrackerState> {
         const form = structuredClone(session.form);
         change(form);
         if (!session.startup.overrideActive) {
-          storage.set(modeKey(session.title, session.mode, session.eventInfo, 'FormValues'), JSON.stringify(form));
+          storage.set(modeKey(session.title, session.mode, session.lteInfo, 'FormValues'), JSON.stringify(form));
         }
         set({ session: { ...session, form } });
       },
@@ -318,7 +318,7 @@ export function createTrackerStore(deps: TrackerDeps): StoreApi<TrackerState> {
         }
         const etas = { ...session.etas, [missionId]: finish };
         if (!session.startup.overrideActive) {
-          storage.set(modeKey(session.title, session.mode, session.eventInfo, etaKey(session)), JSON.stringify(etas));
+          storage.set(modeKey(session.title, session.mode, session.lteInfo, etaKey(session)), JSON.stringify(etas));
         }
         set({ session: { ...session, etas } });
       },
@@ -335,13 +335,13 @@ export function createTrackerStore(deps: TrackerDeps): StoreApi<TrackerState> {
         set({ session: { ...session, board, abGroups } });
       },
 
-      advanceEvent(rank) {
+      advanceLte(rank) {
         const session = get().session;
-        if (!session || session.mode !== 'event') {
+        if (!session || session.mode !== 'lte') {
           return;
         }
         const board = cloneBoard(session.board);
-        advanceEventToRank(board, rank);
+        advanceLteToRank(board, rank);
         const next = { ...session, board };
         persist(next);
         set({ session: next });
@@ -379,9 +379,9 @@ export function createTrackerStore(deps: TrackerDeps): StoreApi<TrackerState> {
         if (!session) {
           return;
         }
-        const { title, mode, eventInfo } = session;
+        const { title, mode, lteInfo } = session;
         for (const key of ['Completed', 'FormValues', 'CompletionTimes', etaKey(session)]) {
-          storage.remove(modeKey(title, mode, eventInfo, key));
+          storage.remove(modeKey(title, mode, lteInfo, key));
         }
         set({ session: buildSession(deps, title, session.data) });
       },

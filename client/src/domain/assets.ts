@@ -168,7 +168,7 @@ export function createAssetResolver(input: AssetResolverInput): AssetResolver {
 
   // Which balance's folder icons come from. Event assets belong to the event on display, everything else to evergreen.
   const currentBalanceId = (): string => {
-    const loaded = mode === 'event' && input.balanceId ? input.balanceId : 'evergreen';
+    const loaded = mode === 'lte' && input.balanceId ? input.balanceId : 'evergreen';
     return mapBalanceIdForAssetPath(loaded);
   };
 
@@ -293,14 +293,14 @@ export function createAssetResolver(input: AssetResolverInput): AssetResolver {
       return overrideDirectory;
     }
 
-    if (mode === 'event' && input.themeId) {
+    if (mode === 'lte' && input.themeId) {
       let themeId = input.themeId;
       themeId = lookup(title.themeIdOverrides, themeId) || themeId;
       themeId = lookup(title.themeDuplicateOverrides, themeId) || themeId;
-      return forTitle(title.key, `${mode}/${themeId}`);
+      return forTitle(title.key, `event/${themeId}`);
     }
 
-    return forTitle(title.key, mode);
+    return forTitle(title.key, mode === 'lte' ? 'event' : 'main');
   };
 
   const experimentIcon = (rewardId: string | number | null | undefined): string => {

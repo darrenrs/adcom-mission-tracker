@@ -49,7 +49,7 @@ function mulberry32(seed: number) {
   };
 }
 
-const modeOf = (balanceId: string): TrackerMode => (balanceId === 'evergreen' ? 'main' : 'event');
+const modeOf = (balanceId: string): TrackerMode => (balanceId === 'evergreen' ? 'evergreen' : 'lte');
 // Titles with an apostrophe in a resource name break legacy's own markup, so images go before the tags are stripped.
 const compact = (text: string) => stripHtml(text.replace(/<img\b[^>]*>/g, '')).replace(/\s+/g, '');
 
@@ -106,8 +106,8 @@ describe.skipIf(!assetsAvailable).each(TITLE_KEYS)('researchers match legacy (%s
       assetBaseByTitleId: runtimeConfig.assetBaseByTitleId,
       title,
       mode,
-      balanceId: mode === 'event' ? balanceId : null,
-      themeId: mode === 'event' ? (balanceId.split('-')[0] ?? null) : null,
+      balanceId: mode === 'lte' ? balanceId : null,
+      themeId: mode === 'lte' ? (balanceId.split('-')[0] ?? null) : null,
       experiments: balance.Experiments,
       titleIds: runtimeConfig.titleIds
     });

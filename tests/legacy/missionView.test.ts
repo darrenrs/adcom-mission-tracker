@@ -4,7 +4,7 @@ import { afterAll, describe, expect, it } from 'vitest';
 import { createAssetResolver, type AssetResolver } from '@/domain/assets';
 import { describeMission, type GameTextContext } from '@/domain/gameText';
 import { parseLocalization } from '@/domain/localization';
-import { advanceEventToRank, clickMission, createBoard, normalizeAbGroups, type MissionBoard } from '@/domain/missions';
+import { advanceLteToRank, clickMission, createBoard, normalizeAbGroups, type MissionBoard } from '@/domain/missions';
 import {
   currentRankLabel,
   describeScheduleReward,
@@ -55,7 +55,7 @@ function legacyValue<T>(label: string, run: () => T): T | null {
   }
 }
 
-const modeOf = (balanceId: string): TrackerMode => (balanceId === 'evergreen' ? 'main' : 'event');
+const modeOf = (balanceId: string): TrackerMode => (balanceId === 'evergreen' ? 'evergreen' : 'lte');
 const squash = (text: string) => text.replace(/\s+/g, ' ').trim();
 
 function allScheduleRewards(schedule: ReturnType<typeof loadSchedule>): ScheduleReward[] {
@@ -86,7 +86,7 @@ function compareRankLabels(legacy: Legacy, board: MissionBoard, label: string, s
     return state / 4294967296;
   };
   const legacyLabel = () => {
-    if (board.mode === 'event') {
+    if (board.mode === 'lte') {
       return legacy.run<string | undefined>('getEventCurrentRankTitle()');
     }
     return legacy.run<string>(
@@ -145,7 +145,7 @@ describe.skipIf(!assetsAvailable).each(TITLE_KEYS)('mission view matches legacy 
        DATA.common = __common;
        eventScheduleInfo.ThemeId = __theme;
        missionData = { Current: { Remaining: [] }, Completed: { Remaining: [] } };`,
-      { __common: { Avatars: legacyAvatars }, __theme: mode === 'event' ? themeOf(balanceId) : balanceId.split('-')[0] }
+      { __common: { Avatars: legacyAvatars }, __theme: mode === 'lte' ? themeOf(balanceId) : balanceId.split('-')[0] }
     );
 
     const balance = balances[balanceId] as GameBalance;
@@ -153,8 +153,8 @@ describe.skipIf(!assetsAvailable).each(TITLE_KEYS)('mission view matches legacy 
       assetBaseByTitleId: runtimeConfig.assetBaseByTitleId,
       title,
       mode,
-      balanceId: mode === 'event' ? balanceId : null,
-      themeId: mode === 'event' ? themeOf(balanceId) : null,
+      balanceId: mode === 'lte' ? balanceId : null,
+      themeId: mode === 'lte' ? themeOf(balanceId) : null,
       experiments: balance.Experiments,
       titleIds: runtimeConfig.titleIds
     });
@@ -205,7 +205,7 @@ describe.skipIf(!assetsAvailable).each(TITLE_KEYS)('mission view matches legacy 
 
       it('matches the schedule reward icons and text', () => {
         const { assets, ctx } = setUp(balanceId);
-        const eventInfo = { BalanceId: balanceId, ThemeId: themeOf(balanceId) };
+        const lteInfo = { BalanceId: balanceId, ThemeId: themeOf(balanceId) };
 
         for (const reward of allScheduleRewards(schedule)) {
           const label = `${JSON.stringify(reward)} (${titleKey} ${balanceId})`;
@@ -217,9 +217,9 @@ describe.skipIf(!assetsAvailable).each(TITLE_KEYS)('mission view matches legacy 
           }
 
           const html = legacyValue('describeScheduleRankReward', () =>
-            legacy.call<string | undefined>('describeScheduleRankReward', reward, true, eventInfo)
+            legacy.call<string | undefined>('describeScheduleRankReward', reward, true, lteInfo)
           );
-          const ours = describeScheduleReward(reward, ctx, assets, eventInfo, { Avatars: common['Avatars'] });
+          const ours = describeScheduleReward(reward, ctx, assets, lteInfo, { Avatars: common['Avatars'] });
 
           if (reward.Reward === 'Avatar') {
             // Legacy returns nothing for an avatar it cannot find, and this says so in words.
@@ -254,16 +254,16 @@ describe.skipIf(!assetsAvailable).each(TITLE_KEYS)('mission view matches legacy 
           );
         };
 
-        if (mode === 'event') {
+        if (mode === 'lte') {
           if (!balance.Ranks?.[1] || balance.Missions.length === 0) return;
           const ok = legacyValue('initializeMissionData', () => initialize(1));
           if (ok === null && !legacy.read<boolean>('typeof missionData.Current !== "undefined"')) return;
-          compareRankLabels(legacy, createBoard('event', balance, abGroups), `${titleKey} ${balanceId}`, 7, 80);
+          compareRankLabels(legacy, createBoard('lte', balance, abGroups), `${titleKey} ${balanceId}`, 7, 80);
 
           // Advancing completes everything below a rank. Legacy does it in advanceProgressTo, with a form.
-          const board = createBoard('event', balance, abGroups);
+          const board = createBoard('lte', balance, abGroups);
           const rank = Math.min(3, board.rankCount);
-          advanceEventToRank(board, rank);
+          advanceLteToRank(board, rank);
           tally.rankLabels++;
           expect(currentRankLabel(board)).toMatch(new RegExp(`^${rank} \\(`));
           return;
@@ -272,7 +272,7 @@ describe.skipIf(!assetsAvailable).each(TITLE_KEYS)('mission view matches legacy 
         const lastRank = Math.max(...balance.Missions.map((mission) => mission.Rank ?? 0));
         for (const rank of new Set([1, 2, Math.ceil(lastRank / 2), lastRank])) {
           initialize(rank);
-          compareRankLabels(legacy, createBoard('main', balance, abGroups, rank), `${titleKey} main rank ${rank}`, rank, 30);
+          compareRankLabels(legacy, createBoard('evergreen', balance, abGroups, rank), `${titleKey} main rank ${rank}`, rank, 30);
         }
       });
     });
@@ -294,14 +294,14 @@ describe('currentRankLabel', () => {
   };
 
   it('counts completed missions of the rank in Motherland', () => {
-    const board = createBoard('main', balance, [], 1);
+    const board = createBoard('evergreen', balance, [], 1);
     expect(currentRankLabel(board)).toBe('1 (0/4)');
     clickMission(board, 'm0');
     expect(currentRankLabel(board)).toBe('1 (1/4)');
   });
 
   it('falls back to the bare rank when the rank has no missions', () => {
-    expect(currentRankLabel(createBoard('main', balance, [], 9))).toBe('9');
+    expect(currentRankLabel(createBoard('evergreen', balance, [], 9))).toBe('9');
   });
 });
 

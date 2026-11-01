@@ -364,7 +364,7 @@ export function generatorDetails(
         ? Number(perSecond.toPrecision(3)).toLocaleString(undefined, { maximumSignificantDigits: 3 })
          : shortBigNum(perSecond, powers),
     bubble: {
-      iconUrl: assets.active(`${ctx.mode}/${reward?.RewardId ?? ''}.png`),
+      iconUrl: assets.active(`${ctx.mode === 'lte' ? 'event' : 'main'}/${reward?.RewardId ?? ''}.png`),
       value: reward?.Value ?? 0,
       text: shortBigNum(reward?.Value ?? 0, powers)
     },

@@ -122,7 +122,7 @@ describe.skipIf(!assetsAvailable).each(TITLE_KEYS)('projection against the legac
   for (const balanceId of Object.keys(balances)) {
     it(`uses legacy's rates on ${balanceId}`, () => {
       const balance = balances[balanceId] as GameBalance;
-      const ctx: GameTextContext = { balance, localization: parsed, title, mode: balanceId === 'evergreen' ? 'main' : 'event' };
+      const ctx: GameTextContext = { balance, localization: parsed, title, mode: balanceId === 'evergreen' ? 'evergreen' : 'lte' };
       legacy.configure({ balances: { ...balances, [balanceId]: structuredClone(balance) }, balanceId, localization: localizationBase64 });
       const random = mulberry(17);
 

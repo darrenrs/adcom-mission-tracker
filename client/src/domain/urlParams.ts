@@ -10,8 +10,8 @@
 //   timeOverride=X  Opens the event running at X (millis).
 // New: `view` and `mission` are only passed through for the React app to interpret.
 
-import { getCurrentEventInfo } from './schedule';
-import type { Balance, EventInfo, LteScheduleData, TrackerMode } from './types';
+import { getCurrentLteInfo } from './schedule';
+import type { Balance, LteInfo, LteScheduleData, TrackerMode } from './types';
 
 /** One parameter that changes the startup state. Legacy applies them in query order. */
 export type StartupStep =
@@ -55,18 +55,18 @@ export interface ResolveStartupInput {
 
 export interface Startup {
   mode: TrackerMode;
-  mainRank: number;
+  evergreenRank: number;
   /** The event on display, whether or not the mode is `event`. Null only when the schedule has no events. */
-  eventInfo: EventInfo | null;
+  lteInfo: LteInfo | null;
   /**
    * The balance to play: an empty stub for fake events, null when the schedule names an unknown balance.
-   * As in legacy, `eventOverride` fixes it, even if a later `event` parameter changes `eventInfo`.
+   * As in legacy, `eventOverride` fixes it, even if a later `event` parameter changes `lteInfo`.
    */
-  eventBalance: Balance | null;
+  lteBalance: Balance | null;
   /** `eventOverride` was applied: show the warning and hide the reset alert. */
   overrideActive: boolean;
   /** The event has no datamined balance. Show the fake event alert. */
-  isFakeEvent: boolean;
+  isFakeLte: boolean;
   /** `mode=schedule`: open the schedule popup. */
   openSchedule: boolean;
   /** Storage writes legacy makes while reading the URL, in order. Apply them before reading the saved state. */
@@ -129,7 +129,7 @@ export function parseStartupParams(search: string): StartupParams {
 }
 
 /** The balance for a fake event: nothing to play, so the page shows an alert instead. */
-export function createFakeEventBalance(): Balance {
+export function createFakeLteBalance(): Balance {
   return { Generators: [], Industries: [], Missions: [], Researchers: [], Resources: [{ Id: 'potato' }] };
 }
 
@@ -139,20 +139,20 @@ export function createFakeEventBalance(): Balance {
  *
  * Differences from legacy, each a crash there: an `eventOverride` naming a prototype property
  * (`constructor`) is ignored, a saved mode other than `main` or `event` counts as `main`,
- * and a schedule naming an unknown balance gives a null `eventBalance`.
+ * and a schedule naming an unknown balance gives a null `lteBalance`.
  */
 export function resolveStartup(input: ResolveStartupInput): Startup {
   const { params, schedule, balances, title } = input;
   const isAges = title.key === 'ages';
   const writes: StorageWrite[] = [];
   let now = input.now;
-  let eventInfo: EventInfo | null = null;
+  let lteInfo: LteInfo | null = null;
   let overrideActive = false;
   let openSchedule = false;
   // Legacy points DATA.event at the override's balance once and never moves it again.
   let overrideBalanceId: string | null = null;
 
-  const writeMode = (mode: TrackerMode) => writes.push({ key: 'CurrentMode', value: mode });
+  const writeMode = (mode: 'main' | 'event') => writes.push({ key: 'CurrentMode', value: mode });
 
   for (const step of params.steps) {
     switch (step.param) {
@@ -179,9 +179,9 @@ export function resolveStartup(input: ResolveStartupInput): Startup {
         // Like timeOverride, but more rigid: test one millisecond before the end time.
         // If right, the event running then ends exactly at that time.
         const eventTime = parseInt(step.value);
-        const candidate = getCurrentEventInfo(schedule, eventTime - 1, isAges);
+        const candidate = getCurrentLteInfo(schedule, eventTime - 1, isAges);
         if (candidate && candidate.EndTimeMillis === eventTime) {
-          eventInfo = candidate;
+          lteInfo = candidate;
           writeMode('event');
         }
         break;
@@ -203,7 +203,7 @@ export function resolveStartup(input: ResolveStartupInput): Startup {
         writeMode('event');
         overrideActive = true;
         overrideBalanceId = balanceId;
-        eventInfo = {
+        lteInfo = {
           LteId: balanceId,
           BalanceId: balanceId,
           // the xxx part of xxx-bal-5
@@ -220,20 +220,20 @@ export function resolveStartup(input: ResolveStartupInput): Startup {
   // Values from URL parameters > previous save > defaults.
   const lastWrite = (key: StorageWrite['key']) => writes.findLast((write) => write.key === key)?.value;
   const modeValue = lastWrite('CurrentMode') ?? input.savedMode;
-  const mode: TrackerMode = modeValue === 'event' ? 'event' : 'main';
-  const mainRank = parseInt(lastWrite('main-CurrentRank') ?? input.savedRank ?? '') || 1;
+  const mode: TrackerMode = modeValue === 'event' ? 'lte' : 'evergreen';
+  const evergreenRank = parseInt(lastWrite('main-CurrentRank') ?? input.savedRank ?? '') || 1;
 
   // The schedule decides unless a parameter already chose the event.
-  eventInfo ??= getCurrentEventInfo(schedule, now, isAges) ?? null;
+  lteInfo ??= getCurrentLteInfo(schedule, now, isAges) ?? null;
 
   const balanceFor = (id: string): Balance | null => (Object.hasOwn(balances, id) ? (balances[id] ?? null) : null);
 
-  let eventBalance: Balance | null = null;
-  let isFakeEvent = false;
-  if (eventInfo) {
-    isFakeEvent = mode === 'event' && Boolean(balanceFor(eventInfo.BalanceId)?.['fake']);
-    eventBalance = isFakeEvent ? createFakeEventBalance() : balanceFor(overrideBalanceId ?? eventInfo.BalanceId);
+  let lteBalance: Balance | null = null;
+  let isFakeLte = false;
+  if (lteInfo) {
+    isFakeLte = mode === 'lte' && Boolean(balanceFor(lteInfo.BalanceId)?.['fake']);
+    lteBalance = isFakeLte ? createFakeLteBalance() : balanceFor(overrideBalanceId ?? lteInfo.BalanceId);
   }
 
-  return { mode, mainRank, eventInfo, eventBalance, overrideActive, isFakeEvent, openSchedule, writes };
+  return { mode, evergreenRank, lteInfo, lteBalance, overrideActive, isFakeLte, openSchedule, writes };
 }

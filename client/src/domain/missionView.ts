@@ -12,7 +12,7 @@ import {
   type MissionDescription
 } from './gameText';
 import { availableAbGroups, type BoardMission, type MissionBoard } from './missions';
-import type { EventInfo, GameBalance, Mission, ScheduleReward } from './types';
+import type { LteInfo, GameBalance, Mission, ScheduleReward } from './types';
 
 export type MissionTone = 'danger' | 'success' | 'neutral';
 
@@ -100,11 +100,11 @@ export function rewardIconUrl(reward: ScheduleReward, assets: AssetResolver): st
   return path.toLowerCase().endsWith('.png') ? path : `${path}.png`;
 }
 
-const eventRankTitles = new WeakMap<MissionBoard['rankSizes'], string[]>();
+const lteRankTitles = new WeakMap<MissionBoard['rankSizes'], string[]>();
 
 /** One label per number of completed event missions: `3 (1/5)` is rank 3 with one of five done. */
-function eventRankLabels(board: MissionBoard): string[] {
-  let labels = eventRankTitles.get(board.rankSizes);
+function lteRankLabels(board: MissionBoard): string[] {
+  let labels = lteRankTitles.get(board.rankSizes);
   if (!labels) {
     labels = [];
     for (let rank = 1; rank <= board.rankCount; rank++) {
@@ -115,23 +115,23 @@ function eventRankLabels(board: MissionBoard): string[] {
         }
       }
     }
-    eventRankTitles.set(board.rankSizes, labels);
+    lteRankTitles.set(board.rankSizes, labels);
   }
   return labels;
 }
 
 /** The rank shown next to Current, such as `12 (2/9)`. */
 export function currentRankLabel(board: MissionBoard): string {
-  if (board.mode === 'event') {
-    return eventRankLabels(board)[board.completed.length] ?? 'Complete!';
+  if (board.mode === 'lte') {
+    return lteRankLabels(board)[board.completed.length] ?? 'Complete!';
   }
 
-  const size = board.rankSizes.get(board.mainRank);
+  const size = board.rankSizes.get(board.evergreenRank);
   if (size === undefined) {
-    return String(board.mainRank);
+    return String(board.evergreenRank);
   }
-  const waiting = board.ranks.get(board.mainRank)?.length ?? 0;
-  return `${board.mainRank} (${size - waiting - board.current.length}/${size})`;
+  const waiting = board.ranks.get(board.evergreenRank)?.length ?? 0;
+  return `${board.evergreenRank} (${size - waiting - board.current.length}/${size})`;
 }
 
 export interface ScheduleRewardView {
@@ -148,16 +148,16 @@ interface AvatarEntry {
 }
 
 /** Legacy ends up with the last avatar that matches, so this does too. */
-function eventAvatar(avatars: AvatarEntry[], eventInfo: Pick<EventInfo, 'ThemeId' | 'BalanceId'> | null, ctx: GameTextContext) {
+function lteAvatar(avatars: AvatarEntry[], lteInfo: Pick<LteInfo, 'ThemeId' | 'BalanceId'> | null, ctx: GameTextContext) {
   let found: AvatarEntry | undefined;
   for (const avatar of avatars) {
     if (avatar.UnlockLocation) {
       const themeId = avatar.UnlockLocation.ThemeId;
-      const duplicate = eventInfo ? ctx.title.themeDuplicateOverrides[eventInfo.ThemeId] : undefined;
-      if (themeId !== undefined && eventInfo && (themeId === eventInfo.ThemeId || themeId === duplicate)) {
+      const duplicate = lteInfo ? ctx.title.themeDuplicateOverrides[lteInfo.ThemeId] : undefined;
+      if (themeId !== undefined && lteInfo && (themeId === lteInfo.ThemeId || themeId === duplicate)) {
         found = avatar;
       }
-    } else if (eventInfo && avatar.BalancesIncluded?.includes(eventInfo.BalanceId)) {
+    } else if (lteInfo && avatar.BalancesIncluded?.includes(lteInfo.BalanceId)) {
       found = avatar;
     }
   }
@@ -169,7 +169,7 @@ export function describeScheduleReward(
   reward: ScheduleReward,
   ctx: GameTextContext,
   assets: AssetResolver,
-  eventInfo: Pick<EventInfo, 'ThemeId' | 'BalanceId'> | null,
+  lteInfo: Pick<LteInfo, 'ThemeId' | 'BalanceId'> | null,
   common: Readonly<Record<string, unknown>> | undefined
 ): ScheduleRewardView {
   const { localization } = ctx;
@@ -197,7 +197,7 @@ export function describeScheduleReward(
 
     case 'Avatar': {
       const avatars = Array.isArray(common?.['Avatars']) ? (common['Avatars'] as AvatarEntry[]) : [];
-      const avatar = reward.RewardId === 'LTE AVATAR' ? eventAvatar(avatars, eventInfo, ctx) : undefined;
+      const avatar = reward.RewardId === 'LTE AVATAR' ? lteAvatar(avatars, lteInfo, ctx) : undefined;
       if (!avatar) {
         return { iconUrl: '', text: 'Unknown Avatar Reward' };
       }
@@ -227,7 +227,7 @@ export interface FirstFreeCapsule {
   cards: { value: number; name: string }[];
 }
 
-export interface EventRankDetails {
+export interface LteRankDetails {
   completionRewards: ScheduleRewardView[];
   firstFreeCapsule: FirstFreeCapsule | null;
   /** The game's word for researchers, for the heading of the list below. */
@@ -237,23 +237,23 @@ export interface EventRankDetails {
   hasContent: boolean;
 }
 
-export interface EventRankSource {
+export interface LteRankSource {
   ctx: GameTextContext;
   assets: AssetResolver;
-  eventInfo: EventInfo | null;
+  lteInfo: LteInfo | null;
   /** The `common` balance, which holds the avatars. */
   common: Readonly<Record<string, unknown>> | undefined;
 }
 
-function completionRewards(rank: number, { ctx, assets, eventInfo, common }: EventRankSource): ScheduleRewardView[] {
+function completionRewards(rank: number, { ctx, assets, lteInfo, common }: LteRankSource): ScheduleRewardView[] {
   const ranks = ctx.balance.Ranks ?? [];
-  const rewards = eventInfo?.Rewards ?? [];
+  const rewards = lteInfo?.Rewards ?? [];
   // Event overrides have no reward data: empty slots.
   if (rank >= ranks.length || rewards[0] === undefined) {
     return [];
   }
 
-  const view = (reward: ScheduleReward) => describeScheduleReward(reward, ctx, assets, eventInfo, common);
+  const view = (reward: ScheduleReward) => describeScheduleReward(reward, ctx, assets, lteInfo, common);
 
   if (ctx.title.isAges) {
     const reward = rewards[rank - 1] as ScheduleReward | undefined;
@@ -269,7 +269,7 @@ function completionRewards(rank: number, { ctx, assets, eventInfo, common }: Eve
     .map((key) => view((milestone as unknown as Record<string, ScheduleReward>)[key] as ScheduleReward));
 }
 
-function firstFreeCapsule(rank: number, { ctx, assets }: EventRankSource): FirstFreeCapsule | null {
+function firstFreeCapsule(rank: number, { ctx, assets }: LteRankSource): FirstFreeCapsule | null {
   const scriptId = ctx.balance.GachaFreeCycle?.[0]?.ScriptId;
   if (rank !== 1 || !scriptId) {
     return null;
@@ -287,7 +287,7 @@ function firstFreeCapsule(rank: number, { ctx, assets }: EventRankSource): First
 }
 
 /** What legacy's rank popover showed: the completion rewards, the first free capsule and the new researchers. */
-export function eventRankDetails(rank: number, source: EventRankSource): EventRankDetails {
+export function lteRankDetails(rank: number, source: LteRankSource): LteRankDetails {
   const { ctx } = source;
   const completion = completionRewards(rank, source);
   const capsule = firstFreeCapsule(rank, source);

@@ -22,7 +22,7 @@ export function HowToUse({ session }: { session: Session }) {
   const { mode, assets } = session;
   const open = useTracker((state) => state.settings.howToUseVisible);
   const setOpen = useTracker((state) => state.setHowToUseVisible);
-  const capsule = assets.active(`shared/gacha/${mode === 'main' ? 'wood' : 'plastic'}.png`);
+  const capsule = assets.active(`shared/gacha/${mode === 'evergreen' ? 'wood' : 'plastic'}.png`);
 
   return (
     <Collapsible.Root open={open} onOpenChange={setOpen} asChild>

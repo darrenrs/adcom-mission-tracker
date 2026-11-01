@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
-  advanceEventToRank,
+  advanceLteToRank,
   applyAbGroups,
   availableAbGroups,
   boardSections,
@@ -35,8 +35,8 @@ const balance: Balance = {
 describe('advanceEventToRank', () => {
   // Legacy looped one step too far here and filled Current with undefined, crashing the page.
   it('moves on to the next rank when the target rank runs out', () => {
-    const board = createBoard('event', balance, []);
-    advanceEventToRank(board, 3);
+    const board = createBoard('lte', balance, []);
+    advanceLteToRank(board, 3);
 
     expect(board.current.map((m) => m.Id)).toEqual(['e', 'f']);
     expect(board.current.every(Boolean)).toBe(true);
@@ -46,12 +46,12 @@ describe('advanceEventToRank', () => {
 
 describe('clickMission', () => {
   it('ignores a mission that is not Current or Completed', () => {
-    const board = createBoard('event', balance, []);
+    const board = createBoard('lte', balance, []);
     expect(clickMission(board, 'f')).toBeNull();
   });
 
   it('round-trips a completed mission back to its original place', () => {
-    const board = createBoard('event', balance, []);
+    const board = createBoard('lte', balance, []);
     const before = board.current.map((m) => m.Id);
 
     expect(clickMission(board, 'a')).toBe('completed');
@@ -93,7 +93,7 @@ describe('A/B mission groups', () => {
   });
 
   it('swaps a mission to the new group without moving it', () => {
-    const board = createBoard('event', abBalance, ['Test|A']);
+    const board = createBoard('lte', abBalance, ['Test|A']);
     const order = board.current.map((m) => m.Id);
 
     applyAbGroups(board, abBalance, ['Test|B']);
@@ -105,7 +105,7 @@ describe('A/B mission groups', () => {
 
 describe('groupByRank', () => {
   it('sorts ranks but keeps completion order inside each rank', () => {
-    const board = createBoard('event', balance, []);
+    const board = createBoard('lte', balance, []);
     for (const id of ['b', 'a', 'c', 'd', 'e']) {
       clickMission(board, id);
     }
@@ -119,7 +119,7 @@ describe('groupByRank', () => {
 
 describe('inMissionOrder', () => {
   it('ignores completion order and leaves the board alone', () => {
-    const board = createBoard('event', balance, []);
+    const board = createBoard('lte', balance, []);
     for (const id of ['b', 'a', 'c']) {
       clickMission(board, id);
     }
@@ -141,7 +141,7 @@ describe('completeMissionsBefore', () => {
       ],
       Ranks: [rankInfo(1, 0), { ...rankInfo(2, 0), ActiveMissionCount: 1 }]
     };
-    const board = createBoard('main', motherland, [], 2);
+    const board = createBoard('evergreen', motherland, [], 2);
 
     expect(missionsBefore(board, 'c').map((m) => m.Id)).toEqual(['a', 'b']);
     expect(missionsBefore(board, 'r1')).toEqual([]);
