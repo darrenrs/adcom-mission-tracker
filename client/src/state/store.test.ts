@@ -39,7 +39,7 @@ function memoryBackend(initial: Record<string, string> = {}) {
   };
 }
 
-function setup(initial: Record<string, string> = {}, search = '?mode=main') {
+function setup(initial: Record<string, string> = {}, search = '?mode=evergreen') {
   const backend = memoryBackend(initial);
   const location = { search };
   const deps: TrackerDeps = {
@@ -83,7 +83,7 @@ describe('tracker store', () => {
     await store.getState().boot();
     const before = store.getState().session;
 
-    location.search = '?mode=main&view=production';
+    location.search = '?mode=evergreen&view=production';
     store.getState().syncLocation();
     expect(store.getState().session).toBe(before);
 

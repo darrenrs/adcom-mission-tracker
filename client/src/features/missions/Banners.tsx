@@ -28,9 +28,9 @@ export function Banners({ session }: { session: Session }) {
         </Banner>
       )}
       {startup.isFakeLte && <Banner>This event is new content, and will be added to the Tracker shortly before the event begins.</Banner>}
-      {startup.overrideActive && (
+      {startup.preview && (
         <Banner>
-          You are in <strong>Event Override</strong> mode. Event progress is temporary.
+          You are previewing this event. Progress here is temporary.
         </Banner>
       )}
     </>

@@ -22,7 +22,7 @@ import type { LteInfo, GameBalance, TrackerMode } from '@/domain/types';
 import { parseStartupParams, resolveStartup, type Startup } from '@/domain/urlParams';
 import { emptyFormValues, type FormValues } from '@/engine/model';
 import { createTrackerStorage, type TrackerStorage } from '@/storage/storage';
-import { startupSearch } from './navigation';
+import { showInUrl, startupSearch } from './navigation';
 
 export type TitleKey = 'adcom' | 'ages';
 export type ThemeSetting = 'system' | 'light' | 'dark';
@@ -65,7 +65,6 @@ export interface TrackerState {
   updateForm(change: (form: FormValues) => void): void;
   saveEta(missionId: string, seconds: number): void;
   advanceLte(rank: number): void;
-  switchTitle(): Promise<void>;
   setTheme(theme: ThemeSetting): void;
   setCompletedVisible(visible: boolean): void;
   setHowToUseVisible(visible: boolean): void;
@@ -79,12 +78,16 @@ export interface TrackerDeps {
   runtime: RuntimeConfig;
   now(): number;
   search(): string;
+  /** Puts the game and mode on show in the URL once they are decided. */
+  showInUrl?(title: string, mode: string): void;
 }
 
 const EMPTY_BALANCE: GameBalance = { Missions: [] };
 
-function readTitle(storage: TrackerStorage): TitleConfig {
-  return storage.get('activeTitle') === 'ages' ? TITLES.ages : TITLES.adcom;
+/** The URL decides the game, then the saved choice. */
+function readTitle(storage: TrackerStorage, search: string): TitleConfig {
+  const wanted = parseStartupParams(search).title ?? storage.get('activeTitle');
+  return wanted === 'ages' ? TITLES.ages : TITLES.adcom;
 }
 
 /** Storage key for data that belongs to Motherland or one event of one game. */
@@ -215,14 +218,21 @@ export function createTrackerStore(deps: TrackerDeps): StoreApi<TrackerState> {
   };
 
   return createStore<TrackerState>((set, get) => {
-    // An `eventOverride` session is a preview: its progress is temporary, as the banner says.
+    // A `balance` session is a preview: its progress is temporary, as the banner says.
     const persist = (session: Session) => {
-      if (session.startup.overrideActive) {
+      if (session.startup.preview) {
         return;
       }
       const { title, mode, lteInfo, board, completionTimes } = session;
       storage.set(modeKey(title, mode, lteInfo, 'Completed'), serializeCompleted(board));
       storage.set(modeKey(title, mode, lteInfo, 'CompletionTimes'), JSON.stringify(completionTimes));
+    };
+
+    const startSession = (title: TitleConfig, data: GameData): Session => {
+      const session = buildSession(deps, title, data);
+      deps.showInUrl?.(title.key, session.mode);
+      lastStartup = startupSearch(deps.search());
+      return session;
     };
 
     const updateSettings = (change: Partial<Settings>) => set({ settings: { ...get().settings, ...change } });
@@ -231,9 +241,9 @@ export function createTrackerStore(deps: TrackerDeps): StoreApi<TrackerState> {
       set({ status: 'loading', error: null });
       try {
         storage.migrateLegacyKeys();
+        storage.set('activeTitle', title.key);
         const data = await dataFor(title);
-        lastStartup = startupSearch(deps.search());
-        set({ status: 'ready', session: buildSession(deps, title, data), settings: readSettings(storage, title) });
+        set({ status: 'ready', session: startSession(title, data), settings: readSettings(storage, title) });
       } catch (error) {
         loaded.delete(title.titleId);
         console.error(error);
@@ -245,16 +255,20 @@ export function createTrackerStore(deps: TrackerDeps): StoreApi<TrackerState> {
       status: 'loading',
       error: null,
       session: null,
-      settings: readSettings(storage, readTitle(storage)),
+      settings: readSettings(storage, readTitle(storage, deps.search())),
 
-      boot: () => open(readTitle(storage)),
+      boot: () => open(readTitle(storage, deps.search())),
 
       syncLocation() {
         const session = get().session;
-        const startup = startupSearch(deps.search());
-        if (session && startup !== lastStartup) {
-          lastStartup = startup;
-          set({ session: buildSession(deps, session.title, session.data) });
+        if (!session || startupSearch(deps.search()) === lastStartup) {
+          return;
+        }
+        const title = readTitle(storage, deps.search());
+        if (title.key === session.title.key) {
+          set({ session: startSession(title, session.data) });
+        } else {
+          void open(title);
         }
       },
 
@@ -303,7 +317,7 @@ export function createTrackerStore(deps: TrackerDeps): StoreApi<TrackerState> {
         }
         const form = structuredClone(session.form);
         change(form);
-        if (!session.startup.overrideActive) {
+        if (!session.startup.preview) {
           storage.set(modeKey(session.title, session.mode, session.lteInfo, 'FormValues'), JSON.stringify(form));
         }
         set({ session: { ...session, form } });
@@ -317,7 +331,7 @@ export function createTrackerStore(deps: TrackerDeps): StoreApi<TrackerState> {
           return;
         }
         const etas = { ...session.etas, [missionId]: finish };
-        if (!session.startup.overrideActive) {
+        if (!session.startup.preview) {
           storage.set(modeKey(session.title, session.mode, session.lteInfo, etaKey(session)), JSON.stringify(etas));
         }
         set({ session: { ...session, etas } });
@@ -347,13 +361,6 @@ export function createTrackerStore(deps: TrackerDeps): StoreApi<TrackerState> {
         set({ session: next });
       },
 
-      async switchTitle() {
-        const title = get().session?.title ?? readTitle(storage);
-        const target = title.key === 'ages' ? TITLES.adcom : TITLES.ages;
-        storage.set('activeTitle', target.key);
-        await open(target);
-      },
-
       setTheme(theme) {
         if (theme === 'system') {
           storage.remove('StyleConfig');
@@ -364,7 +371,7 @@ export function createTrackerStore(deps: TrackerDeps): StoreApi<TrackerState> {
       },
 
       setCompletedVisible(completedVisible) {
-        const title = get().session?.title ?? readTitle(storage);
+        const title = get().session?.title ?? readTitle(storage, deps.search());
         storage.set(`${title.gameSaveKeyPrefix}main-CompletedVisible`, String(completedVisible));
         updateSettings({ completedVisible });
       },
@@ -388,7 +395,7 @@ export function createTrackerStore(deps: TrackerDeps): StoreApi<TrackerState> {
 
       resetAll() {
         storage.resetAll();
-        void open(readTitle(storage));
+        void open(readTitle(storage, deps.search()));
       }
     };
   });
@@ -400,7 +407,8 @@ function browserDeps(): TrackerDeps {
     loadData: (titleId) => loadGameData(titleId),
     runtime: readRuntimeConfig(window),
     now: () => Date.now(),
-    search: () => window.location.search
+    search: () => window.location.search,
+    showInUrl
   };
 }
 

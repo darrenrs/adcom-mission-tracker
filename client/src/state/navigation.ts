@@ -7,7 +7,8 @@ const VIEWS: readonly ViewName[] = ['missions', 'production', 'events', 'referen
 const CHANGE_EVENT = 'tracker:navigate';
 
 /** Query parameters that select what the tracker shows. `view` and `mission` only choose a page. */
-const STARTUP_PARAMS = ['rank', 'mode', 'event', 'eventOverride', 'timeOverride'];
+const STARTUP_PARAMS = ['mode', 'rank', 'at', 'balance'];
+const SESSION_PARAMS = ['title', ...STARTUP_PARAMS];
 
 export function subscribeToLocation(listener: () => void): () => void {
   window.addEventListener('popstate', listener);
@@ -57,14 +58,19 @@ export function navigate(changes: Record<string, string | null>, options: { repl
   window.scrollTo?.({ top: 0 });
 }
 
-/** Clears every startup parameter except those in `changes`, so one link cannot fight another. */
+/** Puts the game and mode on show in the URL, without adding a history entry or notifying anyone. */
+export function showInUrl(title: string, mode: string): void {
+  window.history.replaceState(null, '', searchWith({ title, mode }));
+}
+
+/** Clears every startup parameter except those in `changes`, so one link cannot fight another. The game stays. */
 export function navigateStartup(changes: Record<string, string | null>): void {
   navigate({ ...Object.fromEntries(STARTUP_PARAMS.map((name) => [name, null])), mission: null, ...changes });
 }
 
-/** The part of the query that decides mode, rank and event. */
+/** The part of the query that decides game, mode, rank and event. */
 export function startupSearch(search: string): string {
   const params = new URLSearchParams(search);
-  const kept = [...params].filter(([name]) => STARTUP_PARAMS.includes(name));
+  const kept = [...params].filter(([name]) => SESSION_PARAMS.includes(name));
   return kept.map(([name, value]) => `${name}=${value}`).join('&');
 }

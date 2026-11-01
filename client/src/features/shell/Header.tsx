@@ -4,14 +4,13 @@ import { useState } from 'react';
 import { getCurrentLteInfo, getBasicLteName } from '@/domain/schedule';
 import { SettingsSheet } from '@/features/settings/SettingsSheet';
 import { navigateStartup } from '@/state/navigation';
-import { useSession, useTracker } from '@/state/store';
+import { useSession } from '@/state/store';
 
 const menuItem =
   'flex min-h-11 cursor-pointer items-center gap-3 rounded-md px-3 text-sm outline-none data-[highlighted]:bg-raised';
 
 export function Header() {
   const session = useSession();
-  const switchTitle = useTracker((state) => state.switchTitle);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const { title, mode, lteInfo, assets, data } = session;
 
@@ -34,12 +33,12 @@ export function Header() {
             sideOffset={4}
             className="z-30 min-w-56 rounded-xl border border-line bg-surface p-1 shadow-lg"
           >
-            <DropdownMenu.Item className={menuItem} onSelect={() => navigateStartup({ mode: 'main' })}>
+            <DropdownMenu.Item className={menuItem} onSelect={() => navigateStartup({ mode: 'evergreen' })}>
               <img src={assets.active('shared/themeicons/main.png')} alt="" className="size-6 object-contain" />
               {getBasicLteName('main', title)}
             </DropdownMenu.Item>
             {liveLte && (
-              <DropdownMenu.Item className={menuItem} onSelect={() => navigateStartup({ mode: 'event' })}>
+              <DropdownMenu.Item className={menuItem} onSelect={() => navigateStartup({ mode: 'lte' })}>
                 <img src={assets.active(`shared/themeicons/${liveLte.ThemeId}.png`)} alt="" className="size-6 object-contain" />
                 {getBasicLteName(liveLte.ThemeId, title)}
               </DropdownMenu.Item>
@@ -51,7 +50,7 @@ export function Header() {
       <div className="ml-auto flex items-center gap-1">
         <button
           type="button"
-          onClick={() => void switchTitle()}
+          onClick={() => navigateStartup({ title: otherGame })}
           title={`Switch to ${title.isAges ? 'AdVenture Communist' : 'AdVenture Ages'}`}
           className="flex min-h-11 min-w-11 items-center justify-center rounded-lg hover:bg-raised"
         >

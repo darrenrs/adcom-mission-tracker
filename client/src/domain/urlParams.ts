@@ -1,36 +1,26 @@
-// What the page opens with. A pure port of the URL handling in loadModeSettings of
-// public/mission-tracker.js: parseStartupParams reads the query string and resolveStartup applies it to
-// the saved state and the schedule. tests/legacy/urlParams.test.ts compares both with the legacy code.
+// What the page opens with: the URL first, then the saved state, then the schedule.
 //
-// Parameters, as legacy documents them:
-//   rank=X          X is `event`, `main` or a Motherland rank. A rank also switches to Motherland.
-//   mode=X          X is `event`, `main` or `schedule` (opens the schedule popup).
-//   event=X         X is an event's EndTime in millis. Applies only when an event really ends then.
-//   eventOverride=X X is a balance id like `crusade-bal-1`. For testing and the schedule's "View in Tracker".
-//   timeOverride=X  Opens the event running at X (millis).
-// New: `view` and `mission` are only passed through for the React app to interpret.
+// Parameters:
+//   title=adcom|ages         The game.
+//   mode=evergreen|lte       Motherland or an event.
+//   rank=N                   A Motherland rank. Without `mode`, it also switches to Motherland.
+//   at=MILLIS                Opens the schedule entry running at that time.
+//   balance=ID               Opens an event by balance id, such as `crusade-bal-1`, with no schedule entry.
+// `view` and `mission` only choose a page, so they are not read here.
 
 import { getCurrentLteInfo } from './schedule';
+import { TITLES, type TitleKey } from './titles';
 import type { Balance, LteInfo, LteScheduleData, TrackerMode } from './types';
 
-/** One parameter that changes the startup state. Legacy applies them in query order. */
-export type StartupStep =
-  | { param: 'rank'; value: string }
-  | { param: 'mode'; value: 'event' | 'main' | 'schedule' }
-  | { param: 'event'; value: string }
-  | { param: 'timeOverride'; value: string }
-  | { param: 'eventOverride'; value: string };
-
 export interface StartupParams {
-  /** Only the parameters legacy would act on, in query order. */
-  steps: StartupStep[];
-  /** Last `view` parameter. */
-  view: string | null;
-  /** Last `mission` parameter. */
-  mission: string | null;
+  title: TitleKey | null;
+  mode: TrackerMode | null;
+  rank: number | null;
+  at: number | null;
+  balance: string | null;
 }
 
-/** A write legacy makes to storage. The key has no game prefix: add the title's `gameSaveKeyPrefix`. */
+/** A saved value to update. The key has no game prefix: add the title's `gameSaveKeyPrefix`. */
 export interface StorageWrite {
   key: 'CurrentMode' | 'main-CurrentRank';
   value: string;
@@ -56,76 +46,37 @@ export interface ResolveStartupInput {
 export interface Startup {
   mode: TrackerMode;
   evergreenRank: number;
-  /** The event on display, whether or not the mode is `event`. Null only when the schedule has no events. */
+  /** The event on display, whether or not the mode is `lte`. Null only when the schedule has no events. */
   lteInfo: LteInfo | null;
-  /**
-   * The balance to play: an empty stub for fake events, null when the schedule names an unknown balance.
-   * As in legacy, `eventOverride` fixes it, even if a later `event` parameter changes `lteInfo`.
-   */
+  /** The balance to play: an empty stub for fake events, null when the schedule names an unknown balance. */
   lteBalance: Balance | null;
-  /** `eventOverride` was applied: show the warning and hide the reset alert. */
-  overrideActive: boolean;
+  /** `balance` was applied: progress is temporary and a banner says so. */
+  preview: boolean;
   /** The event has no datamined balance. Show the fake event alert. */
   isFakeLte: boolean;
-  /** `mode=schedule`: open the schedule popup. */
-  openSchedule: boolean;
-  /** Storage writes legacy makes while reading the URL, in order. Apply them before reading the saved state. */
+  /** Saved values to update, so that the next plain visit opens the same place. */
   writes: StorageWrite[];
 }
 
 const BALANCE_EXCLUSIONS = ['main', 'common'];
 
-function safeDecode(value: string): string {
-  try {
-    return decodeURIComponent(value);
-  } catch {
-    return value;
-  }
-}
+const positiveInt = (text: string | null): number | null => {
+  const value = text === null || !/^\d+$/.test(text) ? 0 : Number(text);
+  return value > 0 ? value : null;
+};
 
-/** Reads `window.location.search`, with or without the leading `?`. */
+/** Reads `window.location.search`, ignoring anything it does not recognise. */
 export function parseStartupParams(search: string): StartupParams {
-  const params: StartupParams = { steps: [], view: null, mission: null };
-
-  // Legacy takes the arguments only when the URL has exactly one `?`.
-  const query = search.startsWith('?') ? search.slice(1) : search;
-  if (query.includes('?')) {
-    return params;
-  }
-
-  for (const arg of query.split('&')) {
-    const keyValue = arg.split('=');
-    if (keyValue.length !== 2) {
-      continue;
-    }
-
-    const [param = '', value = ''] = keyValue;
-    switch (param) {
-      case 'rank':
-        if (value === 'event' || value === 'main' || parseInt(value)) {
-          params.steps.push({ param, value });
-        }
-        break;
-      case 'mode':
-        if (value === 'event' || value === 'main' || value === 'schedule') {
-          params.steps.push({ param, value });
-        }
-        break;
-      case 'event':
-      case 'timeOverride':
-      case 'eventOverride':
-        params.steps.push({ param, value });
-        break;
-      case 'view':
-        params.view = safeDecode(value);
-        break;
-      case 'mission':
-        params.mission = safeDecode(value);
-        break;
-    }
-  }
-
-  return params;
+  const params = new URLSearchParams(search);
+  const title = params.get('title');
+  const mode = params.get('mode');
+  return {
+    title: title !== null && Object.hasOwn(TITLES, title) ? (title as TitleKey) : null,
+    mode: mode === 'evergreen' || mode === 'lte' ? mode : null,
+    rank: positiveInt(params.get('rank')),
+    at: positiveInt(params.get('at')),
+    balance: params.get('balance')
+  };
 }
 
 /** The balance for a fake event: nothing to play, so the page shows an alert instead. */
@@ -133,98 +84,42 @@ export function createFakeLteBalance(): Balance {
   return { Generators: [], Industries: [], Missions: [], Researchers: [], Resources: [{ Id: 'potato' }] };
 }
 
-/**
- * Applies the URL parameters, then the saved state, then the schedule, as legacy loadModeSettings does.
- * Parameters win over the saved mode and rank.
- *
- * Differences from legacy, each a crash there: an `eventOverride` naming a prototype property
- * (`constructor`) is ignored, a saved mode other than `main` or `event` counts as `main`,
- * and a schedule naming an unknown balance gives a null `lteBalance`.
- */
+/** Applies the URL, then the saved state, then the schedule. Parameters win over the saved mode and rank. */
 export function resolveStartup(input: ResolveStartupInput): Startup {
-  const { params, schedule, balances, title } = input;
+  const { params, schedule, balances, title, now } = input;
   const isAges = title.key === 'ages';
+
+  const previewId =
+    params.balance !== null && Object.hasOwn(balances, params.balance) && !BALANCE_EXCLUSIONS.includes(params.balance)
+      ? params.balance
+      : null;
+  const scheduled = params.at === null ? undefined : getCurrentLteInfo(schedule, params.at, isAges);
+
+  const impliedMode = previewId !== null || scheduled ? 'lte' : params.rank !== null ? 'evergreen' : null;
+  const mode: TrackerMode = params.mode ?? impliedMode ?? (input.savedMode === 'event' ? 'lte' : 'evergreen');
+  const useRank = mode === 'evergreen' && params.rank !== null;
+
   const writes: StorageWrite[] = [];
-  let now = input.now;
-  let lteInfo: LteInfo | null = null;
-  let overrideActive = false;
-  let openSchedule = false;
-  // Legacy points DATA.event at the override's balance once and never moves it again.
-  let overrideBalanceId: string | null = null;
-
-  const writeMode = (mode: 'main' | 'event') => writes.push({ key: 'CurrentMode', value: mode });
-
-  for (const step of params.steps) {
-    switch (step.param) {
-      case 'rank':
-        if (step.value === 'event') {
-          writeMode('event');
-        } else if (step.value === 'main') {
-          writeMode('main');
-        } else if (parseInt(step.value)) {
-          writeMode('main');
-          writes.push({ key: 'main-CurrentRank', value: step.value });
-        }
-        break;
-
-      case 'mode':
-        if (step.value === 'schedule') {
-          openSchedule = true;
-        } else {
-          writeMode(step.value);
-        }
-        break;
-
-      case 'event': {
-        // Like timeOverride, but more rigid: test one millisecond before the end time.
-        // If right, the event running then ends exactly at that time.
-        const eventTime = parseInt(step.value);
-        const candidate = getCurrentLteInfo(schedule, eventTime - 1, isAges);
-        if (candidate && candidate.EndTimeMillis === eventTime) {
-          lteInfo = candidate;
-          writeMode('event');
-        }
-        break;
-      }
-
-      case 'timeOverride':
-        now = parseInt(step.value);
-        writeMode('event');
-        break;
-
-      case 'eventOverride': {
-        const balanceId = step.value;
-        if (!Object.hasOwn(balances, balanceId) || BALANCE_EXCLUSIONS.includes(balanceId)) {
-          break;
-        }
-        const themeOverride = Object.hasOwn(title.themeIdOverrides, balanceId) ? title.themeIdOverrides[balanceId] : undefined;
-
-        // A quick hack to allow switching to non-current events.
-        writeMode('event');
-        overrideActive = true;
-        overrideBalanceId = balanceId;
-        lteInfo = {
-          LteId: balanceId,
-          BalanceId: balanceId,
-          // the xxx part of xxx-bal-5
-          ThemeId: themeOverride || balanceId.split('-')[0] || balanceId,
-          StartTimeMillis: now,
-          EndTimeMillis: now,
-          Rewards: new Array<undefined>(20) // empty values, which the tracker handles gracefully
-        };
-        break;
-      }
-    }
+  if (params.mode !== null || impliedMode !== null) {
+    writes.push({ key: 'CurrentMode', value: mode === 'lte' ? 'event' : 'main' });
+  }
+  if (useRank) {
+    writes.push({ key: 'main-CurrentRank', value: String(params.rank) });
   }
 
-  // Values from URL parameters > previous save > defaults.
-  const lastWrite = (key: StorageWrite['key']) => writes.findLast((write) => write.key === key)?.value;
-  const modeValue = lastWrite('CurrentMode') ?? input.savedMode;
-  const mode: TrackerMode = modeValue === 'event' ? 'lte' : 'evergreen';
-  const evergreenRank = parseInt(lastWrite('main-CurrentRank') ?? input.savedRank ?? '') || 1;
-
-  // The schedule decides unless a parameter already chose the event.
-  lteInfo ??= getCurrentLteInfo(schedule, now, isAges) ?? null;
+  let lteInfo = scheduled ?? getCurrentLteInfo(schedule, now, isAges) ?? null;
+  if (previewId !== null) {
+    const themeOverride = Object.hasOwn(title.themeIdOverrides, previewId) ? title.themeIdOverrides[previewId] : undefined;
+    lteInfo = {
+      LteId: previewId,
+      BalanceId: previewId,
+      // the xxx part of xxx-bal-5
+      ThemeId: themeOverride || previewId.split('-')[0] || previewId,
+      StartTimeMillis: now,
+      EndTimeMillis: now,
+      Rewards: new Array<undefined>(20) // empty values, which the tracker handles gracefully
+    };
+  }
 
   const balanceFor = (id: string): Balance | null => (Object.hasOwn(balances, id) ? (balances[id] ?? null) : null);
 
@@ -232,8 +127,9 @@ export function resolveStartup(input: ResolveStartupInput): Startup {
   let isFakeLte = false;
   if (lteInfo) {
     isFakeLte = mode === 'lte' && Boolean(balanceFor(lteInfo.BalanceId)?.['fake']);
-    lteBalance = isFakeLte ? createFakeLteBalance() : balanceFor(overrideBalanceId ?? lteInfo.BalanceId);
+    lteBalance = isFakeLte ? createFakeLteBalance() : balanceFor(lteInfo.BalanceId);
   }
 
-  return { mode, evergreenRank, lteInfo, lteBalance, overrideActive, isFakeLte, openSchedule, writes };
+  const evergreenRank = (useRank ? params.rank : parseInt(input.savedRank ?? '')) || 1;
+  return { mode, evergreenRank, lteInfo, lteBalance, preview: previewId !== null, isFakeLte, writes };
 }
