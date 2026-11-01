@@ -325,6 +325,11 @@ export interface RankGroup {
   missions: BoardMission[];
 }
 
+/** A mission's text without its goal: `Own Roads (5)` is `Own Roads`. For cards that show the goal on a progress bar. */
+export function missionRequirement(text: string): string {
+  return text.replace(/\s+\([^()]+\)$/, '');
+}
+
 /** A copy of the list in the balance's own mission order, whatever order the missions were completed in. */
 export function inMissionOrder(missions: readonly BoardMission[]): BoardMission[] {
   return [...missions].sort((a, b) => a.Rank - b.Rank || a.Index - b.Index);

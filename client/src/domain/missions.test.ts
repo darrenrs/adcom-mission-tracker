@@ -11,7 +11,7 @@ import {
   nextAbGroups,
   normalizeAbGroups
 } from './missions';
-import { groupByRank, inMissionOrder } from './missionView';
+import { groupByRank, inMissionOrder, missionRequirement, rankProgress } from './missionView';
 import type { Balance, Mission } from './types';
 
 const mission = (id: string): Mission => ({
@@ -126,6 +126,31 @@ describe('inMissionOrder', () => {
 
     expect(inMissionOrder(board.completed).map((m) => m.Id)).toEqual(['a', 'b', 'c']);
     expect(board.completed.map((m) => m.Id)).toEqual(['b', 'a', 'c']);
+  });
+});
+
+describe('missionRequirement', () => {
+  it('drops only a trailing goal', () => {
+    expect(missionRequirement('Own Roads (5)')).toBe('Own Roads');
+    expect(missionRequirement('Collect Land (500 T)')).toBe('Collect Land');
+    expect(missionRequirement('Unlock Ore')).toBe('Unlock Ore');
+  });
+});
+
+describe('rankProgress', () => {
+  it('counts event completions through the ranks and then finishes', () => {
+    const board = createBoard('lte', balance, []);
+    expect(rankProgress(board)).toMatchObject({ rank: 1, done: 0, finished: false });
+
+    for (const id of [...board.ranks.values()].flat().map((m) => m.Id).concat(board.current.map((m) => m.Id))) {
+      clickMission(board, id);
+    }
+    while (board.current.length > 0) {
+      clickMission(board, board.current[0]?.Id as string);
+    }
+    const end = rankProgress(board);
+    expect(end.finished).toBe(true);
+    expect(end.done).toBe(end.total);
   });
 });
 

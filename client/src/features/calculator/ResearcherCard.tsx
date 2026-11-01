@@ -1,5 +1,5 @@
 import { ChevronDown, Minus, Plus } from 'lucide-react';
-import { useId, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { stepDirection } from '@/domain/inputSteps';
 import { researcherName } from '@/domain/gameText';
 import {
@@ -9,6 +9,7 @@ import {
   researcherValueLabel
 } from '@/domain/researchers';
 import type { Researcher } from '@/domain/types';
+import { useSearchParam } from '@/state/navigation';
 import { useSession } from '@/state/store';
 import { useResearcherActions } from './useResearcherActions';
 
@@ -86,6 +87,15 @@ export function ResearcherCard({ researcher }: { researcher: Researcher }) {
   const { setLevel } = useResearcherActions();
   const [open, setOpen] = useState(false);
   const detailsId = useId();
+  const card = useRef<HTMLLIElement>(null);
+  const highlighted = useSearchParam('researcher') === researcher.Id;
+
+  // Game View's card button lands here.
+  useEffect(() => {
+    if (highlighted) {
+      requestAnimationFrame(() => card.current?.scrollIntoView({ block: 'center' }));
+    }
+  }, [highlighted]);
 
   const name = researcherName(ctx, researcher);
   const level = form.ResearcherLevels[researcher.Id] ?? 0;
@@ -98,7 +108,7 @@ export function ResearcherCard({ researcher }: { researcher: Researcher }) {
   const guaranteed = details?.firstGuaranteed;
 
   return (
-    <li className={`flex min-w-0 flex-col rounded-xl border-2 bg-surface p-2 ${RARITY_BORDER[rarity] ?? 'border-line'}`}>
+    <li ref={card} className={`flex min-w-0 flex-col rounded-xl border-2 bg-surface p-2 ${RARITY_BORDER[rarity] ?? 'border-line'} ${highlighted ? 'ring-2 ring-accent' : ''}`}>
       <button
         type="button"
         aria-expanded={open}

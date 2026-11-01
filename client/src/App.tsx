@@ -1,5 +1,6 @@
 import { useEffect, useLayoutEffect, useSyncExternalStore } from 'react';
 import { EventsPage } from '@/features/events/EventsPage';
+import { GameViewPage } from '@/features/game/GameViewPage';
 import { MissionPage } from '@/features/mission/MissionPage';
 import { MissionsPage } from '@/features/missions/MissionsPage';
 import { ProductionPage } from '@/features/production/ProductionPage';
@@ -37,8 +38,10 @@ function Page() {
       return <EventsPage />;
     case 'reference':
       return <ReferencePage />;
-    default:
+    case 'missions':
       return <MissionsPage />;
+    default:
+      return <GameViewPage />;
   }
 }
 

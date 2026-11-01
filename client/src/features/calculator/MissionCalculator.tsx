@@ -73,7 +73,7 @@ function CalculatorBody({ mission, industryId, resourceId }: BodyProps) {
   const { powers } = ctx.title;
 
   const generators = useMemo(() => industryGenerators(ctx, industryId), [ctx, industryId]);
-  const counts = useCountFields({ resourceId, generatorIds: generators.map((generator) => generator.Id) });
+  const counts = useCountFields({ resourceId, generatorIds: generators.map((generator) => generator.Id), missionId: mission.Id });
   const tradeFields = useTradeFields();
   const [options, setOptions] = useState<OptionsState>({ mode: 'online', autobuy: false, comradesOnly: false });
   const [timeLeft, setTimeLeft] = useState<Record<string, string>>({});

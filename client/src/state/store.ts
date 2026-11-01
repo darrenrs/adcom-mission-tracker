@@ -48,6 +48,10 @@ export interface Session {
   board: MissionBoard;
   completionTimes: Record<string, number>;
   etas: Record<string, number>;
+  /** Progress typed for a mission, by mission id. Own missions read the entered amounts instead. */
+  missionProgress: Record<string, number>;
+  /** The industry open on Game View. */
+  activeIndustry: string | null;
   /** The calculator's saved inputs for this mode, in the legacy `FormValues` shape. */
   form: FormValues;
 }
@@ -64,6 +68,8 @@ export interface TrackerState {
   switchAbGroup(missionId: string): void;
   updateForm(change: (form: FormValues) => void): void;
   saveEta(missionId: string, seconds: number): void;
+  setMissionProgress(missionId: string, value: number): void;
+  setActiveIndustry(industryId: string): void;
   advanceLte(rank: number): void;
   setTheme(theme: ThemeSetting): void;
   setCompletedVisible(visible: boolean): void;
@@ -191,6 +197,8 @@ function buildSession(deps: TrackerDeps, title: TitleConfig, data: GameData): Se
     board,
     completionTimes: {},
     etas: {},
+    missionProgress: readJson(storage.get(modeKey(title, mode, lteInfo, 'MissionProgress')), {}),
+    activeIndustry: storage.get(modeKey(title, mode, lteInfo, 'ActiveIndustry')),
     form: readForm(storage.get(modeKey(title, mode, lteInfo, 'FormValues')))
   };
 
@@ -329,6 +337,29 @@ export function createTrackerStore(deps: TrackerDeps): StoreApi<TrackerState> {
         set({ session: { ...session, form } });
       },
 
+      setMissionProgress(missionId, value) {
+        const session = get().session;
+        if (!session) {
+          return;
+        }
+        const missionProgress = { ...session.missionProgress, [missionId]: value };
+        if (!session.startup.preview) {
+          storage.set(modeKey(session.title, session.mode, session.lteInfo, 'MissionProgress'), JSON.stringify(missionProgress));
+        }
+        set({ session: { ...session, missionProgress } });
+      },
+
+      setActiveIndustry(activeIndustry) {
+        const session = get().session;
+        if (!session) {
+          return;
+        }
+        if (!session.startup.preview) {
+          storage.set(modeKey(session.title, session.mode, session.lteInfo, 'ActiveIndustry'), activeIndustry);
+        }
+        set({ session: { ...session, activeIndustry } });
+      },
+
       saveEta(missionId, seconds) {
         const session = get().session;
         const finish = deps.now() + seconds * 1000;
@@ -393,7 +424,7 @@ export function createTrackerStore(deps: TrackerDeps): StoreApi<TrackerState> {
           return;
         }
         const { title, mode, lteInfo } = session;
-        for (const key of ['Completed', 'FormValues', 'CompletionTimes', etaKey(session)]) {
+        for (const key of ['Completed', 'FormValues', 'CompletionTimes', 'MissionProgress', 'ActiveIndustry', etaKey(session)]) {
           storage.remove(modeKey(title, mode, lteInfo, key));
         }
         set({ session: buildSession(deps, title, session.data) });

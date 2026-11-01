@@ -1,12 +1,11 @@
-import { ArrowLeftRight, Circle, CircleCheck, Gift, Lock } from 'lucide-react';
+import { ArrowLeftRight, Circle, CircleCheck, Lock } from 'lucide-react';
 import { memo, useMemo } from 'react';
 import type { AssetResolver } from '@/domain/assets';
 import { getMissionEtaString } from '@/domain/format';
 import { describeMission, type GameTextContext } from '@/domain/gameText';
 import type { BoardMission } from '@/domain/missions';
-import { abSwitchLabel, hasCalculator, missionIconUrl, missionRewardIcon, missionTone, type MissionTone } from '@/domain/missionView';
-import { navigate } from '@/state/navigation';
-import { CalculatorBadge } from './CalculatorBadge';
+import { abSwitchLabel, missionIconUrl, missionRewardIcon, missionTone, type MissionTone } from '@/domain/missionView';
+import { RewardButton } from './RewardButton';
 import { useMinuteClock } from './useMinuteClock';
 
 export type RowState = 'current' | 'completed' | 'locked';
@@ -22,7 +21,7 @@ export interface RowShared {
 }
 
 // Spend/Upgrade and Cards/Dark Science missions keep the colours legacy gave them.
-const TONE_CLASS: Record<MissionTone, string> = {
+export const TONE_CLASS: Record<MissionTone, string> = {
   danger: 'border-danger/30 border-l-danger bg-danger-soft',
   success: 'border-success/30 border-l-success bg-success-soft',
   neutral: 'border-line border-l-line bg-surface'
@@ -65,7 +64,6 @@ function MissionRowView({ mission, state, eta, ctx, assets, onToggle, onRequestC
   const locked = state === 'locked';
   const done = state === 'completed';
   const abLabel = mission.AbTestConfig ? abSwitchLabel(ctx.balance, mission.AbTestConfig) : null;
-  const calculator = hasCalculator(mission);
 
   return (
     <li
@@ -96,30 +94,7 @@ function MissionRowView({ mission, state, eta, ctx, assets, onToggle, onRequestC
       )}
 
       {/* Future missions stay open to planning, as in legacy. */}
-      <button
-        type="button"
-        onClick={() => navigate({ mission: mission.Id })}
-        aria-label={`${calculator ? 'Reward and calculator' : 'Reward'} for ${description.text}${reward.scripted ? ' (scripted reward)' : ''}`}
-        title={calculator ? 'Open calculator and reward' : 'Open reward'}
-        className={`${sideButton} min-w-14 pr-1`}
-      >
-        <span className="relative">
-          {reward.url ? (
-            <img
-              src={reward.url}
-              alt=""
-              width={32}
-              height={32}
-              loading="lazy"
-              decoding="async"
-              className={`size-8 object-contain ${reward.scripted ? 'rounded-full ring-2 ring-accent ring-offset-2 ring-offset-surface' : ''}`}
-            />
-          ) : (
-            <Gift aria-hidden size={24} />
-          )}
-          {calculator && <CalculatorBadge />}
-        </span>
-      </button>
+      <RewardButton mission={mission} name={description.text} reward={reward} className={`${sideButton} min-w-14 pr-1`} />
     </li>
   );
 }

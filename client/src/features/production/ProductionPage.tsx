@@ -8,6 +8,7 @@ import { TradesPanel } from '@/features/calculator/TradesPanel';
 import { TAB_LIST, TAB_TRIGGER } from '@/features/calculator/tabStyles';
 import { useFieldKeyboard } from '@/features/calculator/useFieldKeyboard';
 import { useTradeFields } from '@/features/calculator/useTradeFields';
+import { useSearchParam } from '@/state/navigation';
 import { useSession } from '@/state/store';
 import { AllGenerators } from './AllGenerators';
 import { ResearcherBulkActions } from './ResearcherBulkActions';
@@ -15,7 +16,7 @@ import { ResearcherBulkActions } from './ResearcherBulkActions';
 export function ProductionPage() {
   const { text: ctx, assets } = useSession();
   const tradeFields = useTradeFields();
-  const [tab, setTab] = useState('generators');
+  const [tab, setTab] = useState(useSearchParam('researcher') ? 'researchers' : 'generators');
   const root = useRef<HTMLDivElement>(null);
 
   // Only the trade cost fields live here, but they take the same keys as in the calculator.

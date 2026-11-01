@@ -84,7 +84,26 @@ a {
   outline-offset: 2px;
 }
 
+/* A generator's bar fills once per cycle. The duration comes from the generator. */
+@keyframes generator-cycle {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+.generator-bar {
+  transform-origin: left;
+  animation: generator-cycle linear infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
+  .generator-bar {
+    animation: none;
+  }
+
   * {
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;

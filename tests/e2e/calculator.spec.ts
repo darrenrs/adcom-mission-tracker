@@ -53,7 +53,7 @@ test('calculates an ETA from generators and keeps the inputs after a reload', as
   await expect(again.getByRole('textbox', { name: /^Level of Ringo Ringlet/ })).toHaveValue('3');
 
   // The saved ETA shows on the mission list too.
-  await page.goto('?rank=2');
+  await page.goto('?view=missions&rank=2');
   await expect(page.getByText(/^ETA: /).first()).toBeVisible();
 });
 
@@ -185,7 +185,7 @@ test('researchers step with arrows, have no custom value, and can be maxed or cl
 });
 
 test('phone keyboards can type the game notation', async ({ page }) => {
-  await page.goto('?rank=5');
+  await page.goto('?view=missions&rank=5');
   await page.getByRole('button', { name: /^Reward and calculator for/ }).first().click();
   const field = page.getByLabel(/^# of /).first();
   await expect(field).toHaveAttribute('inputmode', 'text');
