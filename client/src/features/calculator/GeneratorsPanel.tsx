@@ -61,7 +61,7 @@ export function GeneratorsPanel({ mission, industryId, fields, disabled }: Props
           return (
             <div key={generator.Id} className="min-w-0">
               {field(key, `# of ${name}`, assets.iconUrl(`${generator.Id}.png`), {
-                attributes: { 'data-field': 'count', 'data-field-key': key, 'data-shortcut': 'item' },
+                attributes: { 'data-field': 'count', 'data-field-key': key },
                 trailing: (
                   <button
                     type="button"
@@ -87,11 +87,11 @@ export function GeneratorsPanel({ mission, industryId, fields, disabled }: Props
 
       <FieldGroup>
         {field(RESOURCE_KEY, `# of ${resourceLabel}`, assets.iconUrl(`${resource?.Id ?? ''}.png`), {
-          attributes: { 'data-field': 'count', 'data-field-key': RESOURCE_KEY, 'data-shortcut': 'resource' }
+          attributes: { 'data-field': 'count', 'data-field-key': RESOURCE_KEY }
         })}
         {mission.Condition.ConditionType === 'ResourcesEarnedSinceSubscription' &&
           field(PROGRESS_KEY, 'Mission Progress', assets.iconUrl(`${resource?.Id ?? ''}.png`), {
-            attributes: { 'data-field': 'count', 'data-field-key': PROGRESS_KEY, 'data-shortcut': 'progress' }
+            attributes: { 'data-field': 'count', 'data-field-key': PROGRESS_KEY }
           })}
       </FieldGroup>
 
@@ -99,10 +99,10 @@ export function GeneratorsPanel({ mission, industryId, fields, disabled }: Props
 
       <FieldGroup>
         {field(COMRADES_KEY, `# of ${comrade}`, assets.iconUrl('comrade.png'), {
-          attributes: { 'data-field': 'comrades', 'data-field-key': COMRADES_KEY, 'data-shortcut': 'comrades' }
+          attributes: { 'data-field': 'comrades', 'data-field-key': COMRADES_KEY }
         })}
         {field(CPS_KEY, `${comrade} per second`, assets.active('shared/comrades_per_second.png'), {
-          attributes: { 'data-field': 'comradesPerSecond', 'data-field-key': CPS_KEY, 'data-shortcut': 'cps' }
+          attributes: { 'data-field': 'comradesPerSecond', 'data-field-key': CPS_KEY }
         })}
       </FieldGroup>
     </div>

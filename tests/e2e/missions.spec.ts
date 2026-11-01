@@ -215,6 +215,17 @@ test('events only move forward', async ({ page }) => {
   await expect(page.getByRole('button', { name: /^Go back to Rank/ })).toHaveCount(0);
 });
 
+test('keeps links in Settings and only the fan content notice in the footer', async ({ page }) => {
+  await page.goto('?mode=evergreen');
+  const footer = page.getByRole('contentinfo');
+  await expect(footer.getByRole('link')).toHaveText(['Fan Content Policy']);
+
+  await page.getByRole('button', { name: 'Settings' }).click();
+  const sheet = page.getByRole('dialog');
+  await expect(sheet.getByRole('link')).toHaveText(['GitHub', 'Privacy', 'Terms']);
+  await expect(sheet.getByText(/^Build \S{1,7}$/)).toBeVisible();
+});
+
 test('always shows the game and mode in the URL, and Back can change game', async ({ page }) => {
   await page.goto('./');
   await expect(page).toHaveURL(/title=adcom/);

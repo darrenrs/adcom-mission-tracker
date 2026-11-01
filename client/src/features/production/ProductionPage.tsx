@@ -10,6 +10,7 @@ import { useFieldKeyboard } from '@/features/calculator/useFieldKeyboard';
 import { useTradeFields } from '@/features/calculator/useTradeFields';
 import { useSession } from '@/state/store';
 import { AllGenerators } from './AllGenerators';
+import { ResearcherBulkActions } from './ResearcherBulkActions';
 
 export function ProductionPage() {
   const { text: ctx, assets } = useSession();
@@ -58,7 +59,10 @@ export function ProductionPage() {
           <AllGenerators />
         </Tabs.Content>
         <Tabs.Content value="researchers" className="pt-4">
-          <ResearcherGrid researchers={researchers} propaganda label={researchersWord} />
+          <div className="space-y-3">
+            <ResearcherBulkActions researchers={researchers} word={researchersWord} />
+            <ResearcherGrid researchers={researchers} propaganda label={researchersWord} />
+          </div>
         </Tabs.Content>
         <Tabs.Content value="trades" className="pt-4">
           <TradesPanel fields={tradeFields} />

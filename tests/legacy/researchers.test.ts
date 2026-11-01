@@ -58,10 +58,7 @@ function randomForm(balance: GameBalance, random: () => number): FormValues {
   for (const researcher of balance.Researchers ?? []) {
     const roll = random();
     const max = researcherMaxLevel(balance, researcher) ?? 5;
-    if (roll < 0.1) {
-      form.ResearcherLevels[researcher.Id] = -1;
-      form.ResearcherOverrides![researcher.Id] = Math.round(random() * 400) / 100 + 0.1;
-    } else if (roll < 0.7) {
+    if (roll < 0.7) {
       form.ResearcherLevels[researcher.Id] = Math.floor(random() * (max + 1));
     }
   }
@@ -191,25 +188,22 @@ describe.skipIf(!assetsAvailable).each(TITLE_KEYS)('researchers match legacy (%s
 
       it('prints the same level, value and details as legacy', () => {
         const { balance, ctx, abGroups } = setUp(balanceId);
-        const random = mulberry32(5);
 
         for (const researcher of balance.Researchers ?? []) {
           const label = `${researcher.Id} (${titleKey} ${balanceId})`;
           const max = researcherMaxLevel(balance, researcher) ?? 5;
           const form = emptyFormValues();
-          form.ResearcherOverrides![researcher.Id] = Math.round(random() * 400) / 100 + 0.1;
 
-          for (const level of [0, 1, 2, 3, max, -1]) {
+          for (const level of [0, 1, 2, 3, max]) {
             form.ResearcherLevels[researcher.Id] = level;
             legacy.run('__FORM = __f', { __f: structuredClone(form) });
             const html = legacy.run<string>('getResearcherCard(__r, __FORM)', { __r: researcher });
             const levelText = />([^<]*)<\/div>\s*<\/div>\s*<\/a>/.exec(html)?.[1];
             const valueHtml = new RegExp(`id="${researcher.Id}-value">(.*?)</span>`, 's').exec(html)?.[1] ?? '';
-            const ours = researcherValueLabel(ctx, researcher, level, form.ResearcherOverrides?.[researcher.Id]);
+            const ours = researcherValueLabel(ctx, researcher, level);
             tally.labels += 2;
             expect(ours.level, label).toBe(levelText);
             expect(ours.value, label).toBe(stripHtml(valueHtml));
-            expect(ours.custom, label).toBe(level === -1);
           }
 
           const legacyDetails = legacy.run<string>('getResearcherFullDetailsHtml(__r)', { __r: researcher });
@@ -227,7 +221,7 @@ describe.skipIf(!assetsAvailable).each(TITLE_KEYS)('researchers match legacy (%s
         expect(ours?.name).toBe(legacyBoost.Name);
         expect(ours?.power).toBe(legacyBoost.Power);
 
-        legacy.run('__FORM = __f', { __f: emptyFormValues() });
+        legacy.run('__FORM = __f', { __f: { ...emptyFormValues(), ResearcherLevels: {} } });
         const card = legacy.run<string>('getPropagandaBoostCard(__FORM)');
         const content = /data-content="([^"]*)"/.exec(card)?.[1];
         tally.propaganda += 3;

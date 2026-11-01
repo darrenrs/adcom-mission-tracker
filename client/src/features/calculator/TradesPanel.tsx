@@ -53,7 +53,6 @@ export function TradesPanel({ fields }: { fields: TradeFields }) {
                   aria-describedby={`${id}-result`}
                   data-field="tradeCost"
                   data-field-key={row.resourceId}
-                  data-shortcut="item"
                   onChange={(event) => fields.type(row.resourceId, event.target.value)}
                   onBlur={() => fields.finish(row.resourceId)}
                   className="h-11 min-w-0 flex-1 rounded-lg border border-line bg-canvas px-3 text-base aria-invalid:border-danger"

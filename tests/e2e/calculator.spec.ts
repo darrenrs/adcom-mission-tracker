@@ -68,7 +68,7 @@ test('says what is wrong with a field and refuses to calculate', async ({ page }
   await expect(calc.getByRole('status')).toContainText('Please fix 1 issue');
 });
 
-test('imports saved counts and uses the keyboard', async ({ page }) => {
+test('imports saved counts and steps with plain arrow keys', async ({ page }) => {
   await page.goto(OWN_FARMERS);
   const calc = calculator(page);
   const farmers = calc.getByLabel('# of Farmers');
@@ -77,23 +77,21 @@ test('imports saved counts and uses the keyboard', async ({ page }) => {
   await farmers.fill('10');
   await expect(calc.getByRole('button', { name: 'Import Counts' })).toBeEnabled();
 
-  // Up adds one, Ctrl+Up adds a hundred, Down takes one away.
+  // Plain Up and Down change the value. Modifiers and every other shortcut do nothing.
   await farmers.press('ArrowUp');
   await expect(farmers).toHaveValue('11');
   await farmers.press('Control+ArrowUp');
-  await expect(farmers).toHaveValue('111');
+  await expect(farmers).toHaveValue('11');
   await farmers.press('ArrowDown');
-  await expect(farmers).toHaveValue('110');
-
-  // Alt+R goes to the resource field, Enter calculates.
+  await expect(farmers).toHaveValue('10');
   await page.keyboard.press('Alt+KeyR');
-  await expect(calc.getByLabel('# of Potatoes')).toBeFocused();
+  await expect(farmers).toBeFocused();
   await page.keyboard.press('Enter');
-  await expect(calc.getByRole('status')).not.toBeEmpty();
+  await expect(calc.getByRole('status')).toBeEmpty();
 
   await calc.getByRole('button', { name: 'Import Counts' }).click();
   await expect(calc.getByRole('tab', { name: 'Generators' })).toHaveAttribute('aria-selected', 'true');
-  await expect(farmers).toHaveValue('110');
+  await expect(farmers).toHaveValue('10');
 });
 
 test('options: offline switches off auto-buy', async ({ page }) => {
@@ -154,6 +152,36 @@ test('never scrolls sideways on the mission page, in any tab', async ({ page }) 
     await page.getByRole('tab', { name: tab }).click();
     expect(await sidewaysOverflow(page), `production ${tab}`).toBeLessThanOrEqual(0);
   }
+});
+
+test('researchers step with arrows, have no custom value, and can be maxed or cleared', async ({ page }) => {
+  await page.goto('?view=production');
+  await page.getByRole('tab', { name: 'Researchers' }).click();
+  await expect(page.getByRole('button', { name: /^Set a custom value/ })).toHaveCount(0);
+
+  const level = page.getByRole('textbox', { name: /^Level of Ringo Ringlet/ });
+  await level.press('ArrowUp');
+  await expect(level).toHaveValue('1');
+  await level.press('Control+ArrowUp');
+  await expect(level).toHaveValue('1');
+  await level.press('ArrowDown');
+  await expect(level).toHaveValue('0');
+
+  await page.getByRole('button', { name: 'Max Ringo Ringlet' }).click();
+  const max = (await level.getAttribute('aria-label'))?.match(/0 to (\d+)/)?.[1];
+  await expect(level).toHaveValue(max as string);
+  await expect(page.getByRole('button', { name: 'Max Ringo Ringlet' })).toBeDisabled();
+
+  await page.getByRole('button', { name: 'Set all to 0' }).click();
+  await page.getByRole('dialog').getByRole('button', { name: 'Cancel' }).click();
+  await expect(level).toHaveValue(max as string);
+
+  await page.getByRole('button', { name: 'Set all to 0' }).click();
+  await page.getByRole('dialog').getByRole('button', { name: 'Set all to 0' }).click();
+  await expect(level).toHaveValue('0');
+
+  await page.getByRole('button', { name: 'Max all' }).click();
+  await expect(level).toHaveValue(max as string);
 });
 
 test('phone keyboards can type the game notation', async ({ page }) => {

@@ -2,8 +2,8 @@ import type { Researcher } from '@/domain/types';
 import { PropagandaCard } from './PropagandaCard';
 import { ResearcherCard } from './ResearcherCard';
 
-/** Two cards across on a phone, up to six on a wide screen. */
-export const GRID_CLASS = 'grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6';
+/** Two cards across on a phone, up to eight on a wide screen. */
+export const GRID_CLASS = 'grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-3 md:grid-cols-5 lg:grid-cols-7 xl:grid-cols-8';
 
 export function ResearcherGrid({ researchers, propaganda = false, label }: { researchers: readonly Researcher[]; propaganda?: boolean; label: string }) {
   return (

@@ -32,39 +32,41 @@ function GeneratorRow({ generator }: { generator: Generator }) {
   );
 }
 
-/** Every industry's generators, each opening to what the generator does at the current researcher levels. */
+/** Every industry's generators in its own column, each opening to what the generator does at the current researcher levels. */
 export function AllGenerators() {
   const { text: ctx, assets } = useSession();
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-3">
       <p className="text-sm text-muted">Tap a generator to see what it costs, makes and needs. The numbers follow your researcher levels.</p>
-      {(ctx.balance.Industries ?? []).map((industry) => {
-        const resource = getResourceByIndustry(ctx, industry.Id);
-        if (!resource) {
-          return null;
-        }
-        const resourceLabel = String(resourceName(ctx, resource.Id));
-        const industryLabel = industryName(ctx, industry.Id);
-        const showIndustry = industryLabel !== undefined && industryLabel.toLowerCase() !== String(resourceName(ctx, resource.Id, false)).toLowerCase();
+      <div className="space-y-5 md:flex md:items-start md:gap-3 md:space-y-0 md:overflow-x-auto md:pb-2">
+        {(ctx.balance.Industries ?? []).map((industry) => {
+          const resource = getResourceByIndustry(ctx, industry.Id);
+          if (!resource) {
+            return null;
+          }
+          const resourceLabel = String(resourceName(ctx, resource.Id));
+          const industryLabel = industryName(ctx, industry.Id);
+          const showIndustry = industryLabel !== undefined && industryLabel.toLowerCase() !== String(resourceName(ctx, resource.Id, false)).toLowerCase();
 
-        return (
-          <section key={industry.Id} aria-labelledby={`industry-${industry.Id}`} className="space-y-2">
-            <h2 id={`industry-${industry.Id}`} className="flex items-center gap-2 text-base font-semibold">
-              <img src={assets.iconUrl(`${resource.Id}.png`)} alt="" width={28} height={28} className="size-7 object-contain" />
-              <span>
-                {resourceLabel}
-                {showIndustry && <em className="ml-1 font-normal text-muted">({industryLabel})</em>}
-              </span>
-            </h2>
-            <ul className="grid gap-2 md:grid-cols-2 xl:grid-cols-3">
-              {industryGenerators(ctx, industry.Id).map((generator) => (
-                <GeneratorRow key={generator.Id} generator={generator} />
-              ))}
-            </ul>
-          </section>
-        );
-      })}
+          return (
+            <section key={industry.Id} aria-labelledby={`industry-${industry.Id}`} className="space-y-2 md:min-w-48 md:flex-1">
+              <h2 id={`industry-${industry.Id}`} className="flex items-center gap-2 text-base font-semibold">
+                <img src={assets.iconUrl(`${resource.Id}.png`)} alt="" width={28} height={28} className="size-7 object-contain" />
+                <span>
+                  {resourceLabel}
+                  {showIndustry && <em className="ml-1 font-normal text-muted">({industryLabel})</em>}
+                </span>
+              </h2>
+              <ul className="grid gap-2">
+                {industryGenerators(ctx, industry.Id).map((generator) => (
+                  <GeneratorRow key={generator.Id} generator={generator} />
+                ))}
+              </ul>
+            </section>
+          );
+        })}
+      </div>
     </div>
   );
 }

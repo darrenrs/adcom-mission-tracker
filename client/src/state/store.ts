@@ -114,7 +114,13 @@ function readJson<T>(raw: string | null, fallback: T): T {
 function readForm(raw: string | null): FormValues {
   const form = readJson<Partial<FormValues>>(raw, {});
   // Saves without researcher levels are an old format that legacy also discarded.
-  return form.ResearcherLevels ? { ...emptyFormValues(), ...form } : emptyFormValues();
+  if (!form.ResearcherLevels) {
+    return emptyFormValues();
+  }
+  const { ResearcherOverrides: _custom, ...kept } = form as Partial<FormValues> & { ResearcherOverrides?: unknown };
+  // Custom researcher values no longer exist. They were saved as level -1.
+  const levels = Object.fromEntries(Object.entries(form.ResearcherLevels).map(([id, level]) => [id, Math.max(level, 0)]));
+  return { ...emptyFormValues(), ...kept, ResearcherLevels: { PropagandaBoost: 1, ...levels } };
 }
 
 function readSettings(storage: TrackerStorage, title: TitleConfig): Settings {

@@ -1,6 +1,6 @@
 import { ChevronDown, Minus, Plus } from 'lucide-react';
 import { useId, useState } from 'react';
-import { parseAmount } from '@/domain/inputSteps';
+import { stepDirection } from '@/domain/inputSteps';
 import { researcherName } from '@/domain/gameText';
 import {
   getResearcherTargetIconUrl,
@@ -65,53 +65,18 @@ function LevelInput({ researcher, level, max, label }: { researcher: Researcher;
       aria-label={label}
       value={shown}
       onChange={(event) => commit(event.target.value)}
+      onKeyDown={(event) => {
+        const direction = stepDirection(event);
+        if (direction !== 0) {
+          event.preventDefault();
+          setDraft(null);
+          setLevel(researcher, Math.min(Math.max(level + direction, 0), max ?? Number.MAX_SAFE_INTEGER));
+        }
+      }}
       onFocus={(event) => event.target.select()}
       onBlur={() => setDraft(null)}
       className={`${inputClass} w-0 flex-1`}
     />
-  );
-}
-
-function CustomValue({ researcher, name, value }: { researcher: Researcher; name: string; value: number | undefined }) {
-  const { text: ctx } = useSession();
-  const { setCustom } = useResearcherActions();
-  const id = useId();
-  const [text, setText] = useState(value === undefined ? '' : String(value));
-  const parsed = parseAmount(text, ctx.title.powers);
-  const invalid = text.trim() !== '' && !(parsed > 0);
-  const isCommon = researcher.Rarity === 'Common' || researcher.Rarity === 'LteCommon';
-  const hint = isCommon
-    ? '1 means you run it by hand all the time, 0.5 half the time.'
-    : researcher.ExpoMultiplier
-      ? 'A multiplier, for example 12 for x12.'
-      : 'A fraction, for example 0.35 for 35%.';
-
-  return (
-    <div className="mt-2 space-y-1">
-      <label htmlFor={id} className="block text-xs font-medium">
-        Custom value for {name}
-      </label>
-      <input
-        id={id}
-        type="text"
-        inputMode="text"
-        autoComplete="off"
-        value={text}
-        aria-invalid={invalid}
-        aria-describedby={`${id}-hint`}
-        onChange={(event) => {
-          setText(event.target.value);
-          const next = parseAmount(event.target.value, ctx.title.powers);
-          if (next > 0) {
-            setCustom(researcher, next);
-          }
-        }}
-        className={`${inputClass} w-full text-left`}
-      />
-      <p id={`${id}-hint`} className={`text-xs ${invalid ? 'text-danger' : 'text-muted'}`}>
-        {invalid ? 'Enter a number above 0.' : hint}
-      </p>
-    </div>
   );
 }
 
@@ -120,19 +85,15 @@ export function ResearcherCard({ researcher }: { researcher: Researcher }) {
   const { text: ctx, assets, form, abGroups } = session;
   const { setLevel } = useResearcherActions();
   const [open, setOpen] = useState(false);
-  const [customOpen, setCustomOpen] = useState(false);
   const detailsId = useId();
 
   const name = researcherName(ctx, researcher);
   const level = form.ResearcherLevels[researcher.Id] ?? 0;
-  const override = form.ResearcherOverrides?.[researcher.Id];
   const max = researcherMaxLevel(ctx.balance, researcher);
-  const label = researcherValueLabel(ctx, researcher, level, override);
+  const label = researcherValueLabel(ctx, researcher, level);
   const targetIcon = getResearcherTargetIconUrl(ctx, assets, researcher);
   const effectIcon = EFFECT_ICON[researcher.ModType];
   const rarity = researcher.Rarity ?? '';
-  const custom = level === -1;
-  const showCustom = custom || customOpen;
   const details = open ? researcherDetails(ctx, researcher, abGroups) : null;
   const guaranteed = details?.firstGuaranteed;
 
@@ -144,7 +105,7 @@ export function ResearcherCard({ researcher }: { researcher: Researcher }) {
         aria-controls={detailsId}
         aria-label={`${name}, ${label.level}${label.value ? `, ${label.value}` : ''}. ${open ? 'Hide' : 'Show'} details`}
         onClick={() => setOpen((value) => !value)}
-        className={`relative block aspect-4/5 w-full overflow-hidden rounded-lg ${RARITY_CLASS[rarity] ?? 'bg-raised'}`}
+        className={`relative mx-auto block aspect-4/5 w-3/4 overflow-hidden rounded-lg sm:w-full ${RARITY_CLASS[rarity] ?? 'bg-raised'}`}
       >
         <img src={assets.iconUrl(`${researcher.Id}.png`)} alt="" loading="lazy" className="size-full object-fill" />
         {targetIcon && (
@@ -167,59 +128,42 @@ export function ResearcherCard({ researcher }: { researcher: Researcher }) {
 
       <div className="mt-1 flex items-center justify-center gap-1 text-sm">
         {effectIcon && <img src={assets.active(`shared/${effectIcon}`)} alt="" className="size-5 object-contain" />}
-        <span className={`min-h-5 ${custom ? 'font-bold' : ''}`} aria-label={label.value ? `Value ${label.value}` : undefined}>
+        <span className="min-h-5" aria-label={label.value ? `Value ${label.value}` : undefined}>
           {label.value || ' '}
         </span>
       </div>
 
-      {!showCustom && (
-        <div className="mt-1 flex items-center gap-1">
-          <button
-            type="button"
-            aria-label={`Lower ${name}`}
-            disabled={level <= 0}
-            onClick={() => setLevel(researcher, level - 1)}
-            className={stepButton}
-          >
-            <Minus aria-hidden size={16} />
-          </button>
-          <LevelInput researcher={researcher} level={level} max={max} label={`Level of ${name}${max ? `, 0 to ${max}` : ''}`} />
-          <button
-            type="button"
-            aria-label={`Raise ${name}`}
-            disabled={max !== null && level >= max}
-            onClick={() => setLevel(researcher, Math.max(level, 0) + 1)}
-            className={stepButton}
-          >
-            <Plus aria-hidden size={16} />
-          </button>
-        </div>
-      )}
-
-      {showCustom ? (
-        <>
-          <CustomValue researcher={researcher} name={name} value={override} />
-          <button
-            type="button"
-            onClick={() => {
-              setCustomOpen(false);
-              if (custom) setLevel(researcher, 0);
-            }}
-            className="mt-1 min-h-11 rounded-lg text-xs font-medium text-muted underline underline-offset-2 hover:text-ink"
-          >
-            Use a level instead
-          </button>
-        </>
-      ) : (
+      <div className="mt-1 flex items-center gap-1">
         <button
           type="button"
-          aria-label={`Set a custom value for ${name}`}
-          onClick={() => setCustomOpen(true)}
-          className="mt-1 min-h-11 rounded-lg text-xs font-medium text-muted underline underline-offset-2 hover:text-ink"
+          aria-label={`Lower ${name}`}
+          disabled={level <= 0}
+          onClick={() => setLevel(researcher, level - 1)}
+          className={stepButton}
         >
-          Custom value
+          <Minus aria-hidden size={16} />
         </button>
-      )}
+        <LevelInput researcher={researcher} level={level} max={max} label={`Level of ${name}${max ? `, 0 to ${max}` : ''}`} />
+        <button
+          type="button"
+          aria-label={`Raise ${name}`}
+          disabled={max !== null && level >= max}
+          onClick={() => setLevel(researcher, level + 1)}
+          className={stepButton}
+        >
+          <Plus aria-hidden size={16} />
+        </button>
+      </div>
+
+      <button
+        type="button"
+        aria-label={`Max ${name}`}
+        disabled={max === null || level >= max}
+        onClick={() => max !== null && setLevel(researcher, max)}
+        className="mt-1 min-h-11 rounded-lg border border-line text-xs font-medium enabled:hover:bg-raised disabled:opacity-40"
+      >
+        Max
+      </button>
 
       <div id={detailsId} hidden={!open} className="mt-1 space-y-1 border-t border-line pt-2 text-xs">
         {details && (

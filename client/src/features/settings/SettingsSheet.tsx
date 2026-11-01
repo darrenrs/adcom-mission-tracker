@@ -1,6 +1,6 @@
 import * as Dialog from '@radix-ui/react-dialog';
 import { X } from 'lucide-react';
-import { useId, useState, type ReactNode } from 'react';
+import { useEffect, useId, useState, type ReactNode } from 'react';
 import { getBasicLteName } from '@/domain/schedule';
 import { useSession, useTracker, type ThemeSetting } from '@/state/store';
 
@@ -133,7 +133,47 @@ function SettingsBody({ onClose }: { onClose: () => void }) {
           }}
         />
       </Group>
+
+      <About />
     </div>
+  );
+}
+
+function About() {
+  const [build, setBuild] = useState('');
+
+  useEffect(() => {
+    let active = true;
+    fetch('api/build')
+      .then((response) => (response.ok ? response.text() : ''))
+      .then((text) => active && setBuild(text.trim().slice(0, 7)))
+      .catch(() => undefined);
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  return (
+    <Group title="About">
+      <ul className="space-y-1 text-sm">
+        <li>
+          <a className="underline" href="https://github.com/darrenrs/adcom-mission-tracker">
+            GitHub
+          </a>
+        </li>
+        <li>
+          <a className="underline" href="https://idlegametools.com/privacy#adcom-mission-tracker">
+            Privacy
+          </a>
+        </li>
+        <li>
+          <a className="underline" href="https://idlegametools.com/terms">
+            Terms
+          </a>
+        </li>
+      </ul>
+      {build && <p className="text-sm text-muted">Build {build}</p>}
+    </Group>
   );
 }
 
@@ -153,7 +193,7 @@ export function SettingsSheet({ open, onOpenChange }: { open: boolean; onOpenCha
               <X aria-hidden size={20} />
             </Dialog.Close>
           </div>
-          <Dialog.Description className="sr-only">Display options, rank shortcuts and data reset.</Dialog.Description>
+          <Dialog.Description className="sr-only">Theme, data reset and links.</Dialog.Description>
           <div className="overflow-y-auto overscroll-contain px-4 py-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
             <SettingsBody onClose={() => onOpenChange(false)} />
           </div>

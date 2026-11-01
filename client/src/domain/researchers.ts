@@ -165,23 +165,21 @@ export interface ResearcherValueLabel {
   level: string;
   /** `x12` for multipliers, `35%` for chances, empty at level 0. */
   value: string;
-  custom: boolean;
 }
 
 /** What a researcher card prints under the image for a level. */
 export function researcherValueLabel(
   ctx: GameTextContext,
   researcher: Researcher,
-  level: number,
-  override?: number
+  level: number
 ): ResearcherValueLabel {
   const { powers } = ctx.title;
-  const amount = getValueForResearcherLevel(researcher, level, override);
+  const amount = getValueForResearcherLevel(researcher, level);
   let value = '';
   if (level !== 0) {
     value = researcher.ExpoMultiplier ? `x${shortBigNum(amount, powers)}` : `${shortBigNum(amount * 100, powers)}%`;
   }
-  return { level: level === -1 ? 'Custom' : `Level ${level}`, value, custom: level === -1 };
+  return { level: `Level ${level}`, value };
 }
 
 export type FirstGuaranteed =

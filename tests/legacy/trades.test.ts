@@ -49,10 +49,7 @@ function randomForm(balance: GameBalance, random: () => number): FormValues {
   for (const researcher of balance.Researchers ?? []) {
     const roll = random();
     const max = researcherMaxLevel(balance, researcher) ?? 5;
-    if (roll < 0.1) {
-      form.ResearcherLevels[researcher.Id] = -1;
-      form.ResearcherOverrides![researcher.Id] = Math.round(random() * 400) / 100 + 0.1;
-    } else if (roll < 0.7) {
+    if (roll < 0.7) {
       form.ResearcherLevels[researcher.Id] = Math.floor(random() * (max + 1));
     }
   }

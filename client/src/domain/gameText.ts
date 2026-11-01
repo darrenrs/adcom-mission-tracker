@@ -137,18 +137,11 @@ export function getIndustryByResource(ctx: GameTextContext, resourceId: string) 
   return resourceIndex === -1 ? undefined : ctx.balance.Industries?.[resourceIndex];
 }
 
-/**
- * The multiplier (above 1x) or chance (0 to 1) of a researcher at a level. Level -1 stands for the
- * player's own value, passed as `customOverride`; legacy returns undefined when there is none, this NaN.
- */
-export function getValueForResearcherLevel(researcher: Researcher, level: number, customOverride?: number): number {
+/** The multiplier (above 1x) or chance (0 to 1) of a researcher at a level. */
+export function getValueForResearcherLevel(researcher: Researcher, level: number): number {
   if (!level) {
     // Multiplicative researchers default to 1x. Commons are the exception: no production without them.
     return researcher.ExpoMultiplier && researcher.ModType !== 'GenManagerAndSpeedMult' ? 1 : 0;
-  }
-
-  if (level === -1) {
-    return customOverride ?? NaN;
   }
 
   const exponentialTotal = researcher.ExpoMultiplier * Math.pow(researcher.ExpoGrowth, level);

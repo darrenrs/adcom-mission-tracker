@@ -201,13 +201,7 @@ function CalculatorBody({ mission, industryId, resourceId }: BodyProps) {
   useFieldKeyboard(root, {
     powers,
     setField: counts.setText,
-    stepTrade: (resourceKey, delta, shown) => void tradeFields.step(resourceKey, delta, shown),
-    onCalculate: () => calculate(),
-    onImport: () => void importCounts(),
-    onImportAndCalculate: () => {
-      const next = importCounts();
-      calculate(next ? { ...counts.latest.current, ...next } : undefined);
-    }
+    stepTrade: (resourceKey, delta, shown) => void tradeFields.step(resourceKey, delta, shown)
   });
 
   const comrade = String(resourceName(ctx, 'comrade'));
@@ -287,15 +281,6 @@ function CalculatorBody({ mission, industryId, resourceId }: BodyProps) {
       <div role="status" aria-live="polite" className="min-h-6 text-sm">
         {outcome && <OutcomeText outcome={outcome} powers={powers} researchers={researchersWord.toLowerCase()} comrades={comrade.toLowerCase()} />}
       </div>
-
-      <details className="text-sm">
-        <summary className="flex min-h-11 cursor-pointer items-center font-medium text-muted hover:text-ink">Keyboard shortcuts</summary>
-        <ul className="list-disc space-y-1 pb-2 pl-6 text-muted">
-          <li>Enter calculates. Ctrl+Enter imports counts. Ctrl+Shift+Enter imports, then calculates.</li>
-          <li>Up and Down change a number. Add Alt for the smallest step, Shift for a bigger one, Ctrl for a bigger one still, Ctrl+Shift for the biggest.</li>
-          <li>Alt+1 to Alt+0, Alt+- and Alt+= jump to the first fields of the open tab. Alt+R is the resource, Alt+P progress, Alt+C comrades, Alt+S comrades per second.</li>
-        </ul>
-      </details>
     </div>
   );
 }

@@ -263,13 +263,6 @@ describe('researcher levels with a custom value', () => {
     ExpoMultiplier: 2, ExpoGrowth: 1.5, UpgradePower: 0.1, CurveModifier: 0.2, BasePower: 3, PlayerRankUnlock: 1
   };
 
-  it('returns the override for level -1', () => {
-    expect(getValueForResearcherLevel(researcher, -1, 7.5)).toBe(7.5);
-    expect(getValueForResearcherLevel(researcher, -1, 0)).toBe(0);
-    // Legacy reads the player's saved override and returns undefined without one.
-    expect(getValueForResearcherLevel(researcher, -1)).toBeNaN();
-  });
-
   it('matches legacy for the other levels, including the common researcher special case', () => {
     const legacy = createLegacy('adcom');
     const commons = { ...researcher, ModType: 'GenManagerAndSpeedMult' };

@@ -21,7 +21,7 @@ export function tradeInfo(balance: GameBalance, resourceId: string): TradeInfo |
 }
 
 function researcherValue(researcher: Researcher, form: FormValues): number {
-  return getValueForResearcherLevel(researcher, form.ResearcherLevels[researcher.Id] ?? 0, form.ResearcherOverrides?.[researcher.Id]);
+  return getValueForResearcherLevel(researcher, form.ResearcherLevels[researcher.Id] ?? 0);
 }
 
 /** Comrades one trade of this resource gives, from the trade researchers' levels. */

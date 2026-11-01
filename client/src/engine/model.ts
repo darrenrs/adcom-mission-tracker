@@ -7,7 +7,6 @@ import type { GameBalance, Generator, Researcher } from '@/domain/types';
 export interface FormValues {
   Config: Record<string, unknown>;
   ResearcherLevels: Record<string, number>;
-  ResearcherOverrides?: Record<string, number>;
   Counts: Record<string, Record<string, number | undefined> | undefined>;
   Trades: {
     TotalComrades: number;
@@ -23,10 +22,10 @@ export interface TradeValues {
   IsInvalid: boolean;
 }
 
+/** Almost all serious players run the propaganda boost, so it starts on. */
 export const emptyFormValues = (): FormValues => ({
   Config: {},
-  ResearcherLevels: {},
-  ResearcherOverrides: {},
+  ResearcherLevels: { PropagandaBoost: 1 },
   Counts: {},
   Trades: { TotalComrades: 1, Resource: {} }
 });
@@ -76,11 +75,7 @@ function targets(researcher: Researcher): string[] {
 }
 
 function levelValue(researcher: Researcher, form: FormValues): number {
-  return getValueForResearcherLevel(
-    researcher,
-    form.ResearcherLevels[researcher.Id] ?? 0,
-    form.ResearcherOverrides?.[researcher.Id]
-  );
+  return getValueForResearcherLevel(researcher, form.ResearcherLevels[researcher.Id] ?? 0);
 }
 
 /** Port of getDerivedResearcherValues. Only Common speed researchers exist, and they shorten the cycle. */

@@ -1,7 +1,7 @@
 // Compares the arrow-key arithmetic of number fields with the legacy inputKeyboardHandler, which is called
 // with fake keyboard events on fake inputs, for every kind of field, key and modifier combination.
 import { afterAll, describe, expect, it } from 'vitest';
-import { parseAmount, stepOrder, stepValue, tradeCostStep, type StepKind } from '@/domain/inputSteps';
+import { parseAmount, stepDirection, stepValue, type StepKind } from '@/domain/inputSteps';
 import { TITLES } from '@/domain/titles';
 import { createLegacy, TITLE_KEYS } from './harness';
 
@@ -45,11 +45,8 @@ const KEYS = [
   { key: 'Tab', legacy: 'Tab' }
 ];
 
-const MODIFIERS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15].map((bits) => ({
-  ctrlKey: Boolean(bits & 1),
-  shiftKey: Boolean(bits & 2),
-  altKey: Boolean(bits & 4)
-}));
+// Only plain presses are left. Modifiers do nothing now, so they no longer match legacy.
+const MODIFIERS = [{ ctrlKey: false, shiftKey: false, altKey: false }];
 
 const FIELDS: { id: string; kind: StepKind | 'tradeCost' }[] = [
   { id: 'farmer-count', kind: 'count' },
@@ -89,21 +86,21 @@ describe.each(TITLE_KEYS)('number field steps match legacy (%s)', (titleKey) => 
               // The field has been changed by then.
             }
 
-            const order = stepOrder({ key, ...modifiers });
+            const direction = stepDirection({ key, ...modifiers });
             const label = `${field.id} "${text}" ${key} ${JSON.stringify(modifiers)}`;
             comparisons++;
 
             if (field.kind === 'tradeCost') {
               const trade = legacy.read<[string, number] | null>('__trade');
-              if (order === 0) {
+              if (direction === 0) {
                 expect(trade, label).toBeNull();
               } else {
-                expect(trade?.[1], label).toBe(tradeCostStep(order));
+                expect(trade?.[1], label).toBe(direction);
               }
-            } else if (order === 0) {
+            } else if (direction === 0) {
               expect(dom.value, label).toBe(text);
             } else {
-              expect(String(dom.value), label).toBe(stepValue(field.kind, text, order, powers) ?? text);
+              expect(String(dom.value), label).toBe(stepValue(field.kind, text, direction, powers) ?? text);
               if (String(dom.value) !== text) moved++;
             }
           }
@@ -125,15 +122,19 @@ describe.each(TITLE_KEYS)('number field steps match legacy (%s)', (titleKey) => 
   });
 });
 
-describe('stepOrder', () => {
-  it('maps modifiers to sizes as the keyboard help says', () => {
-    const press = (key: string, mods: Partial<Record<'ctrlKey' | 'shiftKey' | 'altKey', boolean>> = {}) =>
-      stepOrder({ key, ctrlKey: false, shiftKey: false, altKey: false, ...mods });
-    expect(press('ArrowUp')).toBe(2);
-    expect(press('ArrowUp', { altKey: true })).toBe(1);
-    expect(press('ArrowUp', { shiftKey: true })).toBe(3);
-    expect(press('ArrowUp', { ctrlKey: true })).toBe(4);
-    expect(press('ArrowDown', { ctrlKey: true, shiftKey: true })).toBe(-5);
+describe('stepDirection', () => {
+  const press = (key: string, mods: Partial<Record<'ctrlKey' | 'shiftKey' | 'altKey' | 'metaKey', boolean>> = {}) =>
+    stepDirection({ key, ctrlKey: false, shiftKey: false, altKey: false, ...mods });
+
+  it('reads plain Up and Down', () => {
+    expect(press('ArrowUp')).toBe(1);
+    expect(press('ArrowDown')).toBe(-1);
     expect(press('Enter')).toBe(0);
+  });
+
+  it('does nothing with a modifier held', () => {
+    for (const mod of ['ctrlKey', 'shiftKey', 'altKey', 'metaKey'] as const) {
+      expect(press('ArrowUp', { [mod]: true })).toBe(0);
+    }
   });
 });

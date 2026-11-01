@@ -93,6 +93,31 @@ describe('tracker store', () => {
     expect(ids(store.getState().session?.board.current)).toEqual(['n1']);
   });
 
+  it('starts with propaganda on and keeps an explicit off', async () => {
+    const fresh = setup();
+    await fresh.store.getState().boot();
+    expect(fresh.store.getState().session?.form.ResearcherLevels['PropagandaBoost']).toBe(1);
+
+    const form = (levels: Record<string, number>) => ({ 'main-FormValues': JSON.stringify({ ResearcherLevels: levels }) });
+    const off = setup(form({ PropagandaBoost: 0 }));
+    await off.store.getState().boot();
+    expect(off.store.getState().session?.form.ResearcherLevels['PropagandaBoost']).toBe(0);
+
+    const silent = setup(form({ RS0001: 2 }));
+    await silent.store.getState().boot();
+    expect(silent.store.getState().session?.form.ResearcherLevels).toEqual({ PropagandaBoost: 1, RS0001: 2 });
+  });
+
+  it('loads a saved custom researcher value as level 0', async () => {
+    const { store } = setup({
+      'main-FormValues': JSON.stringify({ ResearcherLevels: { RS0001: -1, RS0002: 3 }, ResearcherOverrides: { RS0001: 12 } })
+    });
+    await store.getState().boot();
+    const form = store.getState().session?.form;
+    expect(form?.ResearcherLevels).toMatchObject({ RS0001: 0, RS0002: 3 });
+    expect(form).not.toHaveProperty('ResearcherOverrides');
+  });
+
   it('resets one mode without touching other tools', async () => {
     const { store, backend } = setup({ playerId: 'abc' });
     await store.getState().boot();
