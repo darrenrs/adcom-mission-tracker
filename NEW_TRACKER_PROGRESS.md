@@ -9,7 +9,7 @@ Start here when picking the work up. Nothing on this branch is deployed, because
 ## Next step
 
 1. The owner adds `API_URL_LEADERBOARD` and `API_GCLOUD_TOKEN` to the tracker's `.env` (same values as adcom-leaderboard). Then check one real PlayFab ID against the old leaderboard page, and confirm the per-player call returns the whole Shortboard (see Leaderboard notes).
-2. The owner decides the auto-buy question below and reviews the 4 November work.
+2. The owner reviews the 4 November work.
 3. Wait for the owner's go-ahead before starting Phase 4.
 
 ## Ground rules from the owner
@@ -117,9 +117,9 @@ The work:
 - The mode menu has Motherland, the live event, Schedule (react-day-picker calendar with an event list) and All Events (every balance by name, opened as a preview). The Events tab is gone.
 - AdCom has no calendar icon in its assets; a plain icon stands in until the owner adds one. Event accent colours do not exist in the data; researcher card backgrounds wait for them.
 
-**Auto-buy (open question)**
+**Auto-buy**
 - Fixed: auto-buy rounded up to the end of a 1-second or 1% step, so it read slower than plain online. It also never bought the mission's own generators, and spent them on deeper tiers.
-- Still open: for some Own missions, buying the deepest generators spends the shared resource and comrades the mission's generators cost, so auto-buy is genuinely slower (5 of 121 sampled missions, 1% to 2.6x). The owner decides whether auto-buy should report the faster of the two strategies.
+- Kept on purpose (owner, 4 November): for some Own missions, buying the deepest generators spends the shared resource and comrades the mission's generators cost, so auto-buy is genuinely slower (5 of 121 sampled missions, 1% to 2.6x). Auto-buy reports its own strategy's time, not the faster of the two.
 
 **Not wanted yet:** an Undo prompt after completing a mission, and collapsing older Completed ranks. The owner declined both for now.
 
