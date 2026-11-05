@@ -68,16 +68,13 @@ test('says what is wrong with a field and refuses to calculate', async ({ page }
   await expect(calc.getByRole('status')).toContainText('Please fix 1 issue');
 });
 
-test('imports saved counts and steps with plain arrow keys', async ({ page }) => {
+test('steps with plain arrow keys', async ({ page }) => {
   await page.goto(OWN_FARMERS);
   const calc = calculator(page);
   const farmers = calc.getByLabel('# of Farmers');
-  await expect(calc.getByRole('button', { name: 'Import Counts' })).toBeDisabled();
-
-  await farmers.fill('10');
-  await expect(calc.getByRole('button', { name: 'Import Counts' })).toBeEnabled();
 
   // Plain Up and Down change the value. Modifiers and every other shortcut do nothing.
+  await farmers.fill('10');
   await farmers.press('ArrowUp');
   await expect(farmers).toHaveValue('11');
   await farmers.press('Control+ArrowUp');
@@ -88,10 +85,64 @@ test('imports saved counts and steps with plain arrow keys', async ({ page }) =>
   await expect(farmers).toBeFocused();
   await page.keyboard.press('Enter');
   await expect(calc.getByRole('status')).toBeEmpty();
+});
 
-  await calc.getByRole('button', { name: 'Import Counts' }).click();
-  await expect(calc.getByRole('tab', { name: 'Generators' })).toHaveAttribute('aria-selected', 'true');
-  await expect(farmers).toHaveValue('10');
+test('Import Counts is hidden for now', async ({ page }) => {
+  await page.goto(OWN_FARMERS);
+  const calc = calculator(page);
+  await calc.getByLabel('# of Farmers').fill('10');
+  await expect(calc.getByRole('button', { name: 'Calculate' })).toBeVisible();
+  await expect(calc.getByRole('button', { name: 'Import Counts' })).toHaveCount(0);
+  await expect(calc.getByText(/Import Counts/)).toHaveCount(0);
+});
+
+test('generator fields read top to bottom in tier order', async ({ page }) => {
+  await page.goto(OWN_FARMERS);
+  const fields = calculator(page).locator('input[data-field-key^="gen:"]');
+  await expect(fields.first()).toBeVisible();
+  const count = await fields.count();
+  expect(count).toBeGreaterThan(1);
+  const tops = [];
+  const lefts = [];
+  for (let index = 0; index < count; index++) {
+    const box = await fields.nth(index).boundingBox();
+    tops.push(box?.y ?? 0);
+    lefts.push(Math.round(box?.x ?? 0));
+  }
+  expect([...tops].sort((a, b) => a - b)).toEqual(tops);
+  expect(new Set(tops).size).toBe(count);
+  expect(new Set(lefts).size).toBe(1);
+});
+
+test('comrades per second is read-only text that follows Trades', async ({ page }) => {
+  await page.goto(OWN_FARMERS);
+  const calc = calculator(page);
+  await expect(calc.getByText('Comrades per second')).toBeVisible();
+  await expect(calc.getByRole('textbox', { name: /per second/ })).toHaveCount(0);
+  const shown = calc.getByTestId('comrades-per-second');
+  await expect(shown).toHaveText('1');
+
+  await calc.getByRole('tab', { name: 'Trades' }).click();
+  await calc.getByLabel(/^Next trade cost/).first().fill('5 M');
+  await calc.getByRole('tab', { name: 'Generators' }).click();
+  await expect(shown).toHaveText('2');
+});
+
+test('trades show the base cost at zero trades and say comrades per second', async ({ page }) => {
+  await page.goto(OWN_FARMERS);
+  const calc = calculator(page);
+  await calc.getByRole('tab', { name: 'Trades' }).click();
+  const potatoes = calc.getByLabel(/^Next trade cost/).first();
+  await expect(potatoes).toHaveValue('5,000');
+  await expect(calc.getByText(/per second in total/)).toHaveCount(0);
+  await expect(calc.getByText(/Comrades per second$/).first()).toBeVisible();
+
+  // One trade later the field moves on, and clearing it falls back to the base cost when left.
+  await potatoes.fill('5 M');
+  await expect(potatoes).toHaveValue('5 M');
+  await potatoes.fill('');
+  await potatoes.blur();
+  await expect(potatoes).toHaveValue('5,000');
 });
 
 test('options: offline switches off auto-buy', async ({ page }) => {
@@ -115,8 +166,7 @@ test('changing a researcher level on Production updates generator details at onc
   const farmer = page.getByRole('button', { name: /^Farmers details$/ });
   await farmer.click();
   const details = page.getByRole('listitem').filter({ has: farmer });
-  const speed = details.locator('dt', { hasText: 'Speed' }).locator('xpath=following-sibling::dd');
-  await expect(speed).toHaveText('x1');
+  await expect(details).toContainText(/x1\s*Speed/);
 
   await page.getByRole('tab', { name: 'Researchers' }).click();
   await page.getByRole('textbox', { name: /^Level of Ringo Ringlet/ }).fill('3');
@@ -124,7 +174,7 @@ test('changing a researcher level on Production updates generator details at onc
 
   await page.getByRole('tab', { name: 'Generators' }).click();
   await page.getByRole('button', { name: /^Farmers details$/ }).click();
-  await expect(speed).toHaveText('x8');
+  await expect(details).toContainText(/x8\s*Speed/);
 });
 
 test('a mission without a calculator says so', async ({ page }) => {
@@ -155,9 +205,9 @@ test('never scrolls sideways on the mission page, in any tab', async ({ page }) 
 });
 
 test('researchers step with arrows, have no custom value, and can be maxed or cleared', async ({ page }) => {
-  await page.goto('?view=production');
-  await page.getByRole('tab', { name: 'Researchers' }).click();
+  await page.goto('?view=production&tab=researchers');
   await expect(page.getByRole('button', { name: /^Set a custom value/ })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: /^Max Ringo/ })).toHaveCount(0);
 
   const level = page.getByRole('textbox', { name: /^Level of Ringo Ringlet/ });
   await level.press('ArrowUp');
@@ -167,10 +217,10 @@ test('researchers step with arrows, have no custom value, and can be maxed or cl
   await level.press('ArrowDown');
   await expect(level).toHaveValue('0');
 
-  await page.getByRole('button', { name: 'Max Ringo Ringlet' }).click();
+  await page.getByRole('button', { name: 'Max all' }).click();
   const max = (await level.getAttribute('aria-label'))?.match(/0 to (\d+)/)?.[1];
   await expect(level).toHaveValue(max as string);
-  await expect(page.getByRole('button', { name: 'Max Ringo Ringlet' })).toBeDisabled();
+  await expect(page.getByRole('button', { name: 'Raise Ringo Ringlet' })).toBeDisabled();
 
   await page.getByRole('button', { name: 'Set all to 0' }).click();
   await page.getByRole('dialog').getByRole('button', { name: 'Cancel' }).click();
@@ -179,9 +229,6 @@ test('researchers step with arrows, have no custom value, and can be maxed or cl
   await page.getByRole('button', { name: 'Set all to 0' }).click();
   await page.getByRole('dialog').getByRole('button', { name: 'Set all to 0' }).click();
   await expect(level).toHaveValue('0');
-
-  await page.getByRole('button', { name: 'Max all' }).click();
-  await expect(level).toHaveValue(max as string);
 });
 
 test('phone keyboards can type the game notation', async ({ page }) => {

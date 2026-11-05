@@ -38,6 +38,8 @@ const primaryButton =
 const secondaryButton =
   'inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-line bg-surface px-4 text-sm font-medium enabled:hover:bg-raised disabled:opacity-50';
 
+const SHOW_IMPORT = false;
+
 const NO_CALCULATOR = 'This mission type has no calculator yet.';
 
 export function MissionCalculator({ mission }: { mission: Mission }) {
@@ -213,7 +215,7 @@ function CalculatorBody({ mission, industryId, resourceId }: BodyProps) {
     <div ref={root} className="space-y-4">
       <p className="text-sm text-muted">
         Enter your generators, researchers and trades from the game, then press Calculate to see when this mission will finish. Your numbers are
-        saved as you type, and Import Counts brings them up to date after time away.
+        saved as you type.
       </p>
 
       <Tabs.Root value={tab} onValueChange={setTab}>
@@ -261,22 +263,21 @@ function CalculatorBody({ mission, industryId, resourceId }: BodyProps) {
         <button type="button" onClick={() => calculate()} disabled={running} className={primaryButton}>
           {running ? 'Calculating…' : 'Calculate'}
         </button>
-        <button
-          type="button"
-          onClick={() => void importCounts()}
-          disabled={!stamp}
-          aria-describedby="import-note"
-          className={secondaryButton}
-        >
-          <Download aria-hidden size={16} />
-          Import Counts
-        </button>
+        {/* Import Counts is hidden for now. importCounts and its note stay so it can come back. */}
+        {SHOW_IMPORT && (
+          <button type="button" onClick={() => void importCounts()} disabled={!stamp} aria-describedby="import-note" className={secondaryButton}>
+            <Download aria-hidden size={16} />
+            Import Counts
+          </button>
+        )}
       </div>
-      <p id="import-note" className="text-xs text-muted">
-        {stamp
-          ? `Import Counts moves the numbers you saved on ${getTimeStampLocaleString(stamp)} forward to now.`
-          : 'Import Counts is available once you have entered some counts.'}
-      </p>
+      {SHOW_IMPORT && (
+        <p id="import-note" className="text-xs text-muted">
+          {stamp
+            ? `Import Counts moves the numbers you saved on ${getTimeStampLocaleString(stamp)} forward to now.`
+            : 'Import Counts is available once you have entered some counts.'}
+        </p>
+      )}
 
       <div role="status" aria-live="polite" className="min-h-6 text-sm">
         {outcome && <OutcomeText outcome={outcome} powers={powers} researchers={researchersWord.toLowerCase()} comrades={comrade.toLowerCase()} />}

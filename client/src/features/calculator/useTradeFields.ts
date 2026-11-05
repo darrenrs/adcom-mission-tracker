@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react';
-import { tradeLevelDelta, updateTradeTabTotals, tradeResourceIds } from '@/domain/trades';
+import { bigNum } from '@/domain/format';
+import { tradeInfo, tradeLevelDelta, updateTradeTabTotals, tradeResourceIds } from '@/domain/trades';
 import { trackerStore, useSession, useTracker } from '@/state/store';
 
 /**
@@ -51,7 +52,15 @@ export function useTradeFields() {
     [ctx, finish, write]
   );
 
-  const shown = (resourceId: string, savedCost: string) => drafts[resourceId] ?? savedCost;
+  /** What a field shows: what is being typed, else the saved cost, else the first trade's cost while there are no trades. */
+  const shown = (resourceId: string, savedCost: string, tradeCount: number) => {
+    const draft = drafts[resourceId];
+    if (draft !== undefined) {
+      return draft;
+    }
+    const base = tradeInfo(ctx.balance, resourceId)?.CostMultiplier;
+    return tradeCount === 0 && base !== undefined ? bigNum(base, ctx.title.powers) : savedCost;
+  };
 
   return { type, finish, step, shown };
 }

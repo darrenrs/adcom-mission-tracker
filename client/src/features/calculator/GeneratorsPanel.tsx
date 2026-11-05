@@ -1,11 +1,12 @@
 import { Info } from 'lucide-react';
 import { useId, useState } from 'react';
 import { getResourceByIndustry, resourceName } from '@/domain/gameText';
-import { generatorDetails, industryGenerators } from '@/domain/researchers';
+import { bigNum } from '@/domain/format';
+import { industryGenerators } from '@/domain/researchers';
 import type { Mission } from '@/domain/types';
 import { useSession } from '@/state/store';
-import { COMRADES_KEY, CPS_KEY, generatorKey, PROGRESS_KEY, RESOURCE_KEY } from './fields';
-import { GeneratorDetailsView } from './GeneratorDetailsView';
+import { COMRADES_KEY, generatorKey, PROGRESS_KEY, RESOURCE_KEY } from './fields';
+import { GeneratorInfo } from './GeneratorInfo';
 import { NumberField } from './NumberField';
 import type { CountFields } from './useCountFields';
 
@@ -17,13 +18,14 @@ interface Props {
   disabled: ReadonlySet<string>;
 }
 
+/** One column, so generators read top to bottom in tier order. */
 function FieldGroup({ children }: { children: React.ReactNode }) {
-  return <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{children}</div>;
+  return <div className="grid max-w-md gap-3">{children}</div>;
 }
 
 export function GeneratorsPanel({ mission, industryId, fields, disabled }: Props) {
   const session = useSession();
-  const { text: ctx, assets, form, abGroups } = session;
+  const { text: ctx, assets, form } = session;
   const [open, setOpen] = useState<string | null>(null);
   const detailsId = useId();
   const resource = getResourceByIndustry(ctx, industryId);
@@ -76,7 +78,7 @@ export function GeneratorsPanel({ mission, industryId, fields, disabled }: Props
                 )
               })}
               <div id={`${detailsId}-${generator.Id}`} hidden={!isOpen} className="mt-2 rounded-lg border border-line bg-surface p-3">
-                {isOpen && <GeneratorDetailsView details={generatorDetails(ctx, assets, generator, form, abGroups)} />}
+                {isOpen && <GeneratorInfo generator={generator} />}
               </div>
             </div>
           );
@@ -101,9 +103,16 @@ export function GeneratorsPanel({ mission, industryId, fields, disabled }: Props
         {field(COMRADES_KEY, `# of ${comrade}`, assets.iconUrl('comrade.png'), {
           attributes: { 'data-field': 'comrades', 'data-field-key': COMRADES_KEY }
         })}
-        {field(CPS_KEY, `${comrade} per second`, assets.active('shared/comrades_per_second.png'), {
-          attributes: { 'data-field': 'comradesPerSecond', 'data-field-key': CPS_KEY }
-        })}
+        <div className="min-w-0">
+          <p className="flex items-center gap-2 text-sm font-medium">
+            <img src={assets.active('shared/comrades_per_second.png')} alt="" width={24} height={24} className="size-6 shrink-0 object-contain" />
+            <span>{comrade} per second</span>
+          </p>
+          <p className="mt-1 flex min-h-11 items-center text-base font-semibold" data-testid="comrades-per-second">
+            {bigNum(form.Trades.TotalComrades || 0, ctx.title.powers)}
+          </p>
+          <p className="text-xs text-muted">Worked out from your trades.</p>
+        </div>
       </FieldGroup>
     </div>
   );

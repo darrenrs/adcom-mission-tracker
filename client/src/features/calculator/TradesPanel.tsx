@@ -25,7 +25,7 @@ export function TradesPanel({ fields }: { fields: TradeFields }) {
       <p className="flex items-center justify-center gap-2 text-center">
         <img src={assets.active('shared/comrades_per_second.png')} alt="" className="size-6 object-contain" />
         <span>
-          <strong data-testid="total-comrades">{bigNum(form.Trades.TotalComrades || 0, powers)}</strong> {comrade} per second in total
+          <strong data-testid="total-comrades">{bigNum(form.Trades.TotalComrades || 0, powers)}</strong> {comrade} per second
         </span>
       </p>
 
@@ -34,7 +34,7 @@ export function TradesPanel({ fields }: { fields: TradeFields }) {
           const name = String(resourceName(ctx, row.resourceId));
           const id = `${baseId}-${index}`;
           const costLabel = `Next ${trades} cost (${name})`;
-          const value = fields.shown(row.resourceId, row.nextCost);
+          const value = fields.shown(row.resourceId, row.nextCost, row.isInvalid ? NaN : row.count);
           const invalid = row.isInvalid;
           return (
             <li key={row.resourceId} className="space-y-1 rounded-xl border border-line bg-surface p-3">

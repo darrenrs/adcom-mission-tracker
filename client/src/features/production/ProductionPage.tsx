@@ -13,10 +13,22 @@ import { useSession } from '@/state/store';
 import { AllGenerators } from './AllGenerators';
 import { ResearcherBulkActions } from './ResearcherBulkActions';
 
+const TABS = ['generators', 'researchers', 'trades'];
+
+/** `?tab=` picks the tab, and a `researcher` link opens Researchers. */
+function initialTab(tab: string | null, researcher: string | null): string {
+  if (tab && TABS.includes(tab)) {
+    return tab;
+  }
+  return researcher ? 'researchers' : 'generators';
+}
+
 export function ProductionPage() {
   const { text: ctx, assets } = useSession();
   const tradeFields = useTradeFields();
-  const [tab, setTab] = useState(useSearchParam('researcher') ? 'researchers' : 'generators');
+  const tabParam = useSearchParam('tab');
+  const researcherParam = useSearchParam('researcher');
+  const [tab, setTab] = useState(() => initialTab(tabParam, researcherParam));
   const root = useRef<HTMLDivElement>(null);
 
   // Only the trade cost fields live here, but they take the same keys as in the calculator.
