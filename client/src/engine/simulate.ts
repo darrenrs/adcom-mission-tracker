@@ -176,70 +176,115 @@ export function offlineRange({ tiers, state, goals }: Model, known: Progress | u
   });
 }
 
-/** Online with auto-buy on the deepest owned tier. Steps grow with time, so very long runs stay quick. */
+interface AutobuyState {
+  counts: number[];
+  earned: number;
+  comrades: number;
+  /** The tier being bought, or -1 when none is owned yet. */
+  target: number;
+}
+
+/** Produces for `seconds`, then spends everything affordable on the target tier, moving deeper once it unlocks. */
+function autobuyStep(
+  tiers: readonly Tier[],
+  usable: readonly boolean[],
+  goals: readonly Goal[],
+  from: AutobuyState,
+  comradesPerSecond: number,
+  seconds: number
+): AutobuyState {
+  const counts = online(tiers, from.counts, seconds);
+  const earned = from.earned + (counts[0] as number) - (from.counts[0] as number);
+  let comrades = from.comrades + comradesPerSecond * seconds;
+  let target = from.target;
+
+  const slot = (resource: string) => {
+    const index = tiers.findIndex((tier) => tier.id === resource);
+    return index === -1 ? 0 : index + 1;
+  };
+  // Generators an Own mission counts are never spent on deeper ones.
+  const reserved = new Map<number, number>();
+  for (const goal of goals) {
+    if (goal.kind === 'tier') {
+      reserved.set(goal.tier + 1, Math.max(reserved.get(goal.tier + 1) ?? 0, goal.qty));
+    }
+  }
+  const stock = (resource: string, keep: boolean) => {
+    if (resource === 'comrade') {
+      return comrades;
+    }
+    const index = slot(resource);
+    return Math.max(0, (counts[index] as number) - (keep ? (reserved.get(index) ?? 0) : 0));
+  };
+  const affordable = (tier: Tier, keep: boolean) =>
+    Math.max(0, Math.floor(Math.min(...tier.costs.map((cost) => stock(cost.resource, keep) / cost.qty), Infinity)));
+  const purchase = (index: number, buy: number) => {
+    for (const cost of (tiers[index] as Tier).costs) {
+      if (cost.resource === 'comrade') {
+        comrades -= cost.qty * buy;
+      } else {
+        counts[slot(cost.resource)] = (counts[slot(cost.resource)] as number) - cost.qty * buy;
+      }
+    }
+    counts[index + 1] = (counts[index + 1] as number) + buy;
+  };
+
+  // An Own mission's generators are bought as soon as all that are still needed can be paid for, as a player would.
+  for (const goal of goals) {
+    const needed = goal.kind === 'tier' ? goal.qty - (counts[goal.tier + 1] as number) : 0;
+    const tier = goal.kind === 'tier' ? tiers[goal.tier] : undefined;
+    if (goal.kind === 'tier' && tier && needed > 0 && affordable(tier, false) >= needed) {
+      purchase(goal.tier, Math.ceil(needed));
+    }
+  }
+
+  const tier = tiers[target];
+  if (tier) {
+    const buy = affordable(tier, true);
+    if (Number.isFinite(buy) && buy > 0) {
+      purchase(target, buy);
+    }
+
+    const deeper = tiers[target + 1];
+    if (deeper && usable[target + 1] && (counts[target + 1] as number) >= deeper.unlockQty) {
+      target += 1;
+      counts[target + 1] = Math.max(counts[target + 1] as number, 1);
+    }
+  }
+  return { counts, earned, comrades, target };
+}
+
+/**
+ * Online with auto-buy on the deepest owned tier, plus the mission's own generators once they are affordable.
+ * Steps grow with time, so very long runs stay quick.
+ */
 export function autobuyEta({ tiers, state, goals }: Model): number {
-  const counts = [...state.counts];
   const usable = tiers.map((tier) => tierRate(tier) > 0);
   let target = -1;
   for (let index = tiers.length - 1; index >= 0; index--) {
-    if ((counts[index + 1] as number) > 0) {
+    if ((state.counts[index + 1] as number) > 0) {
       target = index;
       break;
     }
   }
 
-  const stock = (resource: string, wallet: { comrades: number }): number => {
-    if (resource === 'comrade') {
-      return wallet.comrades;
-    }
-    const index = tiers.findIndex((tier) => tier.id === resource);
-    return (index === -1 ? counts[0] : counts[index + 1]) as number;
-  };
-  const spend = (resource: string, qty: number, wallet: { comrades: number }) => {
-    if (resource === 'comrade') {
-      wallet.comrades -= qty;
-      return;
-    }
-    const index = tiers.findIndex((tier) => tier.id === resource);
-    const slot = index === -1 ? 0 : index + 1;
-    counts[slot] = (counts[slot] as number) - qty;
-  };
-
-  const wallet = { comrades: state.comrades };
-  let earned = state.earned;
+  const done = ({ counts, earned, comrades }: AutobuyState) => goals.every((goal) => goalMet(goal, counts, earned, comrades));
+  let current: AutobuyState = { counts: [...state.counts], earned: state.earned, comrades: state.comrades, target };
+  if (done(current)) {
+    return 0;
+  }
   let now = 0;
 
   while (now < 1e15) {
     const step = Math.max(1, now * 0.01);
-    const before = counts[0] as number;
-    const after = online(tiers, counts, step);
-    after.forEach((value, index) => {
-      counts[index] = value;
-    });
-    earned += (counts[0] as number) - before;
-    wallet.comrades += state.comradesPerSecond * step;
+    const next = autobuyStep(tiers, usable, goals, current, state.comradesPerSecond, step);
+    if (done(next)) {
+      // The goal was reached somewhere inside this step: find where, rather than reporting the step's end.
+      const from = current;
+      return now + solveTime((seconds) => done(autobuyStep(tiers, usable, goals, from, state.comradesPerSecond, seconds)), step);
+    }
+    current = next;
     now += step;
-
-    const tier = tiers[target];
-    if (tier) {
-      const buy = Math.max(0, Math.floor(Math.min(...tier.costs.map((cost) => stock(cost.resource, wallet) / cost.qty), Infinity)));
-      if (Number.isFinite(buy) && buy > 0) {
-        for (const cost of tier.costs) {
-          spend(cost.resource, cost.qty * buy, wallet);
-        }
-        counts[target + 1] = (counts[target + 1] as number) + buy;
-      }
-
-      const deeper = tiers[target + 1];
-      if (deeper && usable[target + 1] && (counts[target + 1] as number) >= deeper.unlockQty) {
-        target += 1;
-        counts[target + 1] = Math.max(counts[target + 1] as number, 1);
-      }
-    }
-
-    if (goals.every((goal) => goalMet(goal, counts, earned, wallet.comrades))) {
-      return now;
-    }
   }
   return Infinity;
 }

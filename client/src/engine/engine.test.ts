@@ -140,3 +140,28 @@ describe('auto-buy', () => {
     expect(autobuyEta(model)).toBeLessThan(Infinity);
   });
 });
+
+describe('auto-buy timing', () => {
+  it('finds the moment inside a step, so buying nothing matches plain online exactly', () => {
+    // Generators cost far more comrades than there are, so nothing is ever bought.
+    const tiers = [tier('a', 7, 0.5, { costs: [{ resource: 'comrade', qty: 1e30 }] })];
+    const model: Model = {
+      tiers,
+      state: { counts: [0, 1000], earned: 0, comrades: 0, comradesPerSecond: 100 },
+      goals: [{ kind: 'earned', qty: 600_123 }]
+    };
+    expect(autobuyEta(model)).toBeCloseTo(onlineEta(model), 2);
+    expect(autobuyEta(model)).toBeCloseTo(600_123 / 14_000, 2);
+  });
+
+  it('buys an Own mission\'s generators as soon as all of them are affordable', () => {
+    const tiers = [tier('a', 1, 1, { costs: [{ resource: 'potato', qty: 10 }] }), tier('b', 1, 1, { costs: [{ resource: 'a', qty: 1 }] })];
+    const model: Model = {
+      tiers,
+      // 1000 potatoes already pay for the 50 more generators the mission needs, even though auto-buy targets the deeper tier.
+      state: { counts: [1000, 50, 1], earned: 0, comrades: 0, comradesPerSecond: 0 },
+      goals: [{ kind: 'tier', tier: 0, qty: 100 }]
+    };
+    expect(autobuyEta(model)).toBe(0);
+  });
+});
