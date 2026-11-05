@@ -9,8 +9,9 @@ app.use(express.urlencoded({
   limit: '5mb'
 }));
 app.use(express.json());
+// The React app, built by `npm run build`. The admin page is copied in from client/public.
 app.use(
-  express.static('public', {
+  express.static('dist', {
     extensions: ['html']
   })
 );

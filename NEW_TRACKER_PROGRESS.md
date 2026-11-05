@@ -43,7 +43,7 @@ Start here when picking the work up. Nothing on this branch is deployed, because
 
 - **Events tab:** schedule, all events, balance information. Their current placeholder is `client/src/features/events/EventsPage.tsx`.
 - **Reference tab:** airdrops, capsules, scripted capsules, avatar unlocks, help. Its placeholder is `client/src/features/reference/ReferencePage.tsx`.
-- **Build:** change `app.js` to serve `dist`, add a Node build stage to the `Dockerfile`, and move `admin.html`, `admin.js` and the CSS they need into `client/public/` unchanged.
+- **Build:** done 5 November for the beta. `app.js` serves `dist`, the Dockerfile builds the app in its own stage, and `admin.html`, `admin.js` and `missions_base.css` moved unchanged to `client/public/`. The legacy page is no longer served.
 - **Cleanup:** remove the legacy files in `public/`, but only after every feature has moved over. `npm run golden` reads legacy code from `master`, not from `public/`.
 
 ### Phase 5 scope
@@ -151,6 +151,15 @@ The work:
 - Are the researcher cards too dense on a phone?
 - Should Online or Offline, Auto-buy, Limited by Comrades and Time left be saved? They reset today.
 - Should a future mission be markable as complete on its own? A few survey respondents asked. Today's prompt completes everything before it instead.
+
+## Beta deployment
+
+The owner plans a beta on the VPS: a separate directory checked out at `new-tracker`, its own port, and a beta domain proxied to it. The live tracker is untouched.
+
+- The `.env` needs `PORT` (the beta port), `ASSET_SERVER`, `ASSET_PUBLIC_BASE`, the PlayFab settings, `API_URL_LEADERBOARD` and `API_GCLOUD_TOKEN`.
+- Build and start with `COMMIT_HASH=$(git rev-parse --short HEAD) docker compose -p adcom-mission-tracker-beta up -d --build`. The project name keeps it apart from the live container.
+- A separate beta domain has its own browser storage, so testers start without saves from the live tracker.
+- `/api/import` and the admin routes are still unprotected, as on the live tracker.
 
 ## Running it
 
