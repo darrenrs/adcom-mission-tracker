@@ -36,7 +36,7 @@ export function EditableAmount({ label, value, onValue, powers, className = '', 
       type="button"
       aria-label={`Edit ${label}`}
       onClick={() => setEditing(true)}
-      className={`min-h-11 w-full min-w-0 rounded-lg px-1 text-center text-sm font-semibold tabular-nums hover:bg-raised ${className}`}
+      className={`min-h-11 w-full min-w-0 cursor-text rounded-lg px-1 text-center text-sm font-semibold tabular-nums hover:bg-raised ${className}`}
     >
       <span className="block truncate">{shown ?? (value > 0 ? bigNum(value, powers) : '0')}</span>
     </button>

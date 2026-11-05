@@ -73,6 +73,22 @@ body {
   -webkit-text-size-adjust: 100%;
 }
 
+@layer base {
+  /* Anything that can be clicked shows the pointer, and anything that can be typed into shows the text cursor. */
+  button:not(:disabled),
+  [role="button"],
+  summary,
+  label[for],
+  select {
+    cursor: pointer;
+  }
+
+  input:not([type="checkbox"], [type="radio"], [type="button"], [type="submit"], [type="range"]),
+  textarea {
+    cursor: text;
+  }
+}
+
 /* Tapping through missions quickly should not trigger double-tap zoom. */
 button,
 a {
