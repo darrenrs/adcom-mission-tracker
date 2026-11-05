@@ -17,6 +17,8 @@
   "scripts": {
     "start": "node app.js",
     "dev": "vite",
+    "dev:leaderboard": "LEADERBOARD_BACKEND=http://localhost:3011 vite",
+    "api:local": "PORT=3011 node app.js",
     "build": "tsc --noEmit && vite build",
     "test": "vitest run",
     "test:e2e": "playwright test",

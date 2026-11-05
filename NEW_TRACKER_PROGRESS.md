@@ -57,7 +57,17 @@ The Motherland capsule table stays out until the evergreen capsule formula is kn
 Legacy comparisons stay in use through Phases 4 and 5, because they prove the ports are right. They end with development. Two things depend on legacy code today:
 
 - `tests/legacy/` reads `public/` from `master` through `git show` every time it runs, so these tests break when the new tracker reaches `master`.
-- `tests/golden/mission-traces.json` is already a stored file, but `npm run golden` recaptures it from `master`, and `tests/golden/missions.test.ts` tells you to do that when a balance changes.
+- `tests/golden/mission-traces.json` is already a stored file, but For live leaderboard data in development, run the branch's own server and point Vite at it. The Docker app on 3001 is an older build without the leaderboard routes, and plain `npm run dev` answers the event list with "none".
+
+```bash
+npm run api:local
+```
+
+```bash
+npm run dev:leaderboard
+```
+
+`npm run golden` recaptures it from `master`, and `tests/golden/missions.test.ts` tells you to do that when a balance changes.
 
 The work:
 
