@@ -1,7 +1,8 @@
 import { defineConfig, devices } from '@playwright/test';
 
 // Needs the API on 3001 and adcom-assets on 3002, for example the local Docker containers.
-const PORT = 5199;
+// PW_PORT lets two test runs share the machine.
+const PORT = Number(process.env['PW_PORT'] ?? 5199);
 
 export default defineConfig({
   testDir: 'tests/e2e',
