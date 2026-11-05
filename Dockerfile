@@ -8,6 +8,7 @@ WORKDIR /usr/src/app
 COPY public/ public/
 COPY .gitignore ./
 COPY *.js ./
+COPY server/ server/
 COPY README.md package.json package-lock.json ./
 
 RUN npm install --omit=dev

@@ -1,0 +1,187 @@
+{
+ "project": "adcom",
+ "status": "ok",
+ "error": null,
+ "data": null,
+ "resultMap": {
+  "resolvedPlayers": {
+   "objectArray": [
+    {
+     "playerId": "B000000000000007",
+     "sequence": 100,
+     "customData": {
+      "avatarId": "x",
+      "lteRank": 3
+     }
+    },
+    {
+     "playerId": "B00000000000001E",
+     "sequence": 101,
+     "customData": {
+      "avatarId": "x",
+      "lteRank": 3
+     }
+    },
+    {
+     "playerId": "AAAAAAAAAAAAAAA1",
+     "sequence": 102,
+     "customData": {
+      "avatarId": "x",
+      "lteRank": 3
+     }
+    },
+    {
+     "playerId": "B00000000000004D",
+     "sequence": 103,
+     "customData": {
+      "avatarId": "x",
+      "lteRank": 3
+     }
+    },
+    {
+     "playerId": "B000000000000096",
+     "sequence": 104,
+     "customData": {
+      "avatarId": "x",
+      "lteRank": 3
+     }
+    }
+   ],
+   "available": 5,
+   "offset": 0,
+   "count": 5
+  },
+  "results": {
+   "rootResults": {
+    "topResults": {
+     "rankedEntry": [
+      {
+       "playerId": "B000000000000000",
+       "score": 1000,
+       "rankedScore": 1000,
+       "position": {
+        "position": 0,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B000000000000001",
+       "score": 997,
+       "rankedScore": 997,
+       "position": {
+        "position": 1,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B000000000000002",
+       "score": 994,
+       "rankedScore": 994,
+       "position": {
+        "position": 2,
+        "count": 200
+       }
+      }
+     ]
+    },
+    "offsetResults": {
+     "rankedEntry": [
+      {
+       "playerId": "B000000000000028",
+       "score": 880,
+       "rankedScore": 880,
+       "position": {
+        "position": 40,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "AAAAAAAAAAAAAAA1",
+       "score": 877,
+       "rankedScore": 877,
+       "position": {
+        "position": 41,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B00000000000002A",
+       "score": 874,
+       "rankedScore": 874,
+       "position": {
+        "position": 42,
+        "count": 200
+       }
+      }
+     ]
+    }
+   },
+   "segmentResults": {
+    "topResults": {
+     "rankedEntry": [
+      {
+       "playerId": "B000000000000007",
+       "score": 979,
+       "position": {
+        "position": 0,
+        "count": 5
+       }
+      },
+      {
+       "playerId": "B00000000000001E",
+       "score": 910,
+       "position": {
+        "position": 1,
+        "count": 5
+       }
+      },
+      {
+       "playerId": "AAAAAAAAAAAAAAA1",
+       "score": 877,
+       "position": {
+        "position": 2,
+        "count": 5
+       }
+      }
+     ]
+    },
+    "offsetResults": {
+     "rankedEntry": [
+      {
+       "playerId": "B00000000000001E",
+       "score": 910,
+       "position": {
+        "position": 1,
+        "count": 5
+       }
+      },
+      {
+       "playerId": "AAAAAAAAAAAAAAA1",
+       "score": 877,
+       "position": {
+        "position": 2,
+        "count": 5
+       }
+      },
+      {
+       "playerId": "B00000000000004D",
+       "score": 769,
+       "position": {
+        "position": 3,
+        "count": 5
+       }
+      },
+      {
+       "playerId": "B000000000000096",
+       "score": 550,
+       "position": {
+        "position": 4,
+        "count": 5
+       }
+      }
+     ]
+    }
+   }
+  }
+ }
+}

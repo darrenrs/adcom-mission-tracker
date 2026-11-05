@@ -1,0 +1,16 @@
+{
+ "project": "adcom",
+ "status": "ok",
+ "error": null,
+ "resultMap": null,
+ "data": {
+  "leaderboardGuid": "22222222-2222-4222-8222-222222222222",
+  "playerId": "AAAAAAAAAAAAAAA1",
+  "root": "global",
+  "segmentId": "defenseRANK_19_TO_29:4",
+  "score": 100,
+  "rankedScore": 101.5,
+  "created": "2026-07-01T17:00:00Z",
+  "updated": "2026-07-04T10:00:00Z"
+ }
+}

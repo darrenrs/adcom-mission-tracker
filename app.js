@@ -1,5 +1,6 @@
 import express from 'express';
 import 'dotenv/config';
+import { registerLeaderboardRoutes } from './server/leaderboard/routes.js';
 
 const app = express();
 
@@ -348,6 +349,8 @@ app.get('/api/build', async (req, res) => {
   const buildId = process.env.COMMIT_HASH || 'BUILD UNKNOWN';
   res.status(200).send(buildId);
 });
+
+registerLeaderboardRoutes(app);
 
 const server = app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server listening on port ${server.address().port}.`);

@@ -1,0 +1,1848 @@
+{
+ "project": "adcom",
+ "status": "ok",
+ "error": null,
+ "data": null,
+ "resultMap": {
+  "resolvedPlayers": {
+   "objectArray": [
+    {
+     "playerId": "AAAAAAAAAAAAAAA1",
+     "sequence": 4242
+    }
+   ],
+   "available": 1,
+   "offset": 0,
+   "count": 1
+  },
+  "results": {
+   "rootResults": {
+    "topResults": {
+     "rankedEntry": [
+      {
+       "playerId": "B000000000000000",
+       "score": 1000,
+       "rankedScore": 1000,
+       "position": {
+        "position": 0,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B000000000000001",
+       "score": 997,
+       "rankedScore": 997,
+       "position": {
+        "position": 1,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B000000000000002",
+       "score": 994,
+       "rankedScore": 994,
+       "position": {
+        "position": 2,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B000000000000003",
+       "score": 991,
+       "rankedScore": 991,
+       "position": {
+        "position": 3,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B000000000000004",
+       "score": 988,
+       "rankedScore": 988,
+       "position": {
+        "position": 4,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B000000000000005",
+       "score": 985,
+       "rankedScore": 985,
+       "position": {
+        "position": 5,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B000000000000006",
+       "score": 982,
+       "rankedScore": 982,
+       "position": {
+        "position": 6,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B000000000000007",
+       "score": 979,
+       "rankedScore": 979,
+       "position": {
+        "position": 7,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B000000000000008",
+       "score": 976,
+       "rankedScore": 976,
+       "position": {
+        "position": 8,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B000000000000009",
+       "score": 973,
+       "rankedScore": 973,
+       "position": {
+        "position": 9,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B00000000000000A",
+       "score": 970,
+       "rankedScore": 970,
+       "position": {
+        "position": 10,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B00000000000000B",
+       "score": 967,
+       "rankedScore": 967,
+       "position": {
+        "position": 11,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B00000000000000C",
+       "score": 964,
+       "rankedScore": 964,
+       "position": {
+        "position": 12,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B00000000000000D",
+       "score": 961,
+       "rankedScore": 961,
+       "position": {
+        "position": 13,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B00000000000000E",
+       "score": 958,
+       "rankedScore": 958,
+       "position": {
+        "position": 14,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B00000000000000F",
+       "score": 955,
+       "rankedScore": 955,
+       "position": {
+        "position": 15,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B000000000000010",
+       "score": 952,
+       "rankedScore": 952,
+       "position": {
+        "position": 16,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B000000000000011",
+       "score": 949,
+       "rankedScore": 949,
+       "position": {
+        "position": 17,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B000000000000012",
+       "score": 946,
+       "rankedScore": 946,
+       "position": {
+        "position": 18,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B000000000000013",
+       "score": 943,
+       "rankedScore": 943,
+       "position": {
+        "position": 19,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B000000000000014",
+       "score": 940,
+       "rankedScore": 940,
+       "position": {
+        "position": 20,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B000000000000015",
+       "score": 937,
+       "rankedScore": 937,
+       "position": {
+        "position": 21,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B000000000000016",
+       "score": 934,
+       "rankedScore": 934,
+       "position": {
+        "position": 22,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B000000000000017",
+       "score": 931,
+       "rankedScore": 931,
+       "position": {
+        "position": 23,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B000000000000018",
+       "score": 928,
+       "rankedScore": 928,
+       "position": {
+        "position": 24,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B000000000000019",
+       "score": 925,
+       "rankedScore": 925,
+       "position": {
+        "position": 25,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B00000000000001A",
+       "score": 922,
+       "rankedScore": 922,
+       "position": {
+        "position": 26,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B00000000000001B",
+       "score": 919,
+       "rankedScore": 919,
+       "position": {
+        "position": 27,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B00000000000001C",
+       "score": 916,
+       "rankedScore": 916,
+       "position": {
+        "position": 28,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B00000000000001D",
+       "score": 913,
+       "rankedScore": 913,
+       "position": {
+        "position": 29,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B00000000000001E",
+       "score": 910,
+       "rankedScore": 910,
+       "position": {
+        "position": 30,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B00000000000001F",
+       "score": 907,
+       "rankedScore": 907,
+       "position": {
+        "position": 31,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B000000000000020",
+       "score": 904,
+       "rankedScore": 904,
+       "position": {
+        "position": 32,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B000000000000021",
+       "score": 901,
+       "rankedScore": 901,
+       "position": {
+        "position": 33,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B000000000000022",
+       "score": 898,
+       "rankedScore": 898,
+       "position": {
+        "position": 34,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B000000000000023",
+       "score": 895,
+       "rankedScore": 895,
+       "position": {
+        "position": 35,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B000000000000024",
+       "score": 892,
+       "rankedScore": 892,
+       "position": {
+        "position": 36,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B000000000000025",
+       "score": 889,
+       "rankedScore": 889,
+       "position": {
+        "position": 37,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B000000000000026",
+       "score": 886,
+       "rankedScore": 886,
+       "position": {
+        "position": 38,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B000000000000027",
+       "score": 883,
+       "rankedScore": 883,
+       "position": {
+        "position": 39,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B000000000000028",
+       "score": 880,
+       "rankedScore": 880,
+       "position": {
+        "position": 40,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "AAAAAAAAAAAAAAA1",
+       "score": 877,
+       "rankedScore": 877,
+       "position": {
+        "position": 41,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B00000000000002A",
+       "score": 874,
+       "rankedScore": 874,
+       "position": {
+        "position": 42,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B00000000000002B",
+       "score": 871,
+       "rankedScore": 871,
+       "position": {
+        "position": 43,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B00000000000002C",
+       "score": 868,
+       "rankedScore": 868,
+       "position": {
+        "position": 44,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B00000000000002D",
+       "score": 865,
+       "rankedScore": 865,
+       "position": {
+        "position": 45,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B00000000000002E",
+       "score": 862,
+       "rankedScore": 862,
+       "position": {
+        "position": 46,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B00000000000002F",
+       "score": 859,
+       "rankedScore": 859,
+       "position": {
+        "position": 47,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B000000000000030",
+       "score": 856,
+       "rankedScore": 856,
+       "position": {
+        "position": 48,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B000000000000031",
+       "score": 853,
+       "rankedScore": 853,
+       "position": {
+        "position": 49,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B000000000000032",
+       "score": 850,
+       "rankedScore": 850,
+       "position": {
+        "position": 50,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B000000000000033",
+       "score": 847,
+       "rankedScore": 847,
+       "position": {
+        "position": 51,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B000000000000034",
+       "score": 844,
+       "rankedScore": 844,
+       "position": {
+        "position": 52,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B000000000000035",
+       "score": 841,
+       "rankedScore": 841,
+       "position": {
+        "position": 53,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B000000000000036",
+       "score": 838,
+       "rankedScore": 838,
+       "position": {
+        "position": 54,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B000000000000037",
+       "score": 835,
+       "rankedScore": 835,
+       "position": {
+        "position": 55,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B000000000000038",
+       "score": 832,
+       "rankedScore": 832,
+       "position": {
+        "position": 56,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B000000000000039",
+       "score": 829,
+       "rankedScore": 829,
+       "position": {
+        "position": 57,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B00000000000003A",
+       "score": 826,
+       "rankedScore": 826,
+       "position": {
+        "position": 58,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B00000000000003B",
+       "score": 823,
+       "rankedScore": 823,
+       "position": {
+        "position": 59,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B00000000000003C",
+       "score": 820,
+       "rankedScore": 820,
+       "position": {
+        "position": 60,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B00000000000003D",
+       "score": 817,
+       "rankedScore": 817,
+       "position": {
+        "position": 61,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B00000000000003E",
+       "score": 814,
+       "rankedScore": 814,
+       "position": {
+        "position": 62,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B00000000000003F",
+       "score": 811,
+       "rankedScore": 811,
+       "position": {
+        "position": 63,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B000000000000040",
+       "score": 808,
+       "rankedScore": 808,
+       "position": {
+        "position": 64,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B000000000000041",
+       "score": 805,
+       "rankedScore": 805,
+       "position": {
+        "position": 65,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B000000000000042",
+       "score": 802,
+       "rankedScore": 802,
+       "position": {
+        "position": 66,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B000000000000043",
+       "score": 799,
+       "rankedScore": 799,
+       "position": {
+        "position": 67,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B000000000000044",
+       "score": 796,
+       "rankedScore": 796,
+       "position": {
+        "position": 68,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B000000000000045",
+       "score": 793,
+       "rankedScore": 793,
+       "position": {
+        "position": 69,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B000000000000046",
+       "score": 790,
+       "rankedScore": 790,
+       "position": {
+        "position": 70,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B000000000000047",
+       "score": 787,
+       "rankedScore": 787,
+       "position": {
+        "position": 71,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B000000000000048",
+       "score": 784,
+       "rankedScore": 784,
+       "position": {
+        "position": 72,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B000000000000049",
+       "score": 781,
+       "rankedScore": 781,
+       "position": {
+        "position": 73,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B00000000000004A",
+       "score": 778,
+       "rankedScore": 778,
+       "position": {
+        "position": 74,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B00000000000004B",
+       "score": 775,
+       "rankedScore": 775,
+       "position": {
+        "position": 75,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B00000000000004C",
+       "score": 772,
+       "rankedScore": 772,
+       "position": {
+        "position": 76,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B00000000000004D",
+       "score": 769,
+       "rankedScore": 769,
+       "position": {
+        "position": 77,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B00000000000004E",
+       "score": 766,
+       "rankedScore": 766,
+       "position": {
+        "position": 78,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B00000000000004F",
+       "score": 763,
+       "rankedScore": 763,
+       "position": {
+        "position": 79,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B000000000000050",
+       "score": 760,
+       "rankedScore": 760,
+       "position": {
+        "position": 80,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B000000000000051",
+       "score": 757,
+       "rankedScore": 757,
+       "position": {
+        "position": 81,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B000000000000052",
+       "score": 754,
+       "rankedScore": 754,
+       "position": {
+        "position": 82,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B000000000000053",
+       "score": 751,
+       "rankedScore": 751,
+       "position": {
+        "position": 83,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B000000000000054",
+       "score": 748,
+       "rankedScore": 748,
+       "position": {
+        "position": 84,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B000000000000055",
+       "score": 745,
+       "rankedScore": 745,
+       "position": {
+        "position": 85,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B000000000000056",
+       "score": 742,
+       "rankedScore": 742,
+       "position": {
+        "position": 86,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B000000000000057",
+       "score": 739,
+       "rankedScore": 739,
+       "position": {
+        "position": 87,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B000000000000058",
+       "score": 736,
+       "rankedScore": 736,
+       "position": {
+        "position": 88,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B000000000000059",
+       "score": 733,
+       "rankedScore": 733,
+       "position": {
+        "position": 89,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B00000000000005A",
+       "score": 730,
+       "rankedScore": 730,
+       "position": {
+        "position": 90,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B00000000000005B",
+       "score": 727,
+       "rankedScore": 727,
+       "position": {
+        "position": 91,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B00000000000005C",
+       "score": 724,
+       "rankedScore": 724,
+       "position": {
+        "position": 92,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B00000000000005D",
+       "score": 721,
+       "rankedScore": 721,
+       "position": {
+        "position": 93,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B00000000000005E",
+       "score": 718,
+       "rankedScore": 718,
+       "position": {
+        "position": 94,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B00000000000005F",
+       "score": 715,
+       "rankedScore": 715,
+       "position": {
+        "position": 95,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B000000000000060",
+       "score": 712,
+       "rankedScore": 712,
+       "position": {
+        "position": 96,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B000000000000061",
+       "score": 709,
+       "rankedScore": 709,
+       "position": {
+        "position": 97,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B000000000000062",
+       "score": 706,
+       "rankedScore": 706,
+       "position": {
+        "position": 98,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B000000000000063",
+       "score": 703,
+       "rankedScore": 703,
+       "position": {
+        "position": 99,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B000000000000064",
+       "score": 700,
+       "rankedScore": 700,
+       "position": {
+        "position": 100,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B000000000000065",
+       "score": 697,
+       "rankedScore": 697,
+       "position": {
+        "position": 101,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B000000000000066",
+       "score": 694,
+       "rankedScore": 694,
+       "position": {
+        "position": 102,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B000000000000067",
+       "score": 691,
+       "rankedScore": 691,
+       "position": {
+        "position": 103,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B000000000000068",
+       "score": 688,
+       "rankedScore": 688,
+       "position": {
+        "position": 104,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B000000000000069",
+       "score": 685,
+       "rankedScore": 685,
+       "position": {
+        "position": 105,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B00000000000006A",
+       "score": 682,
+       "rankedScore": 682,
+       "position": {
+        "position": 106,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B00000000000006B",
+       "score": 679,
+       "rankedScore": 679,
+       "position": {
+        "position": 107,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B00000000000006C",
+       "score": 676,
+       "rankedScore": 676,
+       "position": {
+        "position": 108,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B00000000000006D",
+       "score": 673,
+       "rankedScore": 673,
+       "position": {
+        "position": 109,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B00000000000006E",
+       "score": 670,
+       "rankedScore": 670,
+       "position": {
+        "position": 110,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B00000000000006F",
+       "score": 667,
+       "rankedScore": 667,
+       "position": {
+        "position": 111,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B000000000000070",
+       "score": 664,
+       "rankedScore": 664,
+       "position": {
+        "position": 112,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B000000000000071",
+       "score": 661,
+       "rankedScore": 661,
+       "position": {
+        "position": 113,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B000000000000072",
+       "score": 658,
+       "rankedScore": 658,
+       "position": {
+        "position": 114,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B000000000000073",
+       "score": 655,
+       "rankedScore": 655,
+       "position": {
+        "position": 115,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B000000000000074",
+       "score": 652,
+       "rankedScore": 652,
+       "position": {
+        "position": 116,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B000000000000075",
+       "score": 649,
+       "rankedScore": 649,
+       "position": {
+        "position": 117,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B000000000000076",
+       "score": 646,
+       "rankedScore": 646,
+       "position": {
+        "position": 118,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B000000000000077",
+       "score": 643,
+       "rankedScore": 643,
+       "position": {
+        "position": 119,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B000000000000078",
+       "score": 640,
+       "rankedScore": 640,
+       "position": {
+        "position": 120,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B000000000000079",
+       "score": 637,
+       "rankedScore": 637,
+       "position": {
+        "position": 121,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B00000000000007A",
+       "score": 634,
+       "rankedScore": 634,
+       "position": {
+        "position": 122,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B00000000000007B",
+       "score": 631,
+       "rankedScore": 631,
+       "position": {
+        "position": 123,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B00000000000007C",
+       "score": 628,
+       "rankedScore": 628,
+       "position": {
+        "position": 124,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B00000000000007D",
+       "score": 625,
+       "rankedScore": 625,
+       "position": {
+        "position": 125,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B00000000000007E",
+       "score": 622,
+       "rankedScore": 622,
+       "position": {
+        "position": 126,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B00000000000007F",
+       "score": 619,
+       "rankedScore": 619,
+       "position": {
+        "position": 127,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B000000000000080",
+       "score": 616,
+       "rankedScore": 616,
+       "position": {
+        "position": 128,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B000000000000081",
+       "score": 613,
+       "rankedScore": 613,
+       "position": {
+        "position": 129,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B000000000000082",
+       "score": 610,
+       "rankedScore": 610,
+       "position": {
+        "position": 130,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B000000000000083",
+       "score": 607,
+       "rankedScore": 607,
+       "position": {
+        "position": 131,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B000000000000084",
+       "score": 604,
+       "rankedScore": 604,
+       "position": {
+        "position": 132,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B000000000000085",
+       "score": 601,
+       "rankedScore": 601,
+       "position": {
+        "position": 133,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B000000000000086",
+       "score": 598,
+       "rankedScore": 598,
+       "position": {
+        "position": 134,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B000000000000087",
+       "score": 595,
+       "rankedScore": 595,
+       "position": {
+        "position": 135,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B000000000000088",
+       "score": 592,
+       "rankedScore": 592,
+       "position": {
+        "position": 136,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B000000000000089",
+       "score": 589,
+       "rankedScore": 589,
+       "position": {
+        "position": 137,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B00000000000008A",
+       "score": 586,
+       "rankedScore": 586,
+       "position": {
+        "position": 138,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B00000000000008B",
+       "score": 583,
+       "rankedScore": 583,
+       "position": {
+        "position": 139,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B00000000000008C",
+       "score": 580,
+       "rankedScore": 580,
+       "position": {
+        "position": 140,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B00000000000008D",
+       "score": 577,
+       "rankedScore": 577,
+       "position": {
+        "position": 141,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B00000000000008E",
+       "score": 574,
+       "rankedScore": 574,
+       "position": {
+        "position": 142,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B00000000000008F",
+       "score": 571,
+       "rankedScore": 571,
+       "position": {
+        "position": 143,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B000000000000090",
+       "score": 568,
+       "rankedScore": 568,
+       "position": {
+        "position": 144,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B000000000000091",
+       "score": 565,
+       "rankedScore": 565,
+       "position": {
+        "position": 145,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B000000000000092",
+       "score": 562,
+       "rankedScore": 562,
+       "position": {
+        "position": 146,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B000000000000093",
+       "score": 559,
+       "rankedScore": 559,
+       "position": {
+        "position": 147,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B000000000000094",
+       "score": 556,
+       "rankedScore": 556,
+       "position": {
+        "position": 148,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B000000000000095",
+       "score": 553,
+       "rankedScore": 553,
+       "position": {
+        "position": 149,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B000000000000096",
+       "score": 550,
+       "rankedScore": 550,
+       "position": {
+        "position": 150,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B000000000000097",
+       "score": 547,
+       "rankedScore": 547,
+       "position": {
+        "position": 151,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B000000000000098",
+       "score": 544,
+       "rankedScore": 544,
+       "position": {
+        "position": 152,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B000000000000099",
+       "score": 541,
+       "rankedScore": 541,
+       "position": {
+        "position": 153,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B00000000000009A",
+       "score": 538,
+       "rankedScore": 538,
+       "position": {
+        "position": 154,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B00000000000009B",
+       "score": 535,
+       "rankedScore": 535,
+       "position": {
+        "position": 155,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B00000000000009C",
+       "score": 532,
+       "rankedScore": 532,
+       "position": {
+        "position": 156,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B00000000000009D",
+       "score": 529,
+       "rankedScore": 529,
+       "position": {
+        "position": 157,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B00000000000009E",
+       "score": 526,
+       "rankedScore": 526,
+       "position": {
+        "position": 158,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B00000000000009F",
+       "score": 523,
+       "rankedScore": 523,
+       "position": {
+        "position": 159,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B0000000000000A0",
+       "score": 520,
+       "rankedScore": 520,
+       "position": {
+        "position": 160,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B0000000000000A1",
+       "score": 517,
+       "rankedScore": 517,
+       "position": {
+        "position": 161,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B0000000000000A2",
+       "score": 514,
+       "rankedScore": 514,
+       "position": {
+        "position": 162,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B0000000000000A3",
+       "score": 511,
+       "rankedScore": 511,
+       "position": {
+        "position": 163,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B0000000000000A4",
+       "score": 508,
+       "rankedScore": 508,
+       "position": {
+        "position": 164,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B0000000000000A5",
+       "score": 505,
+       "rankedScore": 505,
+       "position": {
+        "position": 165,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B0000000000000A6",
+       "score": 502,
+       "rankedScore": 502,
+       "position": {
+        "position": 166,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B0000000000000A7",
+       "score": 499,
+       "rankedScore": 499,
+       "position": {
+        "position": 167,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B0000000000000A8",
+       "score": 496,
+       "rankedScore": 496,
+       "position": {
+        "position": 168,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B0000000000000A9",
+       "score": 493,
+       "rankedScore": 493,
+       "position": {
+        "position": 169,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B0000000000000AA",
+       "score": 490,
+       "rankedScore": 490,
+       "position": {
+        "position": 170,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B0000000000000AB",
+       "score": 487,
+       "rankedScore": 487,
+       "position": {
+        "position": 171,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B0000000000000AC",
+       "score": 484,
+       "rankedScore": 484,
+       "position": {
+        "position": 172,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B0000000000000AD",
+       "score": 481,
+       "rankedScore": 481,
+       "position": {
+        "position": 173,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B0000000000000AE",
+       "score": 478,
+       "rankedScore": 478,
+       "position": {
+        "position": 174,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B0000000000000AF",
+       "score": 475,
+       "rankedScore": 475,
+       "position": {
+        "position": 175,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B0000000000000B0",
+       "score": 472,
+       "rankedScore": 472,
+       "position": {
+        "position": 176,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B0000000000000B1",
+       "score": 469,
+       "rankedScore": 469,
+       "position": {
+        "position": 177,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B0000000000000B2",
+       "score": 466,
+       "rankedScore": 466,
+       "position": {
+        "position": 178,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B0000000000000B3",
+       "score": 463,
+       "rankedScore": 463,
+       "position": {
+        "position": 179,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B0000000000000B4",
+       "score": 460,
+       "rankedScore": 460,
+       "position": {
+        "position": 180,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B0000000000000B5",
+       "score": 457,
+       "rankedScore": 457,
+       "position": {
+        "position": 181,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B0000000000000B6",
+       "score": 454,
+       "rankedScore": 454,
+       "position": {
+        "position": 182,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B0000000000000B7",
+       "score": 451,
+       "rankedScore": 451,
+       "position": {
+        "position": 183,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B0000000000000B8",
+       "score": 448,
+       "rankedScore": 448,
+       "position": {
+        "position": 184,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B0000000000000B9",
+       "score": 445,
+       "rankedScore": 445,
+       "position": {
+        "position": 185,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B0000000000000BA",
+       "score": 442,
+       "rankedScore": 442,
+       "position": {
+        "position": 186,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B0000000000000BB",
+       "score": 439,
+       "rankedScore": 439,
+       "position": {
+        "position": 187,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B0000000000000BC",
+       "score": 436,
+       "rankedScore": 436,
+       "position": {
+        "position": 188,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B0000000000000BD",
+       "score": 433,
+       "rankedScore": 433,
+       "position": {
+        "position": 189,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B0000000000000BE",
+       "score": 430,
+       "rankedScore": 430,
+       "position": {
+        "position": 190,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B0000000000000BF",
+       "score": 427,
+       "rankedScore": 427,
+       "position": {
+        "position": 191,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B0000000000000C0",
+       "score": 424,
+       "rankedScore": 424,
+       "position": {
+        "position": 192,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B0000000000000C1",
+       "score": 421,
+       "rankedScore": 421,
+       "position": {
+        "position": 193,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B0000000000000C2",
+       "score": 418,
+       "rankedScore": 418,
+       "position": {
+        "position": 194,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B0000000000000C3",
+       "score": 415,
+       "rankedScore": 415,
+       "position": {
+        "position": 195,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B0000000000000C4",
+       "score": 412,
+       "rankedScore": 412,
+       "position": {
+        "position": 196,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B0000000000000C5",
+       "score": 409,
+       "rankedScore": 409,
+       "position": {
+        "position": 197,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B0000000000000C6",
+       "score": 406,
+       "rankedScore": 406,
+       "position": {
+        "position": 198,
+        "count": 200
+       }
+      },
+      {
+       "playerId": "B0000000000000C7",
+       "score": 403,
+       "rankedScore": 403,
+       "position": {
+        "position": 199,
+        "count": 200
+       }
+      }
+     ]
+    },
+    "offsetResults": {
+     "rankedEntry": [
+      {
+       "playerId": "AAAAAAAAAAAAAAA1",
+       "score": 877,
+       "rankedScore": 877,
+       "position": {
+        "position": 41,
+        "count": 200
+       }
+      }
+     ]
+    }
+   },
+   "segmentResults": {
+    "topResults": {
+     "rankedEntry": []
+    },
+    "offsetResults": {
+     "rankedEntry": []
+    }
+   }
+  }
+ }
+}

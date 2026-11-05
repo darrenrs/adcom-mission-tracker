@@ -1,0 +1,256 @@
+{
+ "project": "adcom",
+ "status": "ok",
+ "error": null,
+ "resultMap": null,
+ "data": [
+  {
+   "instance": {
+    "guid": "22222222-2222-4222-8222-222222222222",
+    "definition": {
+     "guid": "22222222-2222-4222-8222-222222222222",
+     "name": "oldtheme",
+     "project": "adcom",
+     "segmentDefinition": {
+      "name": "userdefined_limitedentries",
+      "configuration": {
+       "MAX_ENTRIES": "25",
+       "SEGMENT_PREFIX": "oldtheme"
+      }
+     },
+     "requirements": [
+      {
+       "dateFrom": "2026-07-01T16:00:00Z",
+       "dateTo": "2026-07-05T15:59:00Z",
+       "not": false,
+       "name": "date"
+      }
+     ]
+    },
+    "status": {
+     "guid": "22222222-2222-4222-8222-222222222222",
+     "currentStatus": "Archived",
+     "created": "2026-07-01T16:00:00Z"
+    },
+    "statistics": {
+     "rootCounts": {
+      "global": 90,
+      "sandbox": 5,
+      "archive": 10
+     }
+    }
+   },
+   "runtimeStatus": {
+    "active": false
+   }
+  },
+  {
+   "instance": {
+    "guid": "11111111-1111-4111-8111-111111111111",
+    "definition": {
+     "guid": "11111111-1111-4111-8111-111111111111",
+     "name": "atlantis",
+     "project": "adcom",
+     "segmentDefinition": {
+      "name": "userdefined_limitedentries",
+      "configuration": {
+       "MAX_ENTRIES": "25",
+       "SEGMENT_PREFIX": "atlantis"
+      }
+     },
+     "requirements": [
+      {
+       "dateFrom": "2026-08-10T16:00:00Z",
+       "dateTo": "2026-08-13T15:59:00Z",
+       "not": false,
+       "name": "date"
+      }
+     ]
+    },
+    "status": {
+     "guid": "11111111-1111-4111-8111-111111111111",
+     "currentStatus": "Enabled",
+     "created": "2026-08-10T16:00:00Z"
+    },
+    "statistics": {
+     "rootCounts": {
+      "global": 195,
+      "sandbox": 5
+     }
+    }
+   },
+   "runtimeStatus": {
+    "active": true
+   }
+  },
+  {
+   "instance": {
+    "guid": "33333333-3333-4333-8333-333333333333",
+    "definition": {
+     "guid": "33333333-3333-4333-8333-333333333333",
+     "name": "futuretheme",
+     "project": "adcom",
+     "segmentDefinition": {
+      "name": "userdefined_limitedentries",
+      "configuration": {
+       "MAX_ENTRIES": "25",
+       "SEGMENT_PREFIX": "futuretheme"
+      }
+     },
+     "requirements": [
+      {
+       "dateFrom": "2026-09-01T16:00:00Z",
+       "dateTo": "2026-09-04T15:59:00Z",
+       "not": false,
+       "name": "date"
+      }
+     ]
+    },
+    "status": {
+     "guid": "33333333-3333-4333-8333-333333333333",
+     "currentStatus": "Enabled",
+     "created": "2026-09-01T16:00:00Z"
+    },
+    "statistics": {
+     "rootCounts": {
+      "global": 0,
+      "sandbox": 0
+     }
+    }
+   },
+   "runtimeStatus": {
+    "active": true
+   }
+  },
+  {
+   "instance": {
+    "guid": "44444444-4444-4444-8444-444444444444",
+    "definition": {
+     "guid": "44444444-4444-4444-8444-444444444444",
+     "name": "emptytheme",
+     "project": "adcom",
+     "segmentDefinition": {
+      "name": "userdefined_limitedentries",
+      "configuration": {
+       "MAX_ENTRIES": "25",
+       "SEGMENT_PREFIX": "emptytheme"
+      }
+     },
+     "requirements": [
+      {
+       "dateFrom": "2026-06-01T16:00:00Z",
+       "dateTo": "2026-06-04T15:59:00Z",
+       "not": false,
+       "name": "date"
+      }
+     ]
+    },
+    "status": {
+     "guid": "44444444-4444-4444-8444-444444444444",
+     "currentStatus": "Archived",
+     "created": "2026-06-01T16:00:00Z"
+    },
+    "statistics": {
+     "rootCounts": {
+      "global": 0,
+      "sandbox": 0
+     }
+    }
+   },
+   "runtimeStatus": {
+    "active": false
+   }
+  },
+  {
+   "instance": {
+    "guid": "3b788292-787f-4c60-9f8d-fee2f1216847",
+    "definition": {
+     "guid": "3b788292-787f-4c60-9f8d-fee2f1216847",
+     "name": "hiddentheme",
+     "project": "adcom",
+     "segmentDefinition": {
+      "name": "userdefined_limitedentries",
+      "configuration": {
+       "MAX_ENTRIES": "25",
+       "SEGMENT_PREFIX": "hiddentheme"
+      }
+     },
+     "requirements": [
+      {
+       "dateFrom": "2026-05-01T16:00:00Z",
+       "dateTo": "2026-05-04T15:59:00Z",
+       "not": false,
+       "name": "date"
+      }
+     ]
+    },
+    "status": {
+     "guid": "3b788292-787f-4c60-9f8d-fee2f1216847",
+     "currentStatus": "Archived",
+     "created": "2026-05-01T16:00:00Z"
+    },
+    "statistics": {
+     "rootCounts": {
+      "global": 50,
+      "sandbox": 0
+     }
+    }
+   },
+   "runtimeStatus": {
+    "active": false
+   }
+  },
+  {
+   "instance": {
+    "guid": "55555555-5555-4555-8555-555555555555",
+    "definition": {
+     "guid": "x",
+     "name": "template",
+     "project": "adcom"
+    },
+    "status": {
+     "currentStatus": "Enabled"
+    }
+   }
+  },
+  {
+   "instance": {
+    "guid": "66666666-6666-4666-8666-666666666666",
+    "definition": {
+     "guid": "x",
+     "name": "other",
+     "project": "another-project",
+     "segmentDefinition": {
+      "name": "userdefined_limitedentries",
+      "configuration": {
+       "MAX_ENTRIES": "25",
+       "SEGMENT_PREFIX": "other"
+      }
+     },
+     "requirements": [
+      {
+       "dateFrom": "2026-07-01T16:00:00Z",
+       "dateTo": "2026-07-05T15:59:00Z",
+       "not": false,
+       "name": "date"
+      }
+     ]
+    },
+    "status": {
+     "guid": "66666666-6666-4666-8666-666666666666",
+     "currentStatus": "Archived",
+     "created": "2026-07-01T16:00:00Z"
+    },
+    "statistics": {
+     "rootCounts": {
+      "global": 5,
+      "sandbox": 0
+     }
+    }
+   },
+   "runtimeStatus": {
+    "active": false
+   }
+  }
+ ]
+}
