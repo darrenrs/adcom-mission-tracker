@@ -237,7 +237,7 @@ test('shows the name, description and dates of an event', async ({ page }) => {
   await expect(name).not.toBeEmpty();
   expect(await name.evaluate((node) => getComputedStyle(node).textTransform)).toBe('uppercase');
   await expect(header.locator('p').first()).not.toBeEmpty();
-  await expect(header).toContainText(/\d{4} - .*\d{4}/);
+  await expect(header).toContainText(/[A-Z][a-z]{2} \d{1,2}.*–.*\d{1,2}/);
   await expect(header.getByTestId('game-banner')).toBeVisible();
   expect(await header.getByTestId('game-banner').evaluate((img: HTMLImageElement) => img.naturalWidth)).toBeGreaterThan(0);
 });

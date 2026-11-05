@@ -1,15 +1,16 @@
 # New Tracker: Progress and Handoff
 
-**Status:** The 31 October layout brief is built and waiting for the owner's review. Phase 4 has not started.
+**Status:** The 4 November brief (Leaderboard, Schedule, polish) is built and waiting for the owner's review. Phase 4 has not started.
 **Branch:** `new-tracker`. It has not been pushed.
-**Last updated:** 31 October 2026.
+**Last updated:** 4 November 2026.
 
 Start here when picking the work up. Nothing on this branch is deployed, because `deploy.yml` only deploys `master`.
 
 ## Next step
 
-1. The owner reviews the layout brief work and sends the rest of their notes. They said more is coming, and that calculation tests will follow.
-2. Wait for the owner's go-ahead before starting Phase 4.
+1. The owner adds `API_URL_LEADERBOARD` and `API_GCLOUD_TOKEN` to the tracker's `.env` (same values as adcom-leaderboard). Then check one real PlayFab ID against the old leaderboard page, and confirm the per-player call returns the whole Shortboard (see Leaderboard notes).
+2. The owner decides the auto-buy question below and reviews the 4 November work.
+3. Wait for the owner's go-ahead before starting Phase 4.
 
 ## Ground rules from the owner
 
@@ -33,6 +34,7 @@ Start here when picking the work up. Nothing on this branch is deployed, because
 | 2. Missions | Design system, shell, Missions tab, settings | Done and reviewed, with changes below |
 | 3. Calculators | Engine, calculator on mission pages, Production tab | Done. Owner found display issues still to fix |
 | 3b. Layout brief | URL scheme, rank in the top bar, Game View tab, Production rework | Built. Owner review pending |
+| 3c. Leaderboard brief | Leaderboard tab, Schedule and All Events pickers, Game View, Production, Trades and calculator polish | Built. Owner review pending |
 | 4. Parity | Events and Reference tabs, Docker build, remove legacy `public/` files | Not started. Owner review afterwards |
 | 5. PDF features | See the list under Phase 5 | Not started. Each group reviewed separately |
 | 6. Test independence | Remove every test's dependency on legacy code | Not started. Must finish before any merge to `master` |
@@ -103,6 +105,22 @@ The work:
 - GitHub, Privacy, Terms and the build id are in Settings. The footer keeps only the fan content notice.
 - Only plain Up and Down remain as keyboard input.
 
+**Leaderboard (AdCom only)**
+- The tracker's Express app proxies Hyper Hippo's leaderboard API (`server/leaderboard/`), with the archiver's rate limits. Events are cached 10 minutes, the full board 5 minutes per event, player results 60 seconds.
+- `GET /api/leaderboard/events` always answers 200; without a token it returns no events, so pages load cleanly. In development, Vite answers it the same way unless `LEADERBOARD_BACKEND` points at a local `node app.js`.
+- The tab appears only for a started AdCom event the API knows. Rewards come from the schedule's `LteLeaderboards` and `LteShortLeaderboards`; events missing from the schedule show no rewards.
+- The PlayFab ID is saved as `PlayerId` and copied once from the old site's `playerId`.
+- Not verified live: fixtures are synthetic. The per-player call uses `topCount=25`; if Shortboards come back truncated, set `LEADERBOARD_PLAYER_TOP_COUNT=9999999`. The full-board call has a 30 second timeout.
+
+**Schedule and events**
+- Events come from the schedule file and the leaderboard API, matched by theme with starts within 24 hours. Either source can add an event. Cycle events now carry leaderboard ids too.
+- The mode menu has Motherland, the live event, Schedule (react-day-picker calendar with an event list) and All Events (every balance by name, opened as a preview). The Events tab is gone.
+- AdCom has no calendar icon in its assets; a plain icon stands in until the owner adds one. Event accent colours do not exist in the data; researcher card backgrounds wait for them.
+
+**Auto-buy (open question)**
+- Fixed: auto-buy rounded up to the end of a 1-second or 1% step, so it read slower than plain online. It also never bought the mission's own generators, and spent them on deeper tiers.
+- Still open: for some Own missions, buying the deepest generators spends the shared resource and comrades the mission's generators cost, so auto-buy is genuinely slower (5 of 121 sampled missions, 1% to 2.6x). The owner decides whether auto-buy should report the faster of the two strategies.
+
 **Not wanted yet:** an Undo prompt after completing a mission, and collapsing older Completed ranks. The owner declined both for now.
 
 **Engine rules:** Common speed researchers set cycle time, and other researchers multiply output. Warps use the online calculation. Nothing is bought during an offline period. Tied payouts run deepest first, because the measured effect is negligible.
@@ -150,7 +168,7 @@ npm run build
 
 `npm run golden` recaptures mission traces from `master`. Run it only when balance data changes. If the data has changed, the mission tests fail and tell you to run it. This command goes away in Phase 6.
 
-At the last commit, all 1,250 unit tests and 86 browser tests passed, and `npm run build` succeeded.
+At the last commit, all 1,315 unit tests and 156 browser tests passed, and `npm run build` succeeded.
 
 ## Where things are
 
@@ -160,7 +178,8 @@ At the last commit, all 1,250 unit tests and 86 browser tests passed, and `npm r
 | `client/src/engine/` | Production formula, goals, ranges, Web Worker |
 | `client/src/storage/` | Prefixed keys, migration, reset |
 | `client/src/state/` | Zustand store and URL navigation |
-| `client/src/features/` | Screens: game, missions, mission, calculator, production, settings, shell |
+| `client/src/features/` | Screens: game, missions, mission, calculator, production, leaderboard, schedule, settings, shell |
+| `server/leaderboard/` | The leaderboard proxy: rate-limited client, parsing, cached routes |
 | `tests/golden/` | Mission traces captured from legacy code |
 | `tests/legacy/` | Comparisons against the real legacy functions on `master`. Temporary, removed in Phase 6 |
 | `tests/e2e/` | Playwright tests at phone and desktop widths |

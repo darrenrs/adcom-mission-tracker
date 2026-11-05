@@ -23,7 +23,8 @@ test.afterEach(async ({ page }) => {
 });
 
 test('Completed follows mission order, not the order they were completed in', async ({ page }) => {
-  await page.goto('?view=missions&mode=lte');
+  // A Motherland rank always has three current missions; the live event may not.
+  await page.goto('?view=missions&mode=evergreen&rank=5');
   await expect(missionButtons(page, 'Complete').first()).toBeVisible();
 
   const missionName = (label: string | null) => label?.replace(/^.*mission:\s*/, '').trim();
