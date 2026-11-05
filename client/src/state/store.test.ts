@@ -118,6 +118,25 @@ describe('tracker store', () => {
     expect(form).not.toHaveProperty('ResearcherOverrides');
   });
 
+  it('copies the old leaderboard site\'s player ID once, and then keeps its own', async () => {
+    const backend = memoryBackend({});
+    const deps = (legacy: string | null): TrackerDeps => ({
+      storage: createTrackerStorage(backend),
+      loadData: async () => data,
+      runtime: { titleIds: { adcom: '6bf5', ages: 'dc4bb' }, assetBaseByTitleId: {} },
+      now: () => 1000,
+      search: () => '',
+      legacyPlayerId: () => legacy
+    });
+    expect(createTrackerStore(deps('abc123')).getState().settings.playerId).toBe('ABC123');
+
+    const store = createTrackerStore(deps('ffff'));
+    expect(store.getState().settings.playerId).toBe('ABC123');
+    store.getState().setPlayerId('DEF456');
+    expect(createTrackerStore(deps('ffff')).getState().settings.playerId).toBe('DEF456');
+    expect(createTrackerStore({ ...deps('not an id'), storage: createTrackerStorage(memoryBackend({})) }).getState().settings.playerId).toBe('');
+  });
+
   it('resets one mode without touching other tools', async () => {
     const { store, backend } = setup({ playerId: 'abc' });
     await store.getState().boot();

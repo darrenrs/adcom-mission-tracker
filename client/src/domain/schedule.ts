@@ -192,6 +192,13 @@ export function updateSoonestOneOff(
   }
 }
 
+function cycleLeaderboardIds(cycle: LteCycle, index: number): Pick<LteInfo, 'LeaderboardId' | 'GlobalLeaderboardId'> {
+  const pick = (ids: readonly string[] | undefined) => (ids?.length ? ids[index % ids.length] : undefined);
+  const short = pick(cycle.LteShortLeaderboardIds);
+  const global = pick(cycle.LteLeaderboardIds);
+  return { ...(short ? { LeaderboardId: short } : {}), ...(global ? { GlobalLeaderboardId: global } : {}) };
+}
+
 export function updateSoonestCycle(
   cycle: LteCycle,
   now: number,
@@ -258,7 +265,9 @@ export function updateSoonestCycle(
           ThemeId: balanceData.ThemeId,
           StartTimeMillis: curStartTime.getTime(),
           EndTimeMillis: curEndTime.getTime(),
-          Rewards: getMilestoneRewardsById(rewardId, schedule, isAges)
+          Rewards: getMilestoneRewardsById(rewardId, schedule, isAges),
+          // Not in legacy, which only read leaderboard ids for one-offs.
+          ...cycleLeaderboardIds(cycle, curCycleIndex)
         });
       }
     }

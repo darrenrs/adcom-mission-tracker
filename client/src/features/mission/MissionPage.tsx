@@ -67,7 +67,7 @@ function PartIcon({ src }: { src: string }) {
   return <img src={src} alt="" width={24} height={24} loading="lazy" className="inline-block size-6 object-contain" />;
 }
 
-function partIconUrl(part: RewardPart, mode: TrackerMode, assets: AssetResolver): string {
+export function partIconUrl(part: RewardPart, mode: TrackerMode, assets: AssetResolver): string {
   switch (part.kind) {
     case 'capsule':
       return assets.active(`shared/gacha/${part.id}.png`);
@@ -81,7 +81,7 @@ function partIconUrl(part: RewardPart, mode: TrackerMode, assets: AssetResolver)
   }
 }
 
-function RewardView({ parts, mode, assets }: { parts: RewardPart[]; mode: TrackerMode; assets: AssetResolver }) {
+export function RewardView({ parts, mode, assets }: { parts: RewardPart[]; mode: TrackerMode; assets: AssetResolver }) {
   const lead = parts.filter((part) => part.kind === 'text' || part.kind === 'capsule');
   const items = parts.filter((part) => part.kind === 'resource' || part.kind === 'card');
 

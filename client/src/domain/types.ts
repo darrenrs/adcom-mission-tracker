@@ -157,6 +157,8 @@ export interface LteCycle {
   EndTime: string;
   LteBalanceIds: string[];
   LteRewardIds: string[];
+  LteLeaderboardIds?: string[];
+  LteShortLeaderboardIds?: string[];
   [key: string]: unknown;
 }
 

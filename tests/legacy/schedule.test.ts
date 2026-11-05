@@ -20,7 +20,10 @@ const legacyJson = <T>(legacy: Legacy, expression: string, vars: Record<string, 
   const text = legacy.run<string | undefined>(`JSON.stringify(${expression})`, vars);
   return (text === undefined ? undefined : JSON.parse(text)) as T;
 };
-const plain = <T>(value: T): T => (value === undefined ? value : (JSON.parse(JSON.stringify(value)) as T));
+// Leaderboard ids are left out: legacy only read them for one-offs, and the tracker now reads them for cycles too.
+const LEADERBOARD_KEYS = new Set(['LeaderboardId', 'GlobalLeaderboardId']);
+const plain = <T>(value: T): T =>
+  value === undefined ? value : (JSON.parse(JSON.stringify(value, (key, field: unknown) => (LEADERBOARD_KEYS.has(key) ? undefined : field))) as T);
 
 function mulberry32(seed: number) {
   let state = seed >>> 0;
@@ -91,10 +94,10 @@ describe.skipIf(!assetsAvailable).each(TITLE_KEYS)('schedule matches legacy (%s)
 
     for (const now of times) {
       const expectedCurrent = legacyJson<LteInfo | undefined>(legacy, 'getCurrentEventInfo(__now)', { __now: now });
-      expect(plain(getCurrentLteInfo(schedule, now, isAges)), `current ${now}`).toEqual(expectedCurrent);
+      expect(plain(getCurrentLteInfo(schedule, now, isAges)), `current ${now}`).toEqual(plain(expectedCurrent));
       counts.current++;
 
-      expect(plain(getSoonestLteInfos(schedule, now, isAges)), `soonest ${now}`).toEqual(legacyEvents(now, 10, 20));
+      expect(plain(getSoonestLteInfos(schedule, now, isAges)), `soonest ${now}`).toEqual(plain(legacyEvents(now, 10, 20)));
       counts.soonest++;
     }
   });
@@ -108,7 +111,7 @@ describe.skipIf(!assetsAvailable).each(TITLE_KEYS)('schedule matches legacy (%s)
       for (let i = 0; i < 12; i++) {
         const now = Math.floor(start + random() * (end - start));
         expect(plain(getSoonestLteInfos(schedule, now, isAges, min, max)), `${min}/${max} at ${now}`).toEqual(
-          legacyEvents(now, min, max)
+          plain(legacyEvents(now, min, max))
         );
         counts.soonest++;
       }

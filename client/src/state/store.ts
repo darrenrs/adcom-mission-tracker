@@ -33,6 +33,8 @@ export interface Settings {
   theme: ThemeSetting;
   completedVisible: boolean;
   howToUseVisible: boolean;
+  /** The PlayFab ID the Leaderboard tab looks up, kept across events. */
+  playerId: string;
 }
 
 /** Everything derived from one title, mode and event. Replaced as a whole when any of those change. */
@@ -78,6 +80,7 @@ export interface TrackerState {
   setTheme(theme: ThemeSetting): void;
   setCompletedVisible(visible: boolean): void;
   setHowToUseVisible(visible: boolean): void;
+  setPlayerId(playerId: string): void;
   resetMode(): void;
   resetAll(): void;
 }
@@ -92,7 +95,12 @@ export interface TrackerDeps {
   showInUrl?(title: string, mode: string): void;
   /** The leaderboard API's events. Rejects or returns an empty list when the server has no leaderboard set up. */
   loadLeaderboardEvents?(): Promise<LeaderboardEvent[]>;
+  /** The ID the old leaderboard site saved, copied once so players need not type it again. */
+  legacyPlayerId?(): string | null;
 }
+
+/** A PlayFab ID as the game shows it. */
+export const PLAYER_ID = /^[0-9A-F]{1,16}$/;
 
 const EMPTY_BALANCE: GameBalance = { Missions: [] };
 
@@ -148,7 +156,8 @@ function readSettings(storage: TrackerStorage, title: TitleConfig): Settings {
   return {
     theme: theme === 'light' || theme === 'dark' ? theme : 'system',
     completedVisible: completedVisible === 'true',
-    howToUseVisible: storage.get('HowToUseVisible') !== 'false'
+    howToUseVisible: storage.get('HowToUseVisible') !== 'false',
+    playerId: storage.get('PlayerId') ?? ''
   };
 }
 
@@ -237,6 +246,12 @@ function cloneBoard(board: MissionBoard): MissionBoard {
 
 export function createTrackerStore(deps: TrackerDeps): StoreApi<TrackerState> {
   const { storage } = deps;
+  if (storage.get('PlayerId') === null) {
+    const legacy = deps.legacyPlayerId?.()?.trim().toUpperCase();
+    if (legacy && PLAYER_ID.test(legacy)) {
+      storage.set('PlayerId', legacy);
+    }
+  }
   const loaded = new Map<string, Promise<GameData>>();
   let lastStartup = '';
 
@@ -456,6 +471,11 @@ export function createTrackerStore(deps: TrackerDeps): StoreApi<TrackerState> {
         updateSettings({ completedVisible });
       },
 
+      setPlayerId(playerId) {
+        storage.set('PlayerId', playerId);
+        updateSettings({ playerId });
+      },
+
       setHowToUseVisible(howToUseVisible) {
         storage.set('HowToUseVisible', String(howToUseVisible));
         updateSettings({ howToUseVisible });
@@ -489,6 +509,13 @@ function browserDeps(): TrackerDeps {
     now: () => Date.now(),
     search: () => window.location.search,
     showInUrl,
+    legacyPlayerId: () => {
+      try {
+        return window.localStorage.getItem('playerId');
+      } catch {
+        return null;
+      }
+    },
     loadLeaderboardEvents: async () => {
       const response = await fetch('api/leaderboard/events');
       if (!response.ok) {

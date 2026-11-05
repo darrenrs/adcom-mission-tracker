@@ -79,3 +79,40 @@ describe('entryAsLteInfo', () => {
     expect(entryAsLteInfo(entry as never)).toMatchObject({ BalanceId: 'zombie', ThemeId: 'zombie', StartTimeMillis: T, Rewards: [] });
   });
 });
+
+describe('scheduleEvents', () => {
+  it('gives cycle events the leaderboard ids of their slot in the rotation', async () => {
+    const { scheduleEvents } = await import('./eventList');
+    const start = Date.UTC(2026, 0, 1);
+    const events = scheduleEvents(
+      {
+        LteBalanceData: [
+          { BalanceId: 'a-bal-1', ThemeId: 'a', DurationHours: 96 },
+          { BalanceId: 'b-bal-1', ThemeId: 'b', DurationHours: 96 }
+        ],
+        LteOneOff: [],
+        LteSchedule: [
+          {
+            StartDayOfTheWeek: 'Thursday',
+            StartHourUTC: 16,
+            StartTime: new Date(start).toISOString(),
+            EndTime: new Date(start + 30 * 86_400_000).toISOString(),
+            LteBalanceIds: ['a-bal-1', 'b-bal-1'],
+            LteRewardIds: ['r1'],
+            LteLeaderboardIds: ['leaderboard1', 'leaderboard2'],
+            LteShortLeaderboardIds: ['bucket1', 'bucket2']
+          }
+        ]
+      } as never,
+      false,
+      start,
+      4
+    );
+    expect(events.map((event) => [event.ThemeId, event.GlobalLeaderboardId, event.LeaderboardId])).toEqual([
+      ['a', 'leaderboard1', 'bucket1'],
+      ['b', 'leaderboard2', 'bucket2'],
+      ['a', 'leaderboard1', 'bucket1'],
+      ['b', 'leaderboard2', 'bucket2']
+    ]);
+  });
+});
