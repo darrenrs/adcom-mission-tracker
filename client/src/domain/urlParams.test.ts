@@ -97,4 +97,21 @@ describe('resolveStartup', () => {
       expect(resolve(`?balance=${id}`).preview).toBe(false);
     }
   });
+
+  it('opens an event only the leaderboard API knows, by time', () => {
+    const extra = { LteId: 'g', BalanceId: 'ghost', ThemeId: 'ghost', StartTimeMillis: START + 500 * HOUR, EndTimeMillis: START + 600 * HOUR, Rewards: [] };
+    const startup = resolveStartup({
+      params: parseStartupParams(`?at=${START + 550 * HOUR}`),
+      savedMode: null,
+      savedRank: null,
+      schedule,
+      balances: { evergreen: EMPTY },
+      now: START,
+      title: { key: 'adcom', themeIdOverrides: {} },
+      extraLtes: [extra]
+    });
+    expect(startup).toMatchObject({ mode: 'lte', isFakeLte: true });
+    expect(startup.lteBalance?.Missions).toEqual([]);
+    expect(startup.lteInfo?.ThemeId).toBe('ghost');
+  });
 });

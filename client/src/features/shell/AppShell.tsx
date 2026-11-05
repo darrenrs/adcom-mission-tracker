@@ -1,27 +1,29 @@
-import { CalendarDays, Factory, Gamepad2, ListChecks, LibraryBig, type LucideIcon } from 'lucide-react';
+import { Factory, Gamepad2, ListChecks, LibraryBig, Trophy, type LucideIcon } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { navigate, useView, type ViewName } from '@/state/navigation';
 import { Footer } from './Footer';
 import { Header } from './Header';
+import { useLeaderboardAvailable } from '@/features/leaderboard/useLeaderboard';
 
 const TABS: { view: ViewName; label: string; icon: LucideIcon }[] = [
   { view: 'game', label: 'Game View', icon: Gamepad2 },
   { view: 'missions', label: 'Missions', icon: ListChecks },
   { view: 'production', label: 'Production', icon: Factory },
-  { view: 'events', label: 'Events', icon: CalendarDays },
+  { view: 'leaderboard', label: 'Leaderboard', icon: Trophy },
   { view: 'reference', label: 'Reference', icon: LibraryBig }
 ];
 
 function Tabs({ className }: { className: string }) {
   const active = useView();
+  const showLeaderboard = useLeaderboardAvailable();
   return (
     <nav aria-label="Main" className={className}>
-      {TABS.map(({ view, label, icon: Icon }) => (
+      {TABS.filter(({ view }) => view !== 'leaderboard' || showLeaderboard).map(({ view, label, icon: Icon }) => (
         <button
           key={view}
           type="button"
           aria-current={active === view ? 'page' : undefined}
-          onClick={() => navigate({ view: view === 'game' ? null : view, mission: null, researcher: null })}
+          onClick={() => navigate({ view: view === 'game' ? null : view, mission: null, researcher: null, tab: null })}
           className="flex min-h-14 min-w-0 flex-1 flex-col items-center justify-center gap-0.5 text-[11px] font-medium whitespace-nowrap text-muted transition-colors hover:text-ink aria-[current=page]:text-accent sm:min-h-11 sm:flex-none sm:flex-row sm:gap-2 sm:border-b-2 sm:border-transparent sm:px-3 sm:text-sm sm:aria-[current=page]:border-accent"
         >
           <Icon aria-hidden size={20} />

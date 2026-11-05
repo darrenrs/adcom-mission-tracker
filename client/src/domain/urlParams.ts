@@ -41,6 +41,8 @@ export interface ResolveStartupInput {
   balances: Readonly<Record<string, Balance>>;
   now: number;
   title: StartupTitle;
+  /** Events only the leaderboard API knows about, so `at` can open them too. */
+  extraLtes?: readonly LteInfo[];
 }
 
 export interface Startup {
@@ -93,7 +95,13 @@ export function resolveStartup(input: ResolveStartupInput): Startup {
     params.balance !== null && Object.hasOwn(balances, params.balance) && !BALANCE_EXCLUSIONS.includes(params.balance)
       ? params.balance
       : null;
-  const scheduled = params.at === null ? undefined : getCurrentLteInfo(schedule, params.at, isAges);
+  const at = params.at;
+  let scheduled = at === null ? undefined : getCurrentLteInfo(schedule, at, isAges);
+  const runs = (info: LteInfo | undefined) => at !== null && info !== undefined && info.StartTimeMillis <= at && at < info.EndTimeMillis;
+  const extra = input.extraLtes?.find(runs);
+  if (extra && !runs(scheduled)) {
+    scheduled = extra;
+  }
 
   const impliedMode = previewId !== null || scheduled ? 'lte' : params.rank !== null ? 'evergreen' : null;
   const mode: TrackerMode = params.mode ?? impliedMode ?? (input.savedMode === 'event' ? 'lte' : 'evergreen');
@@ -126,7 +134,8 @@ export function resolveStartup(input: ResolveStartupInput): Startup {
   let lteBalance: Balance | null = null;
   let isFakeLte = false;
   if (lteInfo) {
-    isFakeLte = mode === 'lte' && Boolean(balanceFor(lteInfo.BalanceId)?.['fake']);
+    // A fake balance, or an event from the leaderboard API whose balance the tracker does not have yet.
+    isFakeLte = mode === 'lte' && (Boolean(balanceFor(lteInfo.BalanceId)?.['fake']) || (lteInfo === extra && !balanceFor(lteInfo.BalanceId)));
     lteBalance = isFakeLte ? createFakeLteBalance() : balanceFor(lteInfo.BalanceId);
   }
 

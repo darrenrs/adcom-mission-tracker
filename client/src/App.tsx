@@ -1,10 +1,12 @@
 import { useEffect, useLayoutEffect, useSyncExternalStore } from 'react';
-import { EventsPage } from '@/features/events/EventsPage';
 import { GameViewPage } from '@/features/game/GameViewPage';
 import { MissionPage } from '@/features/mission/MissionPage';
 import { MissionsPage } from '@/features/missions/MissionsPage';
 import { ProductionPage } from '@/features/production/ProductionPage';
 import { ReferencePage } from '@/features/reference/ReferencePage';
+import { AllEventsPage } from '@/features/schedule/AllEventsPage';
+import { SchedulePage } from '@/features/schedule/SchedulePage';
+import { LeaderboardPage } from '@/features/leaderboard/LeaderboardPage';
 import { AppShell } from '@/features/shell/AppShell';
 import { subscribeToLocation, useSearchParam, useView } from '@/state/navigation';
 import { trackerStore, useTracker, type ThemeSetting } from '@/state/store';
@@ -35,7 +37,11 @@ function Page() {
     case 'production':
       return <ProductionPage />;
     case 'events':
-      return <EventsPage />;
+      return <AllEventsPage />;
+    case 'schedule':
+      return <SchedulePage />;
+    case 'leaderboard':
+      return <LeaderboardPage />;
     case 'reference':
       return <ReferencePage />;
     case 'missions':

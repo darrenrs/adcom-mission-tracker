@@ -19,6 +19,8 @@ import {
 } from '@/domain/missions';
 import { TITLES, type TitleConfig } from '@/domain/titles';
 import type { LteInfo, GameBalance, TrackerMode } from '@/domain/types';
+import { entryAsLteInfo, reconcileEvents, scheduleEvents } from '@/domain/eventList';
+import type { LeaderboardEvent } from '@/domain/leaderboard';
 import { parseStartupParams, resolveStartup, type Startup } from '@/domain/urlParams';
 import { emptyFormValues, type FormValues } from '@/engine/model';
 import { createTrackerStorage, type TrackerStorage } from '@/storage/storage';
@@ -61,6 +63,8 @@ export interface TrackerState {
   error: string | null;
   session: Session | null;
   settings: Settings;
+  /** Events from the leaderboard API: null until loaded, and always null for Ages, which has no leaderboard. */
+  leaderboardEvents: LeaderboardEvent[] | null;
   boot(): Promise<void>;
   syncLocation(): void;
   clickMission(missionId: string): void;
@@ -86,6 +90,8 @@ export interface TrackerDeps {
   search(): string;
   /** Puts the game and mode on show in the URL once they are decided. */
   showInUrl?(title: string, mode: string): void;
+  /** The leaderboard API's events. Rejects or returns an empty list when the server has no leaderboard set up. */
+  loadLeaderboardEvents?(): Promise<LeaderboardEvent[]>;
 }
 
 const EMPTY_BALANCE: GameBalance = { Missions: [] };
@@ -146,7 +152,18 @@ function readSettings(storage: TrackerStorage, title: TitleConfig): Settings {
   };
 }
 
-function buildSession(deps: TrackerDeps, title: TitleConfig, data: GameData): Session {
+/** Events only the leaderboard API knows about, so a link to one opens it. */
+function apiOnlyLtes(title: TitleConfig, data: GameData, events: readonly LeaderboardEvent[] | null, now: number): LteInfo[] {
+  if (!events?.length) {
+    return [];
+  }
+  const scheduled = scheduleEvents(data.schedule, title.isAges, now - 2 * 365 * 86_400_000);
+  return reconcileEvents(scheduled, events, Object.keys(data.balances))
+    .filter((entry) => !entry.schedule)
+    .map(entryAsLteInfo);
+}
+
+function buildSession(deps: TrackerDeps, title: TitleConfig, data: GameData, events: readonly LeaderboardEvent[] | null = null): Session {
   const { storage } = deps;
   const prefix = title.gameSaveKeyPrefix;
   const startup = resolveStartup({
@@ -156,7 +173,8 @@ function buildSession(deps: TrackerDeps, title: TitleConfig, data: GameData): Se
     schedule: data.schedule,
     balances: data.balances,
     now: deps.now(),
-    title
+    title,
+    extraLtes: apiOnlyLtes(title, data, events, deps.now())
   });
 
   for (const write of startup.writes) {
@@ -243,10 +261,28 @@ export function createTrackerStore(deps: TrackerDeps): StoreApi<TrackerState> {
     };
 
     const startSession = (title: TitleConfig, data: GameData): Session => {
-      const session = buildSession(deps, title, data);
+      const session = buildSession(deps, title, data, get().leaderboardEvents);
       deps.showInUrl?.(title.key, session.mode);
       lastStartup = startupSearch(deps.search());
       return session;
+    };
+
+    const loadEvents = async (title: TitleConfig) => {
+      let events: LeaderboardEvent[] = [];
+      try {
+        events = (await deps.loadLeaderboardEvents?.()) ?? [];
+      } catch {
+        // No leaderboard: the schedule file still drives the calendar.
+      }
+      const session = get().session;
+      if (session?.title.key !== title.key) {
+        return;
+      }
+      set({ leaderboardEvents: events });
+      // A link to an event only the API knows about can only open now.
+      if (events.length > 0 && parseStartupParams(deps.search()).at !== null) {
+        set({ session: startSession(title, session.data) });
+      }
     };
 
     const updateSettings = (change: Partial<Settings>) => set({ settings: { ...get().settings, ...change } });
@@ -257,7 +293,13 @@ export function createTrackerStore(deps: TrackerDeps): StoreApi<TrackerState> {
         storage.migrateLegacyKeys();
         storage.set('activeTitle', title.key);
         const data = await dataFor(title);
+        if (title.isAges) {
+          set({ leaderboardEvents: null });
+        }
         set({ status: 'ready', session: startSession(title, data), settings: readSettings(storage, title) });
+        if (!title.isAges && get().leaderboardEvents === null) {
+          void loadEvents(title);
+        }
       } catch (error) {
         loaded.delete(title.titleId);
         console.error(error);
@@ -269,6 +311,7 @@ export function createTrackerStore(deps: TrackerDeps): StoreApi<TrackerState> {
       status: 'loading',
       error: null,
       session: null,
+      leaderboardEvents: null,
       settings: readSettings(storage, readTitle(storage, deps.search())),
 
       boot: () => open(readTitle(storage, deps.search())),
@@ -445,7 +488,14 @@ function browserDeps(): TrackerDeps {
     runtime: readRuntimeConfig(window),
     now: () => Date.now(),
     search: () => window.location.search,
-    showInUrl
+    showInUrl,
+    loadLeaderboardEvents: async () => {
+      const response = await fetch('api/leaderboard/events');
+      if (!response.ok) {
+        return [];
+      }
+      return ((await response.json()) as { events?: LeaderboardEvent[] }).events ?? [];
+    }
   };
 }
 

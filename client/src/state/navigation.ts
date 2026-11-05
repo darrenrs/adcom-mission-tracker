@@ -1,9 +1,9 @@
 // URL state uses query parameters, so the app needs no server routes and works under any sub-path.
 import { useSyncExternalStore } from 'react';
 
-export type ViewName = 'game' | 'missions' | 'production' | 'events' | 'reference';
+export type ViewName = 'game' | 'missions' | 'production' | 'leaderboard' | 'reference' | 'schedule' | 'events';
 
-const VIEWS: readonly ViewName[] = ['game', 'missions', 'production', 'events', 'reference'];
+const VIEWS: readonly ViewName[] = ['game', 'missions', 'production', 'leaderboard', 'reference', 'schedule', 'events'];
 const CHANGE_EVENT = 'tracker:navigate';
 
 /** Query parameters that select what the tracker shows. `view` and `mission` only choose a page. */

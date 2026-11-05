@@ -1,13 +1,33 @@
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
-import { ChevronDown, Settings } from 'lucide-react';
+import { CalendarDays, Check, ChevronDown, List, Settings } from 'lucide-react';
 import { useState } from 'react';
 import { rankProgress } from '@/domain/missionView';
 import { getCurrentLteInfo, getBasicLteName } from '@/domain/schedule';
 import { SettingsSheet } from '@/features/settings/SettingsSheet';
-import { navigateStartup } from '@/state/navigation';
+import type { LteInfo } from '@/domain/types';
+import { navigate, navigateStartup, useView, type ViewName } from '@/state/navigation';
 import { useSession } from '@/state/store';
 import { RankBar } from './RankBar';
 import { RankControls } from './RankControls';
+
+function Indicator() {
+  return (
+    <DropdownMenu.ItemIndicator className="ml-auto">
+      <Check aria-hidden size={16} />
+    </DropdownMenu.ItemIndicator>
+  );
+}
+
+/** Which menu option matches what is on screen. An event opened from the calendar matches none of them. */
+function menuSelection(view: ViewName, mode: string, lteInfo: LteInfo | null, liveLte: LteInfo | undefined): string {
+  if (view === 'schedule' || view === 'events') {
+    return view;
+  }
+  if (mode === 'evergreen') {
+    return 'evergreen';
+  }
+  return liveLte && lteInfo?.EndTimeMillis === liveLte.EndTimeMillis && lteInfo.BalanceId === liveLte.BalanceId ? 'live' : '';
+}
 
 const menuItem =
   'flex min-h-11 cursor-pointer items-center gap-3 rounded-md px-3 text-sm outline-none data-[highlighted]:bg-raised';
@@ -22,6 +42,7 @@ export function Header() {
   const displayName = getBasicLteName(mode === 'evergreen' ? 'main' : (lteInfo?.ThemeId ?? 'main'), title);
   const displayIcon = assets.active(`shared/themeicons/${mode === 'evergreen' ? 'main' : lteInfo?.ThemeId}.png`);
   const otherGame = title.isAges ? 'adcom' : 'ages';
+  const selected = menuSelection(useView(), mode, lteInfo, liveLte);
 
   return (
     <header className="mx-auto w-full max-w-360">
@@ -38,16 +59,31 @@ export function Header() {
               sideOffset={4}
               className="z-30 min-w-56 rounded-xl border border-line bg-surface p-1 shadow-lg"
             >
-              <DropdownMenu.Item className={menuItem} onSelect={() => navigateStartup({ mode: 'evergreen' })}>
-                <img src={assets.active('shared/themeicons/main.png')} alt="" className="size-6 object-contain" />
-                {getBasicLteName('main', title)}
-              </DropdownMenu.Item>
-              {liveLte && (
-                <DropdownMenu.Item className={menuItem} onSelect={() => navigateStartup({ mode: 'lte' })}>
-                  <img src={assets.active(`shared/themeicons/${liveLte.ThemeId}.png`)} alt="" className="size-6 object-contain" />
-                  {getBasicLteName(liveLte.ThemeId, title)}
-                </DropdownMenu.Item>
-              )}
+              <DropdownMenu.RadioGroup value={selected}>
+                <DropdownMenu.RadioItem value="evergreen" className={menuItem} onSelect={() => navigateStartup({ mode: 'evergreen', view: null })}>
+                  <img src={assets.active('shared/themeicons/main.png')} alt="" className="size-6 object-contain" />
+                  {getBasicLteName('main', title)}
+                  <Indicator />
+                </DropdownMenu.RadioItem>
+                {liveLte && (
+                  <DropdownMenu.RadioItem value="live" className={menuItem} onSelect={() => navigateStartup({ mode: 'lte', view: null })}>
+                    <img src={assets.active(`shared/themeicons/${liveLte.ThemeId}.png`)} alt="" className="size-6 object-contain" />
+                    {getBasicLteName(liveLte.ThemeId, title)}
+                    <Indicator />
+                  </DropdownMenu.RadioItem>
+                )}
+                <DropdownMenu.Separator className="my-1 h-px bg-line" />
+                <DropdownMenu.RadioItem value="schedule" className={menuItem} onSelect={() => navigate({ view: 'schedule', mission: null })}>
+                  <CalendarDays aria-hidden size={24} className="text-muted" />
+                  Schedule
+                  <Indicator />
+                </DropdownMenu.RadioItem>
+                <DropdownMenu.RadioItem value="events" className={menuItem} onSelect={() => navigate({ view: 'events', mission: null })}>
+                  <List aria-hidden size={24} className="text-muted" />
+                  All Events
+                  <Indicator />
+                </DropdownMenu.RadioItem>
+              </DropdownMenu.RadioGroup>
             </DropdownMenu.Content>
           </DropdownMenu.Portal>
         </DropdownMenu.Root>
