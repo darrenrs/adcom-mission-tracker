@@ -28,21 +28,21 @@ export const TONE_CLASS: Record<MissionTone, string> = {
 };
 
 const sideButton =
-  'flex min-h-12 min-w-control shrink-0 items-center justify-center rounded-lg text-muted enabled:hover:bg-raised enabled:hover:text-ink disabled:cursor-not-allowed';
+  'flex min-h-control min-w-control shrink-0 items-center justify-center rounded-lg text-muted enabled:hover:bg-raised enabled:hover:text-ink disabled:cursor-not-allowed';
 
 function Eta({ timestamp, powers }: { timestamp: number; powers: readonly string[] }) {
   const now = useMinuteClock();
-  return <span className="mt-0.5 block text-xs text-muted">ETA: {getMissionEtaString(timestamp, powers, now)}</span>;
+  return <span className="block text-xs leading-tight text-muted">ETA: {getMissionEtaString(timestamp, powers, now)}</span>;
 }
 
 function StatusIcon({ state }: { state: RowState }) {
   if (state === 'completed') {
-    return <CircleCheck aria-hidden size={22} className="shrink-0 text-accent" />;
+    return <CircleCheck aria-hidden size={20} className="shrink-0 text-accent" />;
   }
   if (state === 'locked') {
     return <Lock aria-hidden size={18} className="shrink-0 text-muted" />;
   }
-  return <Circle aria-hidden size={22} className="shrink-0 text-muted" />;
+  return <Circle aria-hidden size={20} className="shrink-0 text-muted" />;
 }
 
 const STATE_PREFIX: Record<RowState, string> = {
@@ -72,14 +72,14 @@ function MissionRowView({ mission, state, eta, ctx, assets, onToggle, onRequestC
       <button
         type="button"
         onClick={() => (locked ? onRequestCompleteBefore(mission.Id) : onToggle(mission.Id))}
-        className={`flex min-h-12 min-w-0 flex-1 items-center gap-3 rounded-lg px-3 py-2 text-left hover:bg-raised/60 active:bg-raised ${locked ? 'opacity-60' : ''}`}
+        className={`flex min-h-control min-w-0 flex-1 items-center gap-2 rounded-lg px-2 py-0.5 text-left hover:bg-raised/60 active:bg-raised ${locked ? 'opacity-60' : ''}`}
       >
         <StatusIcon state={state} />
         {iconUrl && (
-          <img src={iconUrl} alt="" width={32} height={32} loading="lazy" decoding="async" className="size-8 shrink-0 object-contain" />
+          <img src={iconUrl} alt="" width={24} height={24} loading="lazy" decoding="async" className="size-6 shrink-0 object-contain" />
         )}
         <span className="min-w-0 flex-1">
-          <span className={`block text-sm leading-snug font-medium break-words ${done ? 'text-muted' : ''}`}>
+          <span className={`block text-sm leading-tight font-medium break-words ${done ? 'text-muted' : ''}`}>
             <span className="sr-only">{STATE_PREFIX[state]}</span>
             {description.text}
           </span>
@@ -94,7 +94,7 @@ function MissionRowView({ mission, state, eta, ctx, assets, onToggle, onRequestC
       )}
 
       {/* Future missions stay open to planning, as in legacy. */}
-      <RewardButton mission={mission} name={description.text} reward={reward} className={`${sideButton} min-w-14 pr-1`} />
+      <RewardButton mission={mission} name={description.text} reward={reward} className={`${sideButton} min-w-12 pr-1`} />
     </li>
   );
 }

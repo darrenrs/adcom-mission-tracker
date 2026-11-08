@@ -1,7 +1,7 @@
 import { Minus, Plus } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { bigNum } from '@/domain/format';
-import { firstGuaranteedText, nextLevelCost } from '@/domain/researcherInfo';
+import { EFFECT_ICON, firstGuaranteedText, nextLevelCost } from '@/domain/researcherInfo';
 import { researcherName } from '@/domain/gameText';
 import { stepDirection } from '@/domain/inputSteps';
 import {
@@ -14,6 +14,7 @@ import type { Researcher } from '@/domain/types';
 import { useSearchParam } from '@/state/navigation';
 import { useSession } from '@/state/store';
 import { InfoPopover } from '@/ui/InfoPopover';
+import { inputClass as fieldClass } from '@/ui/inputStyles';
 import { useResearcherActions } from './useResearcherActions';
 
 /** The game's rarity colours, which players know by heart. Event researchers had none in legacy. */
@@ -26,28 +27,19 @@ const RARITY_CLASS: Readonly<Record<string, string>> = {
   Supreme: 'bg-pink-200 dark:bg-pink-900'
 };
 
+/** Rarity sets the border colour, as in the game; every border is solid. */
 const RARITY_BORDER: Readonly<Record<string, string>> = {
   Common: 'border-line',
-  LteCommon: 'border-dashed border-line',
-  Rare: 'border-warning',
-  LteRare: 'border-dashed border-warning',
-  Epic: 'border-accent',
-  Supreme: 'border-danger'
-};
-
-/** The icon that says what kind of effect the value is. */
-const EFFECT_ICON: Readonly<Record<string, string>> = {
-  GenManagerAndSpeedMult: 'speed.png',
-  GeneratorPayoutMultiplier: 'boost_power.png',
-  GeneratorCostReduction: 'discount.png',
-  GeneratorCritChance: 'crit_chance.png',
-  GeneratorCritPowerMult: 'crit_power.png',
-  TradePayoutMultiplier: 'comrades_per_second.png'
+  LteCommon: 'border-line',
+  Rare: 'border-orange-500',
+  LteRare: 'border-orange-500',
+  Epic: 'border-purple-500',
+  Supreme: 'border-red-500'
 };
 
 const stepButton =
   'flex size-control shrink-0 items-center justify-center rounded-lg border border-line bg-surface text-ink enabled:hover:bg-raised disabled:opacity-40';
-const inputClass = 'h-control w-12 min-w-0 rounded-lg border border-line bg-canvas px-1 text-center text-base aria-invalid:border-danger pointer-fine:w-11 pointer-fine:text-sm';
+const inputClass = `${fieldClass} w-12 px-1 text-center pointer-fine:w-11`;
 
 function LevelInput({ researcher, level, max, label }: { researcher: Researcher; level: number; max: number | null; label: string }) {
   const { setLevel } = useResearcherActions();
@@ -97,16 +89,19 @@ function NextCost({ researcher, level, max }: { researcher: Researcher; level: n
   }
   const scienceIcon = assets.active(ctx.mode === 'evergreen' ? 'main/darkscience.png' : 'event/darkscience.png');
   return (
-    <p className="flex items-center gap-x-2 text-xs whitespace-nowrap" aria-label="Cost of the next level">
-      <span className="inline-flex items-center gap-1" data-testid="next-cost-cards">
-        <img src={assets.active('shared/card.png')} alt="Cards" className="size-4 object-contain" />
-        {bigNum(cost.cards, powers)}
-      </span>
-      <span className="inline-flex items-center gap-1" data-testid="next-cost-science">
-        <img src={scienceIcon} alt="Science" className="size-4 object-contain" />
-        {bigNum(cost.science, powers)}
-      </span>
-    </p>
+    <div>
+      <p className="text-[11px] leading-3 text-muted">To next:</p>
+      <p className="flex items-center gap-x-2 text-xs whitespace-nowrap" aria-label="Cost of the next level">
+        <span className="inline-flex items-center gap-1" data-testid="next-cost-cards">
+          <img src={assets.active('shared/card.png')} alt="Cards" className="size-4 object-contain" />
+          {bigNum(cost.cards, powers)}
+        </span>
+        <span className="inline-flex items-center gap-1" data-testid="next-cost-science">
+          <img src={scienceIcon} alt="Science" className="size-4 object-contain" />
+          {bigNum(cost.science, powers)}
+        </span>
+      </p>
+    </div>
   );
 }
 
@@ -139,40 +134,46 @@ export function ResearcherCard({ researcher }: { researcher: Researcher }) {
   return (
     <li
       ref={card}
-      className={`flex min-w-0 items-center gap-2 rounded-xl border-2 bg-surface p-1.5 pointer-fine:p-1 ${RARITY_BORDER[rarity] ?? 'border-line'} ${highlighted ? 'ring-2 ring-accent' : ''}`}
+      className={`flex min-w-0 items-stretch gap-1.5 rounded-xl border-2 bg-surface p-1 ${RARITY_BORDER[rarity] ?? 'border-line'} ${highlighted ? 'ring-2 ring-accent' : ''}`}
     >
-      <div className={`relative size-14 shrink-0 overflow-hidden rounded-lg pointer-fine:size-12 ${RARITY_CLASS[rarity] ?? 'bg-raised'}`}>
+      <div
+        className={`relative aspect-[3/4] h-28 shrink-0 self-start overflow-hidden rounded-lg pointer-fine:h-24 ${RARITY_CLASS[rarity] ?? 'bg-raised'}`}
+        data-testid="researcher-portrait"
+      >
         <img src={assets.iconUrl(`${researcher.Id}.png`)} alt="" loading="lazy" className="size-full object-cover" />
         {targetIcon && (
           <img src={targetIcon} alt="" loading="lazy" className="absolute top-0 right-0 size-5 rounded-bl-md bg-black/50 object-contain p-px" />
         )}
       </div>
 
-      <div className="min-w-0 flex-1">
-        <div className="flex items-center gap-1">
-          <p className="min-w-0 flex-1 truncate text-sm leading-4 font-medium" title={name}>
-            {name}
-          </p>
-          <InfoPopover label={`Details for ${name}`} className="relative z-10 -my-3.5 pointer-fine:-my-2">
-            <div className="space-y-1">
-              <p>Unlocks at Rank {details.unlockRank}</p>
-              {guaranteed && <p>{guaranteed}</p>}
-              {quote && <p className="text-muted italic">&ldquo;{quote}&rdquo;</p>}
-            </div>
-          </InfoPopover>
+      <div className="flex min-w-0 flex-1 flex-col gap-1">
+        <div>
+          <div className="flex items-center gap-1">
+            <p className="min-w-0 flex-1 truncate text-sm leading-4 font-medium" title={name}>
+              {name}
+            </p>
+            <InfoPopover label={`Details for ${name}`} className="relative z-10 -my-3.5 pointer-fine:-my-2">
+              <div className="space-y-1">
+                <p>Unlocks at Rank {details.unlockRank}</p>
+                {guaranteed && <p>{guaranteed}</p>}
+                {quote && <p className="text-muted italic">&ldquo;{quote}&rdquo;</p>}
+              </div>
+            </InfoPopover>
+          </div>
+
+          <div className="mt-1.5 flex min-w-0 items-center gap-1.5 text-xs">
+            <span className="font-semibold whitespace-nowrap" data-testid="researcher-level">
+              {levelText}
+            </span>
+            {effectIcon && <img src={assets.active(`shared/${effectIcon}`)} alt="" className="size-4 shrink-0 object-contain" />}
+            <span className="min-w-0 truncate" aria-label={label.value ? `Value ${label.value}` : undefined}>
+              {label.value}
+            </span>
+          </div>
         </div>
 
-        <div className="mt-0.5 flex min-w-0 items-center gap-1.5 text-xs">
-          <span className="font-semibold whitespace-nowrap" data-testid="researcher-level">
-            {levelText}
-          </span>
-          {effectIcon && <img src={assets.active(`shared/${effectIcon}`)} alt="" className="size-4 shrink-0 object-contain" />}
-          <span className="min-w-0 truncate" aria-label={label.value ? `Value ${label.value}` : undefined}>
-            {label.value}
-          </span>
-        </div>
-
-        <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5">
+        <div className="mt-auto flex flex-col gap-1">
+          <NextCost researcher={researcher} level={level} max={max} />
           <div className="flex items-center gap-1">
             <button
               type="button"
@@ -196,7 +197,6 @@ export function ResearcherCard({ researcher }: { researcher: Researcher }) {
               <Plus aria-hidden size={16} />
             </button>
           </div>
-          <NextCost researcher={researcher} level={level} max={max} />
         </div>
       </div>
     </li>

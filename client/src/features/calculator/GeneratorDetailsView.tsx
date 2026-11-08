@@ -1,11 +1,12 @@
 import { Fragment, type ReactNode } from 'react';
 import { shortBigNum } from '@/domain/format';
-import { formatAmount, formatCycleTime, generatesFigures, researcherLevelValues } from '@/domain/generatorInfo';
+import { formatAmount, formatCycleTime, generatesFigures } from '@/domain/generatorInfo';
 import { researcherName } from '@/domain/gameText';
-import type { GeneratorDetails } from '@/domain/researchers';
+import { EFFECT_ICON } from '@/domain/researcherInfo';
+import { researcherMaxLevel, researcherValueLabel, type GeneratorDetails } from '@/domain/researchers';
 import { useSession } from '@/state/store';
 
-const heading = 'text-xs font-semibold tracking-wide text-muted uppercase';
+const heading = 'mt-2 text-xs font-semibold tracking-wide text-muted uppercase';
 
 /** A picture with its value underneath, so a row of them lines up in columns. */
 function Item({ iconUrl, name, children }: { iconUrl: string; name: string; children: ReactNode }) {
@@ -31,6 +32,9 @@ export function GeneratorDetailsView({ details }: { details: GeneratorDetails })
   const automator = details.automator;
   const researcher = automator ? (ctx.balance.Researchers ?? []).find((candidate) => candidate.Id === automator.id) : undefined;
   const automatorLevel = automator ? (form.ResearcherLevels[automator.id] ?? 0) : 0;
+  const automatorMax = researcher ? researcherMaxLevel(ctx.balance, researcher) : null;
+  const automatorLabel = researcher ? researcherValueLabel(ctx, researcher, automatorLevel) : null;
+  const automatorEffectIcon = researcher ? EFFECT_ICON[researcher.ModType] : undefined;
 
   const generates: [string, string][] = [
     [`Base per cycle (${cycle})`, formatAmount(figures.basePerCycle, powers)],
@@ -102,20 +106,19 @@ export function GeneratorDetailsView({ details }: { details: GeneratorDetails })
         </div>
       </section>
 
-      {automator && researcher && (
+      {automator && researcher && automatorLabel && (
         <section>
           <h4 className={heading}>Automator</h4>
-          <div className="mt-0.5 flex items-center gap-2">
-            <img src={assets.iconUrl(`${automator.id}.png`)} alt="" width={40} height={40} className="size-10 shrink-0 rounded-lg object-contain" />
+          <div className="mt-1 flex items-center gap-2">
+            <img src={assets.iconUrl(`${automator.id}.png`)} alt="" width={80} height={80} className="size-20 shrink-0 rounded-lg object-contain" />
             <div className="min-w-0">
               <p className="font-medium">{researcherName(ctx, researcher)}</p>
-              <p>
-                {researcherLevelValues(ctx, researcher).map(({ level, text }, index) => (
-                  <Fragment key={level}>
-                    {index > 0 && ' / '}
-                    <span className={level === automatorLevel ? 'font-bold text-accent' : undefined}>{text}</span>
-                  </Fragment>
-                ))}
+              <p className="flex items-center gap-1.5">
+                <span className="font-semibold whitespace-nowrap">
+                  {automatorMax === null ? automatorLabel.level : `${automatorLabel.level} / ${automatorMax}`}
+                </span>
+                {automatorEffectIcon && <img src={shared(automatorEffectIcon)} alt="" className="size-4 shrink-0 object-contain" />}
+                <span>{automatorLabel.value}</span>
               </p>
             </div>
           </div>

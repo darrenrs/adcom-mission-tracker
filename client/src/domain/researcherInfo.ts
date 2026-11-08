@@ -57,3 +57,13 @@ export function firstGuaranteedText(ctx: GameTextContext, guaranteed: FirstGuara
       return null;
   }
 }
+
+/** The icon that says what kind of effect a researcher's value is. */
+export const EFFECT_ICON: Readonly<Record<string, string>> = {
+  GenManagerAndSpeedMult: 'speed.png',
+  GeneratorPayoutMultiplier: 'boost_power.png',
+  GeneratorCostReduction: 'discount.png',
+  GeneratorCritChance: 'crit_chance.png',
+  GeneratorCritPowerMult: 'crit_power.png',
+  TradePayoutMultiplier: 'comrades_per_second.png'
+};

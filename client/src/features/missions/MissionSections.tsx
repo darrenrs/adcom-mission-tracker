@@ -9,7 +9,7 @@ import { MissionRow, type RowShared, type RowState } from './MissionRow';
 /** Advancing fills Completed, so the rank control scrolls back to this section. */
 export const CURRENT_SECTION_ID = 'current-missions';
 
-const headerRow = 'flex min-h-14 flex-wrap items-center gap-x-3 gap-y-2 px-4 py-2';
+const headerRow = 'flex min-h-control flex-wrap items-center gap-x-3 gap-y-1 px-3 py-1';
 
 function Card({ children }: { children: ReactNode }) {
   return <section className="rounded-xl border border-line bg-surface">{children}</section>;
@@ -23,7 +23,7 @@ function MissionGrid({ missions, state, shared }: { missions: BoardMission[]; st
   }
   const { etas, ...rest } = shared;
   return (
-    <ul className="grid grid-cols-1 gap-2 p-3 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+    <ul className="grid grid-cols-1 gap-1.5 p-2 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
       {ordered.map((mission) => (
         <MissionRow key={mission.Id} mission={mission} state={state} eta={etas[mission.Id]} {...rest} />
       ))}
@@ -54,7 +54,7 @@ export function CompletedSection({ session, shared }: SectionProps) {
         <>
           {groups.map(({ rank, missions }) => (
             <section key={rank} aria-label={`Completed in Rank ${rank}`} className="border-t border-line first:border-t-0">
-              <h3 className={`px-4 pt-3 ${rankHeading}`}>Rank {rank}</h3>
+              <h3 className={`px-3 pt-2 ${rankHeading}`}>Rank {rank}</h3>
               <MissionGrid missions={missions} state="completed" shared={shared} />
             </section>
           ))}
@@ -66,7 +66,7 @@ export function CompletedSection({ session, shared }: SectionProps) {
     <Collapsible.Root open={open} onOpenChange={setOpen} asChild>
       <section className="group rounded-xl border border-line bg-surface">
         <h2>
-          <Collapsible.Trigger className="flex min-h-14 w-full items-center gap-3 rounded-xl px-4 py-2 text-left hover:bg-raised/60">
+          <Collapsible.Trigger className="flex min-h-control w-full items-center gap-3 rounded-xl px-3 py-1 text-left hover:bg-raised/60">
             <span className="text-base font-semibold">Completed</span>
             <span className="rounded-full bg-raised px-2 py-0.5 text-xs font-medium text-muted">
               {board.completed.length}
@@ -194,7 +194,7 @@ function LteRankGroupView({ session, rank, missions, shared }: SectionProps & { 
   return (
     <Collapsible.Root asChild>
       <section aria-label={`Upcoming in Rank ${rank}`} className="border-t border-line">
-        <div className="flex min-h-control items-center gap-3 px-4 pt-2">
+        <div className="flex min-h-control items-center gap-3 px-3 pt-1">
           <h3 className={rankHeading}>Rank {rank}</h3>
           {details.hasContent && (
             <Collapsible.Trigger
@@ -206,7 +206,7 @@ function LteRankGroupView({ session, rank, missions, shared }: SectionProps & { 
             </Collapsible.Trigger>
           )}
         </div>
-        <Collapsible.Content className="mt-2">
+        <Collapsible.Content className="mt-1">
           <DetailsPanel details={details} />
         </Collapsible.Content>
         <MissionGrid missions={missions} state="locked" shared={shared} />

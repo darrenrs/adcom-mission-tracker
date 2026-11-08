@@ -5,6 +5,7 @@ import { resourceName } from '@/domain/gameText';
 import { getIndustryTradeBreakdown } from '@/domain/trades';
 import { getTradeResearchers } from '@/domain/researchers';
 import { useSession } from '@/state/store';
+import { inputClass } from '@/ui/inputStyles';
 import { ResearcherGrid } from './ResearcherGrid';
 import type { TradeFields } from './useTradeFields';
 
@@ -53,7 +54,7 @@ export function TradesPanel({ fields }: { fields: TradeFields }) {
                 data-field-key={row.resourceId}
                 onChange={(event) => fields.type(row.resourceId, event.target.value)}
                 onBlur={() => fields.finish(row.resourceId)}
-                className="h-control w-32 min-w-0 flex-1 rounded-lg border border-line bg-canvas px-3 text-base aria-invalid:border-danger pointer-fine:flex-none pointer-fine:text-sm"
+                className={`${inputClass} w-32 flex-1 pointer-fine:flex-none`}
               />
               <button
                 type="button"

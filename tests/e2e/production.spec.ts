@@ -53,6 +53,10 @@ test('opening a generator shows its info in the expanded area', async ({ page })
   await trigger.click();
   await expect(trigger).toHaveAttribute('aria-expanded', 'true');
   await expect.poll(async () => (await item.innerText()).length).toBeGreaterThan(closed + 20);
+  // The automator shows the researcher's level and effect, as its card does, not the list of multipliers.
+  await expect(item.getByRole('heading', { name: 'Automator' })).toBeVisible();
+  await expect(item).toContainText(/Level \d+ \/ \d+/);
+  await expect(item).not.toContainText(/x\S+ \/ x\S+ \/ x\S+/);
 });
 
 test('researcher cards show level out of max and the cost of the next level, with unlock, guaranteed rank and quote in a popover', async ({ page }) => {
@@ -73,6 +77,9 @@ test('researcher cards show level out of max and the cost of the next level, wit
   await level.fill('1');
   await expect(ringo.getByTestId('researcher-level')).toHaveText(`Level 1 / ${max}`);
   await expect(ringo.getByTestId('next-cost-cards')).toHaveText('2');
+  const toNext = await ringo.getByText('To next:').boundingBox();
+  const cost = await ringo.getByLabel('Cost of the next level').boundingBox();
+  expect(toNext && cost && toNext.y + toNext.height <= cost.y + 1).toBe(true);
   await expect(ringo.getByTestId('next-cost-science')).toHaveText('50');
 
   await level.fill('2');
@@ -82,6 +89,19 @@ test('researcher cards show level out of max and the cost of the next level, wit
   await level.fill(max);
   await expect(ringo.getByText('Max level')).toBeVisible();
   await expect(ringo.getByTestId('next-cost-cards')).toHaveCount(0);
+  await expect(ringo.getByText('To next:')).toHaveCount(0);
+});
+
+test('researcher portraits are tall, card shaped and have solid borders', async ({ page, isMobile }) => {
+  await page.goto('?view=production&tab=researchers');
+  const cards = page.getByRole('list', { name: 'Researchers' }).getByRole('listitem');
+  await expect(cards.first()).toBeVisible();
+  const portrait = await cards.first().getByTestId('researcher-portrait').boundingBox();
+  // Twice the earlier 56px (touch) or 48px (mouse) square, and about 3:4.
+  expect(portrait?.height).toBe(isMobile ? 112 : 96);
+  expect((portrait?.width ?? 0) / (portrait?.height ?? 1)).toBeCloseTo(0.76, 1);
+  const styles = await cards.evaluateAll((elements) => elements.map((element) => getComputedStyle(element).borderTopStyle));
+  expect(new Set(styles)).toEqual(new Set(['solid']));
 });
 
 test('the next row of cards starts at one height even when cards differ', async ({ page }) => {
