@@ -30,7 +30,7 @@ export function useCountFields({ resourceId, generatorIds, missionId }: Options)
   const save = useCallback(
     (key: string, text: string) => {
       const value = parseAmount(text, powers);
-      if (!Number.isNaN(value)) {
+      if (!isInvalidAmount(text, powers)) {
         updateForm((form) => applyCount(form, resourceId, key, value, Date.now()));
         if (key === PROGRESS_KEY) {
           setMissionProgress(missionId, value);

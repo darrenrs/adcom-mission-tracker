@@ -74,5 +74,7 @@ export function countsTimeStamp(form: FormValues, resourceId: string): number | 
 }
 
 export function isInvalidAmount(text: string, powers: readonly string[]): boolean {
-  return Number.isNaN(parseAmount(text, powers));
+  // Game amounts are never negative, so a minus sign makes the field invalid rather than saving it.
+  const value = parseAmount(text, powers);
+  return Number.isNaN(value) || value < 0;
 }

@@ -15,7 +15,7 @@ import type { EtaRange } from '@/engine/simulate';
 import { useSession, useTracker } from '@/state/store';
 import { HelpTip } from '@/ui/HelpTip';
 import { CalculatorOptions, type OptionsState } from './CalculatorOptions';
-import { COMRADES_KEY, countsTimeStamp, CPS_KEY, generatorKey, importedText, PROGRESS_KEY, RESOURCE_KEY } from './fields';
+import { COMRADES_KEY, countsTimeStamp, CPS_KEY, generatorKey, importedText, PROGRESS_KEY, RESOURCE_KEY, isInvalidAmount } from './fields';
 import { GeneratorsPanel } from './GeneratorsPanel';
 import { ResearcherGrid } from './ResearcherGrid';
 import { cycleProgress } from './timeLeft';
@@ -133,7 +133,7 @@ function CalculatorBody({ mission, industryId, resourceId }: BodyProps) {
       return cycleProgress(text, tier.cycleSeconds);
     });
     const issues =
-      keys.filter((key) => Number.isNaN(read(key)) && !disabledKeys.has(key)).length +
+      keys.filter((key) => isInvalidAmount(texts[key] ?? '', powers) && !disabledKeys.has(key)).length +
       progress.filter((entry) => entry.error !== null).length +
       Object.values(form.Trades.Resource).filter((trade) => trade?.IsInvalid).length;
     if (issues > 0) {

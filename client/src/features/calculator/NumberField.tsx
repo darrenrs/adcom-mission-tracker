@@ -56,7 +56,7 @@ export function NumberField({ label, value, onChange, iconUrl, invalid, error, d
         {trailing}
       </div>
       {invalid && error && (
-        <p id={`${id}-error`} className="mt-0.5 text-sm text-danger">
+        <p id={`${id}-error`} className="sr-only">
           {error}
         </p>
       )}

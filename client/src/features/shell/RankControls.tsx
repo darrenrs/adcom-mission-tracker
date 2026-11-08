@@ -94,7 +94,7 @@ export function RankControls({ progress, onClose }: { progress: RankProgress; on
       </div>
       {isLte && <p className="text-center text-sm text-muted">All missions in earlier ranks will be marked as complete.</p>}
       {invalid && (
-        <p id={`${id}-error`} role="alert" className="text-center text-sm text-danger">
+        <p id={`${id}-error`} role="alert" className="sr-only">
           Invalid rank. Enter a whole number from 1 to {max}.
         </p>
       )}

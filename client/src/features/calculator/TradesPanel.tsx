@@ -74,7 +74,7 @@ export function TradesPanel({ fields }: { fields: TradeFields }) {
               >
                 <ChevronDown aria-hidden size={16} className="text-danger" />
               </button>
-              <p id={`${id}-result`} className={`min-w-0 basis-full text-xs sm:flex-1 sm:basis-0 ${invalid ? 'text-danger' : 'text-muted'}`}>
+              <p id={`${id}-result`} className={`min-w-0 basis-full text-xs sm:flex-1 sm:basis-0 ${invalid ? 'sr-only' : 'text-muted'}`}>
                 {invalid ? 'Not a cost the game would ask for. Check the number.' : `${row.formula} = ${row.total}`}
               </p>
             </li>

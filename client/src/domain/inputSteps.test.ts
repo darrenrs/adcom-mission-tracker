@@ -35,3 +35,13 @@ describe('formatAmountText', () => {
     expect(formatAmountText('-5', powers)).toBeNull();
   });
 });
+
+describe('negative amounts', () => {
+  it('are never valid game amounts', async () => {
+    const { isInvalidAmount } = await import('@/features/calculator/fields');
+    expect(isInvalidAmount('-5', powers)).toBe(true);
+    expect(isInvalidAmount('-1.6 BB', powers)).toBe(true);
+    expect(isInvalidAmount('0', powers)).toBe(false);
+    expect(isInvalidAmount('1.6e+18', powers)).toBe(false);
+  });
+});

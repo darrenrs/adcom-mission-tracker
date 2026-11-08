@@ -61,8 +61,18 @@ test('says what is wrong with a field and refuses to calculate', async ({ page }
   await page.goto(OWN_FARMERS);
   const calc = calculator(page);
   await calc.getByLabel('# of Farmers').fill('lots');
-  await expect(calc.getByLabel('# of Farmers')).toHaveAttribute('aria-invalid', 'true');
-  await expect(calc.getByText(/Not a number/)).toBeVisible();
+  const farmers = calc.getByLabel('# of Farmers');
+  await expect(farmers).toHaveAttribute('aria-invalid', 'true');
+  // Only the red highlight shows; there is no warning text on the page.
+  const red = await farmers.evaluate((input) => getComputedStyle(input).backgroundColor);
+  expect(red).not.toBe(await calc.getByLabel('# of Communes').evaluate((input) => getComputedStyle(input).backgroundColor));
+  await expect(calc.locator('.text-danger')).toHaveCount(0);
+
+  await farmers.fill('-5');
+  await expect(farmers).toHaveAttribute('aria-invalid', 'true');
+  await farmers.fill('5');
+  await expect(farmers).not.toHaveAttribute('aria-invalid', 'true');
+  await farmers.fill('-5');
 
   await calc.getByRole('button', { name: 'Calculate' }).click();
   await expect(calc.getByRole('status')).toContainText('Please fix 1 issue');
