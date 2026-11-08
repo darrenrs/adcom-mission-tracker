@@ -22,8 +22,14 @@ export function produce(counts: readonly number[], perTier: readonly number[], d
   });
 }
 
+/**
+ * Seconds a calculation may run to. Far past any real answer, but below the point where production overflows, so
+ * Infinity really means the goal can never be reached (nothing produces), not that the answer is merely enormous.
+ */
+export const MAX_SECONDS = 1e300;
+
 /** Smallest time in [0, high] at which `reached` is true, or Infinity. `reached` must not turn false. */
-export function solveTime(reached: (seconds: number) => boolean, high = 2 ** 53): number {
+export function solveTime(reached: (seconds: number) => boolean, high = MAX_SECONDS): number {
   if (reached(0)) {
     return 0;
   }

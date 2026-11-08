@@ -1,6 +1,6 @@
 // Everything that needs more than one evaluation of the formula: goals, cycles, auto-buy and ranges.
 
-import { produce, solveTime } from './core';
+import { MAX_SECONDS, produce, solveTime } from './core';
 import { tierRate, type Tier } from './model';
 
 export type Goal =
@@ -275,7 +275,7 @@ export function autobuyEta({ tiers, state, goals }: Model): number {
   }
   let now = 0;
 
-  while (now < 1e15) {
+  while (now < MAX_SECONDS) {
     const step = Math.max(1, now * 0.01);
     const next = autobuyStep(tiers, usable, goals, current, state.comradesPerSecond, step);
     if (done(next)) {

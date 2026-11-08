@@ -64,6 +64,24 @@ describe('solveTime', () => {
     expect(solveTime(() => false)).toBe(Infinity);
     expect(solveTime(() => true)).toBe(0);
   });
+
+  it('finds answers far beyond 285 million years instead of giving up', () => {
+    // 2^53 seconds, the old ceiling, is about 285 million years.
+    expect(solveTime((t) => t >= 1e20) / 1e20).toBeCloseTo(1, 6);
+    expect(solveTime((t) => t >= 1e250) / 1e250).toBeCloseTo(1, 6);
+  });
+
+  it('reaches a goal that only an enormous wait can, like Collect 77.7 MMM from a few tiers', () => {
+    const model: Model = {
+      tiers: chain,
+      state: { counts: [0, 0, 0, 1e12], earned: 0, comrades: 0, comradesPerSecond: 0 },
+      goals: [{ kind: 'earned', qty: 7.77e130 }]
+    };
+    const seconds = onlineEta(model);
+    expect(seconds).toBeGreaterThan(2 ** 53);
+    expect(Number.isFinite(seconds)).toBe(true);
+    expect(onlineEta({ ...model, state: { ...model.state, counts: [0, 0, 0, 0] } })).toBe(Infinity);
+  });
 });
 
 describe('ETAs', () => {
