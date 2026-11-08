@@ -30,7 +30,7 @@ export function useCountFields({ resourceId, generatorIds, missionId }: Options)
   const save = useCallback(
     (key: string, text: string) => {
       const value = parseAmount(text, powers);
-      if (!isInvalidAmount(text, powers, key === PROGRESS_KEY)) {
+      if (!isInvalidAmount(text, powers, key === PROGRESS_KEY, key.startsWith('gen:'))) {
         updateForm((form) => applyCount(form, resourceId, key, value, Date.now()));
         if (key === PROGRESS_KEY) {
           setMissionProgress(missionId, value);
@@ -67,7 +67,7 @@ export function useCountFields({ resourceId, generatorIds, missionId }: Options)
     }
   }, [total, powers]);
 
-  const invalid = useCallback((key: string) => isInvalidAmount(texts[key] ?? '', powers, key === PROGRESS_KEY), [texts, powers]);
+  const invalid = useCallback((key: string) => isInvalidAmount(texts[key] ?? '', powers, key === PROGRESS_KEY, key.startsWith('gen:')), [texts, powers]);
 
   return { texts, latest, setText, setMany, invalid };
 }

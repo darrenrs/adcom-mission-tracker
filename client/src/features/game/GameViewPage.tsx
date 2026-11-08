@@ -78,7 +78,6 @@ function Stocks() {
           </button>
           <AmountInput
             label={comrades}
-            kind="comrades"
             powers={powers}
             value={form.Counts['comrade']?.['comrade'] ?? 0}
             onValue={(value) => updateForm((next) => applyCount(next, 'comrade', COMRADES_KEY, value, Date.now()))}
@@ -461,6 +460,7 @@ function GeneratorRow({
             <img src={details.iconUrl} alt="" width={40} height={40} className="size-10 rounded-full bg-raised object-contain p-0.5" />
           </button>
           <AmountInput
+            whole
             label={`number of ${name}`}
             powers={title.powers}
             value={count}

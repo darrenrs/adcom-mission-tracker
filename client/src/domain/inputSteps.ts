@@ -2,8 +2,6 @@
 
 import { bigNum, fromBigNum } from './format';
 
-export type StepKind = 'count' | 'comrades' | 'comradesPerSecond';
-
 /** A key press, as far as stepping is concerned. */
 export interface StepKey {
   key: string;
@@ -22,10 +20,13 @@ const SCIENTIFIC = /^-?\d+(?:\.\d+)?e[+-]?\d+$/i;
 export function parseAmount(text: string, powers: readonly string[]): number {
   const trimmed = text.trim();
   if (SCIENTIFIC.test(trimmed)) {
-    return Number(trimmed);
+    const value = Number(trimmed);
+    return Number.isFinite(value) ? value : NaN;
   }
   const named = trimmed.replace(/\bKKK\b/i, 'KFC');
-  return fromBigNum(named, powers) || Number(named);
+  const value = fromBigNum(named, powers) || Number(named);
+  // "Infinity" and amounts too large for a number are not game amounts.
+  return Number.isFinite(value) ? value : NaN;
 }
 
 /** What a field should show once the player leaves it: a valid amount in the game's format, or null to leave it alone. */
@@ -50,25 +51,31 @@ export function stepDirection(event: StepKey): number {
   return event.key === 'Up' || event.key === 'ArrowUp' ? 1 : 0;
 }
 
+/** Step size below which every amount moves by one. */
+const UNIT_STEPS_BELOW = 100;
+
 /**
- * The text a field should show after a step, or null when it should stay as it is.
- * Counts change their lowest shown thousand and never leave it: at 12 K, a step of 1 K is fine but a step past 999 K is not.
+ * The text a field should show after one Up or Down, or null when it should stay as it is.
+ * Below 100 a step is 1. From 100 up it is 10^(digits − 2), so 100, 110 … 990, 1,000, 1,100 … 990 T, 1 AA, 1.1 AA.
+ * Down from an exact power of ten takes the smaller step (1,000 to 990). Values off that grid snap onto it.
  */
-export function stepValue(kind: StepKind, text: string, direction: number, powers: readonly string[]): string | null {
-  const raw = parseAmount(text, powers);
-  if (raw === 0 && direction > 0) {
-    return '1';
+export function stepAmount(text: string, direction: number, powers: readonly string[]): string | null {
+  const value = parseAmount(text, powers);
+  if (!Number.isFinite(value) || value < 0 || direction === 0 || (direction < 0 && value === 0)) {
+    return null;
   }
 
-  if (kind === 'count') {
-    const thousandPower = Math.floor(Math.log(raw) / Math.log(1000));
-    const next = raw + Math.pow(1000, thousandPower) * direction;
-    const nextThousandPower = Math.floor(Math.log(next) / Math.log(1000));
-    const shown = bigNum(next, powers);
-    return shown === 'NaN undefined' || next < 1 || nextThousandPower !== thousandPower ? null : shown;
+  let step = 1;
+  if (value >= UNIT_STEPS_BELOW) {
+    const exponent = Math.floor(Math.log10(value) + 1e-12);
+    const power = Math.pow(10, exponent);
+    const atPower = Math.abs(value - power) <= power * 1e-12;
+    step = Math.pow(10, direction < 0 && atPower ? exponent - 2 : exponent - 1);
   }
 
-  const next = raw + (kind === 'comrades' ? 1000 : 100) * direction;
-  const shown = bigNum(next, powers);
-  return shown === 'NaN undefined' || next < 0 ? '0' : shown;
+  const ratio = value / step;
+  const nearest = Math.round(ratio);
+  const onGrid = Math.abs(ratio - nearest) <= Math.max(1, ratio) * 1e-9;
+  const next = Math.max(0, (onGrid ? nearest + direction : direction > 0 ? Math.ceil(ratio) : Math.floor(ratio)) * step);
+  return bigNum(next, powers);
 }

@@ -77,7 +77,9 @@ export function countsTimeStamp(form: FormValues, resourceId: string): number | 
  * Game amounts are never negative, so a minus sign makes a field invalid rather than saving it. Mission progress is the
  * exception: players type a negative progress to stand in for a different goal, until custom goals exist.
  */
-export function isInvalidAmount(text: string, powers: readonly string[], allowNegative = false): boolean {
+export function isInvalidAmount(text: string, powers: readonly string[], allowNegative = false, whole = false): boolean {
   const value = parseAmount(text, powers);
-  return Number.isNaN(value) || (!allowNegative && value < 0);
+  // Generator counts are whole. Above 2^53 every number a computer stores is whole anyway.
+  const fraction = whole && value < Number.MAX_SAFE_INTEGER && !Number.isInteger(value);
+  return Number.isNaN(value) || (!allowNegative && value < 0) || fraction;
 }

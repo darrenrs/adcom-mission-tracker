@@ -133,7 +133,7 @@ function CalculatorBody({ mission, industryId, resourceId }: BodyProps) {
       return cycleProgress(text, tier.cycleSeconds);
     });
     const issues =
-      keys.filter((key) => isInvalidAmount(texts[key] ?? '', powers, key === PROGRESS_KEY) && !disabledKeys.has(key)).length +
+      keys.filter((key) => isInvalidAmount(texts[key] ?? '', powers, key === PROGRESS_KEY, key.startsWith('gen:')) && !disabledKeys.has(key)).length +
       progress.filter((entry) => entry.error !== null).length +
       Object.values(form.Trades.Resource).filter((trade) => trade?.IsInvalid).length;
     if (issues > 0) {

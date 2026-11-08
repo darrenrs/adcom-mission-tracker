@@ -1,5 +1,5 @@
 import { useEffect, useRef, type RefObject } from 'react';
-import { stepDirection, stepValue, type StepKind } from '@/domain/inputSteps';
+import { stepAmount, stepDirection } from '@/domain/inputSteps';
 
 /** What a number field tells the keyboard handler about itself. */
 export interface FieldAttributes {
@@ -14,8 +14,6 @@ interface Handlers {
   /** Moves a trade cost up or down. Gets the text the field shows now. */
   stepTrade(resourceId: string, delta: number, shown: string): void;
 }
-
-const STEP_KIND: Readonly<Record<string, StepKind>> = { count: 'count', comrades: 'comrades', comradesPerSecond: 'comradesPerSecond' };
 
 /** Plain Up and Down change a number field. Fields describe themselves with `FieldAttributes`, so none needs its own handler. */
 export function useFieldKeyboard(root: RefObject<HTMLElement | null>, handlers: Handlers) {
@@ -41,7 +39,7 @@ export function useFieldKeyboard(root: RefObject<HTMLElement | null>, handlers: 
       if (kind === 'tradeCost') {
         stepTrade(key, direction, target.value);
       } else {
-        const next = stepValue(STEP_KIND[kind] ?? 'count', target.value, direction, powers);
+        const next = stepAmount(target.value, direction, powers);
         if (next !== null) {
           setField(key, next);
         }

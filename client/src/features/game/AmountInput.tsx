@@ -1,5 +1,5 @@
 import { useEffect, useState, type InputHTMLAttributes } from 'react';
-import { formatAmountText, parseAmount, stepDirection, stepValue, type StepKind } from '@/domain/inputSteps';
+import { formatAmountText, parseAmount, stepAmount, stepDirection } from '@/domain/inputSteps';
 import { inputClass } from '@/ui/inputStyles';
 import { amountText, isInvalidAmount } from '@/features/calculator/fields';
 
@@ -8,15 +8,16 @@ interface Props extends Omit<InputHTMLAttributes<HTMLInputElement>, 'value' | 'o
   value: number;
   onValue(value: number): void;
   powers: readonly string[];
-  kind?: StepKind;
+  /** Generator counts: only whole numbers are valid. */
+  whole?: boolean;
   /** Mission progress only: players use negative values to stand in for other goals. */
   allowNegative?: boolean;
 }
 
 /** A number field that saves each valid change. Takes plain numbers or the game's notation, and plain Up and Down. */
-export function AmountInput({ label, value, onValue, powers, kind = 'count', className = '', onBlur, allowNegative = false, ...rest }: Props) {
+export function AmountInput({ label, value, onValue, powers, whole = false, className = '', onBlur, allowNegative = false, ...rest }: Props) {
   const [text, setText] = useState(() => amountText(value, powers));
-  const invalid = isInvalidAmount(text, powers, allowNegative);
+  const invalid = isInvalidAmount(text, powers, allowNegative, whole);
 
   // Another field may change the same number, such as an Own mission and its generator.
   useEffect(() => {
@@ -25,7 +26,7 @@ export function AmountInput({ label, value, onValue, powers, kind = 'count', cla
 
   const change = (next: string) => {
     setText(next);
-    if (!isInvalidAmount(next, powers, allowNegative)) {
+    if (!isInvalidAmount(next, powers, allowNegative, whole)) {
       onValue(parseAmount(next, powers));
     }
   };
@@ -53,7 +54,7 @@ export function AmountInput({ label, value, onValue, powers, kind = 'count', cla
         const direction = stepDirection(event);
         if (direction !== 0) {
           event.preventDefault();
-          const next = stepValue(kind, text, direction, powers);
+          const next = stepAmount(text, direction, powers);
           if (next !== null) {
             change(next);
           }

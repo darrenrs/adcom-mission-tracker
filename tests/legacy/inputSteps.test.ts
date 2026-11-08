@@ -1,7 +1,7 @@
 // Compares the arrow-key arithmetic of number fields with the legacy inputKeyboardHandler, which is called
 // with fake keyboard events on fake inputs, for every kind of field, key and modifier combination.
 import { afterAll, describe, expect, it } from 'vitest';
-import { parseAmount, stepDirection, stepValue, type StepKind } from '@/domain/inputSteps';
+import { parseAmount, stepDirection } from '@/domain/inputSteps';
 import { TITLES } from '@/domain/titles';
 import { createLegacy, TITLE_KEYS } from './harness';
 
@@ -48,14 +48,8 @@ const KEYS = [
 // Only plain presses are left. Modifiers do nothing now, so they no longer match legacy.
 const MODIFIERS = [{ ctrlKey: false, shiftKey: false, altKey: false }];
 
-const FIELDS: { id: string; kind: StepKind | 'tradeCost' }[] = [
-  { id: 'farmer-count', kind: 'count' },
-  { id: 'resources', kind: 'count' },
-  { id: 'resourceProgress', kind: 'count' },
-  { id: 'comrades', kind: 'comrades' },
-  { id: 'comradesPerSec', kind: 'comradesPerSecond' },
-  { id: 'potato-trade-cost', kind: 'tradeCost' }
-];
+// Amount fields now step by the owner's rule (see client/src/domain/inputSteps.test.ts); only trade costs still match legacy.
+const FIELDS: { id: string; kind: 'tradeCost' }[] = [{ id: 'potato-trade-cost', kind: 'tradeCost' }];
 
 describe.each(TITLE_KEYS)('number field steps match legacy (%s)', (titleKey) => {
   const powers = TITLES[titleKey].powers;
@@ -90,18 +84,12 @@ describe.each(TITLE_KEYS)('number field steps match legacy (%s)', (titleKey) => 
             const label = `${field.id} "${text}" ${key} ${JSON.stringify(modifiers)}`;
             comparisons++;
 
-            if (field.kind === 'tradeCost') {
-              const trade = legacy.read<[string, number] | null>('__trade');
-              if (direction === 0) {
-                expect(trade, label).toBeNull();
-              } else {
-                expect(trade?.[1], label).toBe(direction);
-              }
-            } else if (direction === 0) {
-              expect(dom.value, label).toBe(text);
+            const trade = legacy.read<[string, number] | null>('__trade');
+            if (direction === 0) {
+              expect(trade, label).toBeNull();
             } else {
-              expect(String(dom.value), label).toBe(stepValue(field.kind, text, direction, powers) ?? text);
-              if (String(dom.value) !== text) moved++;
+              expect(trade?.[1], label).toBe(direction);
+              moved++;
             }
           }
         }
@@ -110,7 +98,7 @@ describe.each(TITLE_KEYS)('number field steps match legacy (%s)', (titleKey) => 
   });
 
   it('actually changed values', () => {
-    expect(moved).toBeGreaterThan(1000);
+    expect(moved).toBeGreaterThan(100);
   });
 
   it('reads amounts the way legacy reads field values', () => {
