@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { PlayerResult } from './leaderboard';
-import { globalRows, markerLabel, markerOffset, playerName, shortboardLabel, shortboardNumber, shortboardReward, topPercent, trophiesToMoveUp } from './leaderboardView';
+import { avatarVisualKey, globalRows, markerLabel, markerPlacement, markerOffset, playerName, shortboardLabel, shortboardNumber, shortboardReward, topPercent, trophiesToMoveUp } from './leaderboardView';
 import type { LteScheduleData } from './types';
 
 const gacha = (id: string) => ({ Reward: 'Gacha', RewardId: id, Value: 1 });
@@ -32,6 +32,8 @@ function result(globalPosition: number, count = 100_000): PlayerResult {
     player: {
       playerId: 'A',
       ordinal: 3,
+      avatarId: null,
+      lteRank: null,
       segmentId: 'spookySPEND_2_TO_100:20',
       shortboardCategory: 'SPEND_2_TO_100',
       root: 'global',
@@ -126,5 +128,24 @@ describe('marker and numbers', () => {
     expect(shortboardReward(schedule, 'bucket1', 2)?.RewardId).toBe('elite');
     expect(shortboardReward(schedule, 'bucket1', 9)).toBeNull();
     expect(shortboardReward(schedule, undefined, 1)).toBeNull();
+  });
+});
+
+describe('markerPlacement', () => {
+  it('picks the row and the share through it, keeping both inside the table', () => {
+    expect(markerPlacement(2.25, 5)).toEqual({ index: 2, fraction: 0.25 });
+    expect(markerPlacement(0, 5)).toEqual({ index: 0, fraction: 0 });
+    expect(markerPlacement(5, 5)).toEqual({ index: 4, fraction: 1 });
+  });
+});
+
+describe('avatarVisualKey', () => {
+  const common = { Avatars: [{ ID: 'AV0001', VisualKey: 'one' }, { Id: 'AV0002', VisualKey: 'two' }] };
+  it('finds the picture name by id', () => {
+    expect(avatarVisualKey(common, 'AV0001')).toBe('one');
+    expect(avatarVisualKey(common, 'AV0002')).toBe('two');
+    expect(avatarVisualKey(common, 'AV9')).toBeNull();
+    expect(avatarVisualKey(common, null)).toBeNull();
+    expect(avatarVisualKey(undefined, 'AV0001')).toBeNull();
   });
 });

@@ -1,10 +1,12 @@
-import { useEffect, useId, useState, type FormEvent, type ReactNode } from 'react';
+import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { describeReward, type RewardPart } from '@/domain/gameText';
 import type { PlayerResult } from '@/domain/leaderboard';
 import {
+  avatarVisualKey,
   globalRows,
   markerLabel,
   markerOffset,
+  markerPlacement,
   playerName,
   shortboardLabel,
   shortboardNumber,
@@ -18,6 +20,7 @@ import { partIconUrl } from '@/features/mission/MissionPage';
 import { bigNum } from '@/domain/format';
 import { inputClass } from '@/ui/inputStyles';
 import { PLAYER_ID, useSession, useTracker } from '@/state/store';
+import { RankDistribution } from './RankChart';
 import { useLeaderboardEntry } from './useLeaderboard';
 
 type Lookup =
@@ -29,8 +32,23 @@ type Lookup =
   | { state: 'failed' };
 
 const box = 'rounded-xl border border-line bg-surface';
-const ROW_HEIGHT = 48;
-const HEAD_HEIGHT = 40;
+
+/** The picture URL for an avatar id, or null when the id is unknown. */
+function useAvatarUrl(): (avatarId: string | null | undefined) => string | null {
+  const { data, assets } = useSession();
+  const common = data.balances['common'];
+  return useMemo(
+    () => (avatarId) => {
+      const key = avatarVisualKey(common, avatarId);
+      return key ? assets.forTitle('adcom', `shared/avatars/${key}.png`) : null;
+    },
+    [common, assets]
+  );
+}
+
+function Avatar({ url, className }: { url: string | null; className: string }) {
+  return url ? <img src={url} alt="" loading="lazy" className={`${className} shrink-0 object-contain`} /> : <span className={`${className} block shrink-0`} />;
+}
 
 function usePlayerResult(guid: string, playerId: string): Lookup {
   const [lookup, setLookup] = useState<Lookup>({ state: 'idle' });
@@ -167,49 +185,86 @@ function GlobalTable({ result, rows }: { result: PlayerResult; rows: GlobalRow[]
   const count = result.global?.count ?? 0;
   const currentIndex = rows.findIndex((row) => row.current);
   const offset = markerOffset(rows, position);
-  // The move-up line sits above the player's bracket, pushing the rows below it down by one row.
   const moveUp = currentIndex > 0 && position !== 0 ? trophiesToMoveUp(rows[currentIndex - 1]?.score ?? null, trophies) : null;
-  const top = HEAD_HEIGHT + (offset + (moveUp !== null && offset >= currentIndex ? 1 : 0)) * ROW_HEIGHT;
+  const container = useRef<HTMLDivElement>(null);
+  const marker = useRef<HTMLSpanElement>(null);
+  const rowRefs = useRef<(HTMLTableRowElement | null)[]>([]);
+  const [top, setTop] = useState<number | null>(null);
+
+  // The marker's place comes from where the rows really are, so wrapped text or the move-up line cannot throw it off.
+  useLayoutEffect(() => {
+    const measure = () => {
+      const box = container.current;
+      const row = rowRefs.current[markerPlacement(offset, rows.length).index];
+      if (!box || !row) {
+        return;
+      }
+      const { index, fraction } = markerPlacement(offset, rows.length);
+      const target = rowRefs.current[index] ?? row;
+      const boxRect = box.getBoundingClientRect();
+      const rect = target.getBoundingClientRect();
+      const half = (marker.current?.offsetHeight ?? 0) / 2;
+      const y = rect.top - boxRect.top + Math.min(Math.max(fraction * rect.height, 1), rect.height - 1);
+      setTop(Math.min(Math.max(y, half), boxRect.height - half));
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    if (container.current) {
+      observer.observe(container.current);
+    }
+    return () => observer.disconnect();
+  }, [offset, rows, moveUp]);
 
   return (
-    <section aria-labelledby="global-heading" className="space-y-2">
+    <section aria-labelledby="global-heading" className="min-w-0 space-y-2">
       <h2 id="global-heading" className="text-base font-semibold">
-        Global leaderboard
+        Global Leaderboard
       </h2>
-      <div className={`relative overflow-x-auto pl-20 ${box}`}>
-        {position !== null && (
-          <span
-            aria-label={`Your place: ${markerLabel(position, count)}`}
-            className="absolute left-2 -translate-y-1/2 rounded-full bg-accent px-2 py-0.5 text-xs font-bold text-white tabular-nums dark:text-black"
-            style={{ top }}
-          >
-            {markerLabel(position, count)} ▶
-          </span>
-        )}
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="h-10 text-left text-xs text-muted uppercase">
-              <th className="px-2 font-medium">Bracket</th>
-              <th className="px-2 font-medium">Place</th>
-              <th className="px-2 font-medium">Trophies</th>
-              <th className="px-2 font-medium">Reward</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((row, index) => (
-              <Rows key={row.name} before={index === currentIndex ? <MoveUpRow trophies={moveUp} columns={4} /> : null}>
-                <tr className={`h-12 border-t border-line ${row.current ? 'bg-raised font-bold' : ''}`} aria-current={row.current ? 'true' : undefined}>
-                  <td className="px-2">{row.name}</td>
-                  <td className="px-2 tabular-nums">{bigNum(row.position, powers)}</td>
-                  <td className="px-2 tabular-nums">{row.score === null ? '—' : bigNum(row.score, powers)}</td>
-                  <td className="px-2">
-                    <Reward reward={row.reward} />
-                  </td>
-                </tr>
-              </Rows>
-            ))}
-          </tbody>
-        </table>
+      <div ref={container} className="flex">
+        <div className="relative w-16 shrink-0 sm:w-20">
+          {position !== null && (
+            <span
+              ref={marker}
+              aria-label={`Your place: ${markerLabel(position, count)}`}
+              className="absolute right-1 -translate-y-1/2 rounded-full bg-accent px-2 py-0.5 text-xs font-bold whitespace-nowrap text-white tabular-nums dark:text-black"
+              style={{ top: top ?? 0, visibility: top === null ? 'hidden' : 'visible' }}
+            >
+              {markerLabel(position, count)} ▶
+            </span>
+          )}
+        </div>
+        <div data-testid="global-table" className={`min-w-0 flex-1 ${box}`}>
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="h-10 text-left text-xs text-muted uppercase">
+                <th className="px-2 font-medium">Bracket</th>
+                <th className="px-2 font-medium">Place</th>
+                <th className="px-2 font-medium">Trophies</th>
+                <th className="px-2 font-medium">Reward</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((row, index) => (
+                <Rows key={row.name} before={index === currentIndex ? <MoveUpRow trophies={moveUp} columns={4} /> : null}>
+                  <tr
+                    ref={(element) => {
+                      rowRefs.current[index] = element;
+                    }}
+                    className={`h-12 border-t border-line ${row.current ? 'bg-raised font-bold' : ''}`}
+                    aria-current={row.current ? 'true' : undefined}
+                  >
+                    <td className="px-2">{row.name}</td>
+                    <td className="px-2 tabular-nums">{bigNum(row.position, powers)}</td>
+                    <td className="px-2 tabular-nums">{row.score === null ? '—' : bigNum(row.score, powers)}</td>
+                    <td className="px-2">
+                      <Reward reward={row.reward} />
+                    </td>
+                  </tr>
+                </Rows>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </section>
   );
@@ -226,6 +281,7 @@ function Rows({ before, children }: { before: ReactNode; children: ReactNode }) 
 
 function ShortboardTable({ result, shortLeaderboardId }: { result: PlayerResult; shortLeaderboardId: string | undefined }) {
   const { data, title } = useSession();
+  const avatarUrl = useAvatarUrl();
   const { powers } = title;
   const division = result.division;
   if (!division) {
@@ -235,7 +291,7 @@ function ShortboardTable({ result, shortLeaderboardId }: { result: PlayerResult;
   const playerIndex = division.entries.findIndex((entry) => entry.isPlayer);
 
   return (
-    <section aria-labelledby="shortboard-heading" className="space-y-2">
+    <section aria-labelledby="shortboard-heading" className="min-w-0 space-y-2">
       <h2 id="shortboard-heading" className="text-base font-semibold">
         Shortboard
       </h2>
@@ -244,6 +300,9 @@ function ShortboardTable({ result, shortLeaderboardId }: { result: PlayerResult;
           <thead>
             <tr className="h-10 text-left text-xs text-muted uppercase">
               <th className="px-2 font-medium">#</th>
+              <th className="w-10 px-1 font-medium">
+                <span className="sr-only">Avatar</span>
+              </th>
               <th className="px-2 font-medium">Player</th>
               <th className="px-2 font-medium">Trophies</th>
               <th className="px-2 font-medium">Global</th>
@@ -257,9 +316,12 @@ function ShortboardTable({ result, shortLeaderboardId }: { result: PlayerResult;
               const share = globalPlace !== null && count > 1 ? globalPlace / (count - 1) : null;
               const moveUp = entry.isPlayer && index > 0 ? trophiesToMoveUp(division.entries[index - 1]?.trophies ?? null, entry.trophies) : null;
               return (
-                <Rows key={`${entry.position}-${entry.ordinal ?? index}`} before={index === playerIndex ? <MoveUpRow trophies={moveUp} columns={5} /> : null}>
-                  <tr className={`h-12 border-t border-line ${entry.isPlayer ? 'bg-raised font-bold' : ''}`} aria-current={entry.isPlayer ? 'true' : undefined}>
+                <Rows key={`${entry.position}-${entry.ordinal ?? index}`} before={index === playerIndex ? <MoveUpRow trophies={moveUp} columns={6} /> : null}>
+                  <tr className={`h-12 border-t border-line ${entry.isPlayer ? 'bg-raised font-bold hover:bg-accent/25' : 'hover:bg-accent/15'}`} aria-current={entry.isPlayer ? 'true' : undefined}>
                     <td className="px-2 tabular-nums">{bigNum(place, powers)}</td>
+                    <td className="px-1">
+                      <Avatar url={avatarUrl(entry.avatarId)} className="size-8" />
+                    </td>
                     <td className="px-2">{playerName(entry.ordinal)}</td>
                     <td className="px-2 tabular-nums">{bigNum(entry.trophies, powers)}</td>
                     <td className="px-2 tabular-nums">
@@ -283,8 +345,21 @@ function ShortboardTable({ result, shortLeaderboardId }: { result: PlayerResult;
 const DATE = new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' });
 const when = (iso: string | null) => (iso ? DATE.format(new Date(iso)) : '—');
 
-function Results({ result, globalLeaderboardId, shortLeaderboardId }: { result: PlayerResult; globalLeaderboardId?: string; shortLeaderboardId?: string }) {
+function Results({
+  result,
+  guid,
+  live,
+  globalLeaderboardId,
+  shortLeaderboardId
+}: {
+  result: PlayerResult;
+  guid: string;
+  live: boolean;
+  globalLeaderboardId?: string;
+  shortLeaderboardId?: string;
+}) {
   const { data, title } = useSession();
+  const avatarUrl = useAvatarUrl();
   const { powers } = title;
   const { player } = result;
   const number = shortboardNumber(player.segmentId);
@@ -298,10 +373,11 @@ function Results({ result, globalLeaderboardId, shortLeaderboardId }: { result: 
         </p>
       )}
       <div className="grid gap-2 sm:grid-cols-3">
-        <Stat label="Trophies">
-          <p className="text-4xl font-bold tabular-nums">{player.trophies === null ? '—' : bigNum(player.trophies, powers)}</p>
-        </Stat>
-        <Stat label="Global position">
+        <div className={`flex flex-col items-center justify-center gap-3 p-4 text-center sm:row-span-3 ${box}`}>
+          <Avatar url={avatarUrl(player.avatarId)} className="size-32" />
+          <h2 className="text-lg font-semibold">{playerName(player.ordinal)}</h2>
+        </div>
+        <Stat label="Global Position">
           {player.globalPosition !== null && player.globalCount ? (
             <>
               <p className="text-xl font-semibold tabular-nums">
@@ -320,12 +396,22 @@ function Results({ result, globalLeaderboardId, shortLeaderboardId }: { result: 
             {player.divisionPosition !== null && player.divisionCount ? ` · ${bigNum(player.divisionPosition + 1, powers)} of ${bigNum(player.divisionCount, powers)}` : ''}
           </p>
         </Stat>
+        <Stat label="Trophies">
+          <p className="text-4xl font-bold tabular-nums">{player.trophies === null ? '—' : bigNum(player.trophies, powers)}</p>
+        </Stat>
+        <Stat label="Player Rank">
+          <p className="text-4xl font-bold tabular-nums">{live && player.lteRank !== null ? bigNum(player.lteRank, powers) : '—'}</p>
+        </Stat>
+        <div className={`p-3 sm:col-span-2 ${box}`}>
+          <p className="text-sm">Joined: {when(player.joined)}</p>
+          <p className="text-sm">Last updated: {when(player.updated)}</p>
+        </div>
       </div>
-      <p className="text-sm text-muted">
-        {playerName(player.ordinal)} · Joined {when(player.joined)} · Last updated {when(player.updated)}
-      </p>
-      {rows.length > 0 && <GlobalTable result={result} rows={rows} />}
-      <ShortboardTable result={result} shortLeaderboardId={shortLeaderboardId} />
+      <div className="grid items-start gap-4 lg:grid-cols-2">
+        {rows.length > 0 && <GlobalTable result={result} rows={rows} />}
+        <ShortboardTable result={result} shortLeaderboardId={shortLeaderboardId} />
+      </div>
+      <RankDistribution guid={guid} playerId={player.playerId} />
     </div>
   );
 }
@@ -341,7 +427,7 @@ export function LeaderboardPage() {
   }
 
   return (
-    <div className="mx-auto max-w-4xl space-y-4">
+    <div className="mx-auto max-w-7xl space-y-4">
       <h1 className="text-lg font-semibold">Leaderboard</h1>
       <PlayerIdForm />
       {lookup.state === 'loading' && <p role="status" className="text-sm text-muted">Loading results…</p>}
@@ -349,7 +435,12 @@ export function LeaderboardPage() {
       {lookup.state === 'unavailable' && <p role="status" className="text-sm">The leaderboard is not available right now.</p>}
       {lookup.state === 'failed' && <p role="alert" className="text-sm text-danger">The results could not be loaded. Try again in a moment.</p>}
       {lookup.state === 'found' && (
-        <Results result={lookup.result} globalLeaderboardId={entry.schedule?.GlobalLeaderboardId} shortLeaderboardId={entry.schedule?.LeaderboardId} />
+        <Results
+          result={lookup.result}
+          guid={entry.api.guid}
+          live={entry.api.live}
+          globalLeaderboardId={entry.schedule?.GlobalLeaderboardId} shortLeaderboardId={entry.schedule?.LeaderboardId}
+        />
       )}
     </div>
   );

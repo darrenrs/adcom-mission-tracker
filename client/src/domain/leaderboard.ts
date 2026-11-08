@@ -23,6 +23,8 @@ export interface PlayerResult {
   player: {
     playerId: string;
     ordinal: number | null;
+    avatarId: string | null;
+    lteRank: number | null;
     segmentId: string | null;
     shortboardCategory: string | null;
     root: string | null;
@@ -37,7 +39,25 @@ export interface PlayerResult {
   global: { count: number; brackets: LeaderboardBracket[] } | null;
   division: {
     count: number;
-    entries: { ordinal: number | null; position: number; globalPosition: number | null; trophies: number; isPlayer: boolean }[];
+    entries: {
+      ordinal: number | null;
+      avatarId: string | null;
+      lteRank: number | null;
+      position: number;
+      globalPosition: number | null;
+      trophies: number;
+      isPlayer: boolean;
+    }[];
   } | null;
+  cachedAt: string;
+}
+
+/** From `GET /api/leaderboard/:guid/stats`. */
+export interface EventStats {
+  players: number;
+  /** `rankDistribution[i]` is the number of players at event rank `i + 1`; as long as the highest rank seen. */
+  rankDistribution: number[];
+  rankAverage: number | null;
+  trophySum: number;
   cachedAt: string;
 }

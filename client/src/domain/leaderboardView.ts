@@ -138,6 +138,30 @@ export function markerOffset(rows: readonly GlobalRow[], position: number | null
   return rows.length;
 }
 
+/** `markerOffset` split into the row to measure and how far down that row the marker sits, from 0 to 1. */
+export function markerPlacement(offset: number, rowCount: number): { index: number; fraction: number } {
+  const index = Math.max(0, Math.min(Math.floor(offset), rowCount - 1));
+  return { index, fraction: Math.min(Math.max(offset - index, 0), 1) };
+}
+
+/** The avatar picture name for an avatar id, read from the `common` balance's avatar list. */
+export function avatarVisualKey(common: unknown, avatarId: string | null | undefined): string | null {
+  if (!avatarId || typeof common !== 'object' || common === null) {
+    return null;
+  }
+  const list = (common as Record<string, unknown>)['Avatars'] ?? (common as Record<string, unknown>)['Avatar'];
+  if (!Array.isArray(list)) {
+    return null;
+  }
+  for (const item of list as Record<string, unknown>[]) {
+    if ((item['ID'] ?? item['Id']) === avatarId) {
+      const key = item['VisualKey'];
+      return typeof key === 'string' && key ? key : null;
+    }
+  }
+  return null;
+}
+
 /** The marker's label: the place for the top 100, otherwise the percentage, as the old page showed. */
 export function markerLabel(position: number, count: number): string {
   if (position < 100) {
