@@ -1,5 +1,6 @@
 # Config
 .env
+*.swp
 data/
 public/img/
 

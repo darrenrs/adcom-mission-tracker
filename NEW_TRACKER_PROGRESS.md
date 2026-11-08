@@ -9,7 +9,7 @@ Start here when picking the work up. The plan history is in `~/.claude/plans/ros
 
 ## Next step
 
-1. The owner checks the reworked Leaderboard tab locally with their real PlayFab ID against the old leaderboard page: place, marker bracket, Shortboard avatars, rank distribution totals. Locally it needs both `npm run api:local` and `npm run dev:leaderboard`.
+1. The owner checks the reworked Leaderboard tab locally with their real PlayFab ID against the old leaderboard page: place, marker bracket, Shortboard avatars, rank distribution totals. Locally it needs only `npm run dev`, with the Docker container rebuilt from this branch (see Running it).
 2. The owner decides when to push, then redeploys the beta.
 3. More owner feedback is expected. Plan each batch before coding.
 4. Phase 4 waits for the owner's go-ahead.
@@ -61,17 +61,7 @@ The Motherland capsule table stays out until the evergreen capsule formula is kn
 Legacy comparisons stay in use through Phases 4 and 5, because they prove the ports are right. They end with development. Two things depend on legacy code today:
 
 - `tests/legacy/` reads `public/` from `master` through `git show` every time it runs, so these tests break when the new tracker reaches `master`.
-- `tests/golden/mission-traces.json` is already a stored file, but For live leaderboard data in development, run the branch's own server and point Vite at it. The Docker app on 3001 is an older build without the leaderboard routes, and plain `npm run dev` answers the event list with "none".
-
-```bash
-npm run api:local
-```
-
-```bash
-npm run dev:leaderboard
-```
-
-`npm run golden` recaptures it from `master`, and `tests/golden/missions.test.ts` tells you to do that when a balance changes.
+- `tests/golden/mission-traces.json` is already a stored file, but `npm run golden` recaptures it from `master`, and `tests/golden/missions.test.ts` tells you to do that when a balance changes.
 
 The work:
 
@@ -121,7 +111,7 @@ The work:
 
 **Leaderboard (AdCom only)**
 - The tracker's Express app proxies Hyper Hippo's leaderboard API (`server/leaderboard/`), with the archiver's rate limits. Events are cached 10 minutes, the full board 5 minutes per event, player results 60 seconds.
-- `GET /api/leaderboard/events` always answers 200; without a token it returns no events, so pages load cleanly. In development, Vite answers it the same way unless `LEADERBOARD_BACKEND` points at a local `node app.js`.
+- `GET /api/leaderboard/events` always answers 200; without a token it returns no events, so pages load cleanly. `npm run dev` uses the Docker app's real routes. The browser tests set `LEADERBOARD_STUB=1`, so Vite answers the event list with "none" and live events never reach them.
 - The tab appears only for a started AdCom event the API knows. Rewards come from the schedule's `LteLeaderboards` and `LteShortLeaderboards`; events missing from the schedule show no rewards.
 - The PlayFab ID is saved as `PlayerId` and copied once from the old site's `playerId`.
 - Not verified live: fixtures are synthetic. The per-player call uses `topCount=25`; if Shortboards come back truncated, set `LEADERBOARD_PLAYER_TOP_COUNT=9999999`. The full-board call has a 30 second timeout.
@@ -195,7 +185,7 @@ The work:
 - **Dates** follow each player's browser language and time zone. The owner declined a date-format setting.
 - **Saved ETAs** stop beyond about 273,900 years from now, the latest date a browser can represent. The calculator still shows longer durations.
 - **Comparison with the 2021 calculator:** its offline Newton method matches the new engine (Stone, all cards maxed, 1 T mammoths: 44 SS = 10d 17h 50m, 74 CCC = 1.06 M years) but fails to converge at 77.7 MMM. The new engine gives 75.1 T years online and 33.9 T years offline for that case.
-- **Local leaderboard:** the Docker app on 3001 is an old build without leaderboard routes. Run `npm run api:local` (port 3011) with `npm run dev:leaderboard`. The `.claude/launch.json` entries `new-tracker` and `tracker-api` do the same.
+- **Local development is one command (8 November):** the local tracker container belongs to this folder's compose project and sits on the `adcom-sites` network with `adcom-assets`, so `ASSET_SERVER=http://assets:3002` only works inside Docker. Rebuild it from this branch with `./build.sh`; `npm run dev` then sends all of `/api` to it, on the `PORT` read from the `.env` file itself (a `PORT` in the shell is ignored, because launchers set it to Vite's own port). Rerun `./build.sh` after changing `app.js` or `server/`. The rebuilt container serves the new tracker on 3001, not the legacy page. `api:local`, `dev:leaderboard`, `LEADERBOARD_BACKEND` and `TRACKER_BACKEND` are gone. The `PLAYFAB_DEVICE_ID` and `PLAYFAB_DEVICE_ID_TYPE` entries in the local `.env` are read by nothing.
 
 ## Calculation tests
 
@@ -224,7 +214,7 @@ The owner plans a beta on the VPS: a separate directory checked out at `new-trac
 
 ## Running it
 
-The local Docker containers must be running: the API on port 3001 and `adcom-assets` on 3002.
+The local Docker containers must be running: the tracker API on the `PORT` from `.env` (3001), built from this branch with `./build.sh`, and `adcom-assets` on 3002. Rerun `./build.sh` after server changes.
 
 ```bash
 npm run dev
@@ -248,7 +238,7 @@ npm run build
 
 `npm run golden` recaptures mission traces from `master`. Run it only when balance data changes. If the data has changed, the mission tests fail and tell you to run it. This command goes away in Phase 6.
 
-At the last commit, all 1,333 unit tests and 216 browser tests passed, and `npm run build` succeeded.
+On 8 November, after the one-command dev change, all 1,346 unit tests and 225 browser tests passed (13 more skip by design at one width), and `npm run build` succeeded. `density.spec.ts`'s phone rank-popover test failed once and passed on a rerun.
 
 ## Where things are
 

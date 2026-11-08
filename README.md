@@ -25,6 +25,22 @@ The `.env` file should be structured as follows (again, replace DEVID with your 
 | `ASSET_PUBLIC_BASE` | Yes | Browser-facing asset root URL for images/JSON (for example, `http://localhost:3002/assets`). |
 | `PLAYFAB_TITLE_ID_ADCOM` | Yes | AdVenture Communist PlayFab Title ID (`6bf5`) |
 | `PLAYFAB_TITLE_ID_AGES` | Yes | AdVenture Ages PlayFab Title ID (`dc4bb`) |
+| `API_URL_LEADERBOARD` | For the leaderboard | Base URL of Hyper Hippo's leaderboard API. Without it and the token, the Leaderboard tab never appears. |
+| `API_GCLOUD_TOKEN` | For the leaderboard | Token for the leaderboard API. Never logged. |
+
+Optional leaderboard settings, with their defaults:
+
+| Variable | Default | Description |
+|---|---|---|
+| `API_APPLICATION_ID` | `adcom` | Leaderboard API project. |
+| `LEADERBOARD_PLAYER_TOP_COUNT` | `25` | Entries requested per player call. Raise it (for example to `9999999`) if Shortboards come back cut short. |
+| `LEADERBOARD_BOARD_TIMEOUT_MS` | `30000` | Timeout for the full-board call. |
+| `ADCOM_API_MAX_CONCURRENCY` | `4` | Upstream requests in flight at once. |
+| `ADCOM_API_REQUESTS_PER_SECOND` | `8` | Upstream request starts per second. |
+| `ADCOM_API_TIMEOUT_MS` | `10000` | Timeout for other upstream calls. |
+| `ADCOM_API_MAX_RETRIES` | `2` | Retries on 429, 502, 503, 504 and network errors. |
+| `ADCOM_API_FALLBACK_RETRY_MS` | `2000` | Wait before a retry when the upstream gives no Retry-After. |
+| `ADCOM_API_RETRY_JITTER_MS` | `250` | Random extra wait added to each retry. |
 
 `ASSET_SERVER` is used by backend proxy routes (`/api/data/:title`, `/api/admin/data-file`) and must be reachable from the app container/process.
 `ASSET_PUBLIC_BASE` is used by the browser to resolve image assets from the `adcom-assets` repository.
@@ -50,6 +66,18 @@ curl -H "Content-Type: application/json" -d '{"title":"6bf5", "version":"6.54", 
 # AdAges data
 curl -H "Content-Type: application/json" -d '{"title":"dc4bb", "version":"1.34", "password":"password"}' http://localhost:8080/api/admin/data-file
 ```
+
+### Front-end development
+
+The React app is developed with Vite against the local Docker containers, so start those first (`build.sh` here, and `adcom-assets`). Then run:
+
+```
+npm run dev
+```
+
+Vite serves the app on http://localhost:5173 and forwards `/api` to the tracker container on the `PORT` set in `.env`. Front-end changes reload instantly. Changes to `app.js` or `server/` need `build.sh` again before they show up.
+
+`npm test` runs the unit tests and `npm run test:e2e` the browser tests. The browser tests answer the leaderboard event list with "none", so live events never affect them.
 
 ## Contributors
 The primary maintainer of this website is Enigma since 2022 with Catster providing additional support. Zephyron is the original creator of the Mission/Capsule Tracker and FAQ documents.
