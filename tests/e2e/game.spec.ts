@@ -97,7 +97,7 @@ test('switches industry, edits its amount, and remembers the choice', async ({ p
   const amount = page.getByRole('textbox', { name: 'Land amount' });
   await amount.fill('5 K');
   await amount.blur();
-  await expect(amount).toHaveValue('5 K');
+  await expect(amount).toHaveValue('5,000');
 
   await page.reload();
   await expect(page.getByRole('textbox', { name: 'Land amount' })).toHaveValue('5,000');
@@ -214,7 +214,7 @@ test('the info panel lists costs, outputs, generates, modifiers and the automato
     await expect(farmers.getByText(label, { exact: true })).toHaveCount(1);
   }
   await expect(farmers).toContainText('Ringo Ringlet');
-  await expect(farmers).toContainText(/x\S+ \/ x\S+ \/ x\S+/);
+  await expect(farmers).toContainText(/Level \d+ \/ \d+/);
   await expect(farmers).not.toContainText('Unlocks at Rank');
   await expect(farmers).not.toContainText('First guaranteed');
 });
@@ -230,32 +230,26 @@ test('shows the generator notes only when they apply', async ({ page }) => {
   await expect(progress).toBeVisible();
 });
 
-test('shows the name, description and dates of an event', async ({ page }) => {
-  await page.goto('?title=adcom&mode=lte');
-  const header = page.locator('header').filter({ has: page.getByRole('heading', { level: 2 }) });
-  const name = header.getByRole('heading', { level: 2 });
-  await expect(name).not.toBeEmpty();
-  expect(await name.evaluate((node) => getComputedStyle(node).textTransform)).toBe('uppercase');
-  await expect(header.locator('p').first()).not.toBeEmpty();
-  await expect(header).toContainText(/[A-Z][a-z]{2} \d{1,2}.*–.*\d{1,2}/);
-  await expect(header.getByTestId('game-banner')).toBeVisible();
-  expect(await header.getByTestId('game-banner').evaluate((img: HTMLImageElement) => img.naturalWidth)).toBeGreaterThan(0);
-});
-
-test('shows Motherland as the name, with the banner and no description or dates', async ({ page }) => {
+test('titles each stock, with comrades per second in the comrade title, and the comrade icon opens Trades', async ({ page }) => {
   await openGame(page);
-  const header = page.locator('header').filter({ has: page.getByRole('heading', { level: 2 }) });
-  await expect(header.getByRole('heading', { level: 2 })).toHaveText('Motherland');
-  await expect(header.locator('p')).toHaveCount(0);
-  await expect(header.getByTestId('game-banner')).toBeVisible();
-});
-
-test('shows comrades per second, and the comrade icon opens the Trades menu', async ({ page }) => {
-  await openGame(page);
-  await expect(stocks(page).getByLabel('Comrades per second')).toHaveText(/\/sec$/);
+  const titles = stocks(page).getByTestId('stock-title');
+  await expect(titles).toHaveCount(3);
+  await expect(titles.nth(0)).toHaveText(/^Comrades • \S+\/sec$/);
+  await expect(titles.nth(1)).toHaveText('Science');
+  await expect(titles.nth(2)).toHaveText('Gold');
+  expect(await titles.first().evaluate((node) => getComputedStyle(node).textAlign)).toBe('center');
+  await expect(stocks(page).getByLabel('Comrades per second')).toHaveCount(0);
   await stocks(page).getByRole('button', { name: 'Open Trades' }).click();
   await expect(page).toHaveURL(/view=production/);
   await expect(page).toHaveURL(/tab=trades/);
+});
+
+test('reads scientific notation in comrades and settles it into game format on Tab', async ({ page }) => {
+  await openGame(page);
+  const comrades = stocks(page).getByRole('textbox').first();
+  await comrades.fill('1.6e+18');
+  await comrades.press('Tab');
+  await expect(comrades).toHaveValue('1.6 BB');
 });
 
 test('saves gold across a reload', async ({ page }) => {
@@ -314,6 +308,53 @@ test('puts the Resources heading outside its container, with always visible inpu
   await expect(resourcesBox(page).getByRole('button', { name: /^Show / })).toHaveCount(5);
   await expect(resourcesBox(page).getByRole('textbox', { name: /amount$/ })).toBeVisible();
   await expect(generators(page).getByRole('textbox', { name: 'number of Farmers' })).toBeVisible();
+});
+
+test('has an Active Missions heading with space above the missions', async ({ page }) => {
+  await openGame(page);
+  const heading = page.getByRole('heading', { name: 'Active Missions' });
+  await expect(heading).toBeVisible();
+  const stocksBox = (await stocks(page).boundingBox())!;
+  const headingBox = (await heading.boundingBox())!;
+  const list = (await page.getByRole('list', { name: 'Current missions' }).boundingBox())!;
+  expect(headingBox.y - (stocksBox.y + stocksBox.height)).toBeGreaterThanOrEqual(8);
+  expect(headingBox.y + headingBox.height).toBeLessThanOrEqual(list.y);
+});
+
+test('groups the active resource icon with its amount, apart from the other resources', async ({ page }) => {
+  await openGame(page);
+  const group = page.getByTestId('active-resource');
+  await expect(group.getByRole('button', { name: /^Show / })).toHaveCount(1);
+  await expect(group.getByRole('textbox', { name: /amount$/ })).toBeVisible();
+  const others = page.getByRole('list', { name: 'Industries' });
+  await expect(others.getByRole('button', { name: /^Show / })).toHaveCount(4);
+  await expect(others.getByRole('textbox')).toHaveCount(0);
+
+  const icon = (await group.getByRole('button').boundingBox())!;
+  const input = (await group.getByRole('textbox').boundingBox())!;
+  const next = (await others.getByRole('button').first().boundingBox())!;
+  expect(input.x - (icon.x + icon.width)).toBeLessThan(8);
+  expect(next.x - (input.x + input.width)).toBeGreaterThanOrEqual(12);
+
+  await others.getByRole('button', { name: 'Show Land' }).click();
+  await expect(group.getByRole('button', { name: 'Show Land' })).toHaveCount(1);
+  await expect(others.getByRole('button', { name: 'Show Land' })).toHaveCount(0);
+});
+
+test('uses the one shared field look in every Game View input', async ({ page }) => {
+  await openGame(page);
+  await page.getByRole('list', { name: 'Current missions' }).getByRole('button', { name: /^Edit progress/ }).first().click();
+  const looks = await page.locator('main input, input').evaluateAll((nodes) =>
+    nodes
+      .filter((node) => node.getBoundingClientRect().width > 0)
+      .map((node) => {
+        const style = getComputedStyle(node);
+        return [style.height, style.borderTopWidth, style.backgroundColor, style.fontSize, style.paddingTop, style.borderRadius].join('|');
+      })
+  );
+  expect(looks.length).toBeGreaterThan(5);
+  // Stocks and counts only differ in side padding, so the rest must be identical.
+  expect(new Set(looks).size).toBe(1);
 });
 
 test('keeps completions, rank and researcher levels from a save made before this work', async ({ page }) => {

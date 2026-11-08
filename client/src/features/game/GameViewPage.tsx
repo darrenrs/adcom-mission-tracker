@@ -22,8 +22,6 @@ import { Banners } from '@/features/missions/Banners';
 import { TONE_CLASS } from '@/features/missions/MissionRow';
 import { RewardButton } from '@/features/missions/RewardButton';
 import { navigate } from '@/state/navigation';
-import { getBasicLteName } from '@/domain/schedule';
-import { dateRange, lteFullName } from '@/features/schedule/eventLabels';
 import { useSession, useTracker } from '@/state/store';
 import { AmountInput } from './AmountInput';
 import { EditableAmount } from './EditableAmount';
@@ -44,47 +42,9 @@ const EVEN_TONE: Record<keyof typeof TONE_CLASS, string> = Object.fromEntries(
   Object.entries(TONE_CLASS).map(([tone, classes]) => [tone, classes.replace(/\bborder-l-\S+/g, '').trim()])
 ) as Record<keyof typeof TONE_CLASS, string>;
 
-/** The event or Motherland banner, fading into the page, with its name, description and dates over it. */
-function GameHeader() {
-  const { text: ctx, assets, mode, lteInfo, title } = useSession();
-  const [broken, setBroken] = useState(false);
-  const themeId = lteInfo?.ThemeId ?? '';
-  const isEvent = mode === 'lte';
-  const name = isEvent ? lteFullName(themeId, ctx.localization, title) : getBasicLteName('main', title);
-  const description = isEvent ? ctx.localization[`lte.${themeId}.desc`] : undefined;
-  // The banner sits beside the icon folder, one level up from where the icons are.
-  const icon = assets.iconUrl('banner.png');
-  const banner = icon.includes('/icon/banner.png') ? icon.replace('/icon/banner.png', '/banner.png') : '';
-  const dates = isEvent && lteInfo && lteInfo.StartTimeMillis !== lteInfo.EndTimeMillis ? dateRange(lteInfo.StartTimeMillis, lteInfo.EndTimeMillis) : '';
-
-  if (!name) {
-    return null;
-  }
-  return (
-    <header className="relative flex min-h-24 items-start justify-between gap-3 overflow-hidden rounded-xl p-2.5 sm:min-h-28 sm:p-3">
-      {banner && !broken && (
-        <>
-          <img
-            src={banner}
-            alt=""
-            data-testid="game-banner"
-            onError={() => setBroken(true)}
-            className="absolute inset-0 -z-10 size-full object-cover [mask-image:linear-gradient(to_bottom,black_50%,transparent)]"
-          />
-          <span aria-hidden className="absolute inset-0 -z-10 bg-linear-to-r from-canvas/90 via-canvas/60 to-canvas/20" />
-        </>
-      )}
-      <div className="min-w-0">
-        <h2 className="text-xl font-extrabold tracking-wide break-words uppercase sm:text-2xl">{name}</h2>
-        {description && <p className="mt-0.5 max-w-prose text-sm font-medium break-words">{description}</p>}
-      </div>
-      {dates && <p className="shrink-0 text-right text-xs font-semibold sm:text-sm">{dates}</p>}
-    </header>
-  );
-}
-
 const box = 'rounded-xl border border-line bg-surface';
 const SCIENCE = 'science';
+const HEADING = 'mb-1 text-sm font-semibold tracking-wide text-muted uppercase';
 
 function Stocks() {
   const { text: ctx, assets, form, title, mode } = useSession();
@@ -94,13 +54,17 @@ function Stocks() {
   const science = String(resourceName(ctx, mode === 'evergreen' ? 'scientist' : 'darkscience'));
   const scienceIcon = assets.active(mode === 'evergreen' ? 'main/darkscience.png' : 'event/darkscience.png');
   const stock = `flex min-w-0 flex-col justify-center gap-0.5 p-1.5 ${box}`;
+  const heading = 'truncate text-center text-xs leading-4 font-semibold text-muted tabular-nums';
   const line = 'flex items-center gap-1';
   const icon = 'size-6 shrink-0 object-contain sm:size-8';
-  const input = 'h-control min-w-0 flex-1 px-1 text-center text-sm';
+  const input = 'flex-1 px-1 text-center';
 
   return (
     <section aria-label="Stocks" className="grid grid-cols-3 gap-2">
       <div className={stock}>
+        <p data-testid="stock-title" className={heading}>
+          {comrades} • {shortBigNum(form.Trades.TotalComrades, powers)}/sec
+        </p>
         <div className={line}>
           <button
             type="button"
@@ -121,11 +85,11 @@ function Stocks() {
             className={input}
           />
         </div>
-        <p aria-label="Comrades per second" className="max-w-full truncate text-center text-xs leading-4 text-muted tabular-nums">
-          {shortBigNum(form.Trades.TotalComrades, powers)}/sec
-        </p>
       </div>
       <div className={stock}>
+        <p data-testid="stock-title" className={heading}>
+          {science}
+        </p>
         <div className={line}>
           <img src={scienceIcon} alt="" width={32} height={32} className={icon} />
           <AmountInput
@@ -142,6 +106,9 @@ function Stocks() {
         </div>
       </div>
       <div className={stock}>
+        <p data-testid="stock-title" className={heading}>
+          Gold
+        </p>
         <div className={line}>
           <img src={assets.active('shared/gold.png')} alt="" width={32} height={32} className={icon} />
           <AmountInput
@@ -224,14 +191,26 @@ function CurrentMissions() {
   const missions = inMissionOrder(board.current);
 
   if (missions.length === 0) {
-    return <p className={`p-3 text-sm text-muted ${box}`}>No current missions.</p>;
+    return (
+      <section aria-labelledby="missions-heading" className="mt-3">
+        <h2 id="missions-heading" className={HEADING}>
+          Active Missions
+        </h2>
+        <p className={`p-3 text-sm text-muted ${box}`}>No current missions.</p>
+      </section>
+    );
   }
   return (
-    <ul aria-label="Current missions" className="flex flex-wrap justify-center gap-1.5">
-      {missions.map((mission) => (
-        <MissionCard key={mission.Id} mission={mission} />
-      ))}
-    </ul>
+    <section aria-labelledby="missions-heading" className="mt-3">
+      <h2 id="missions-heading" className={HEADING}>
+        Active Missions
+      </h2>
+      <ul aria-label="Current missions" className="flex flex-wrap justify-center gap-1.5">
+        {missions.map((mission) => (
+          <MissionCard key={mission.Id} mission={mission} />
+        ))}
+      </ul>
+    </section>
   );
 }
 
@@ -240,46 +219,53 @@ function Resources({ activeId }: { activeId: string }) {
   const updateForm = useTracker((state) => state.updateForm);
   const setActiveIndustry = useTracker((state) => state.setActiveIndustry);
   const active = getResourceByIndustry(ctx, activeId);
+  const industries = ctx.balance.Industries ?? [];
+  const iconButton = (industryId: string, current: boolean) => {
+    const resource = getResourceByIndustry(ctx, industryId);
+    if (!resource) {
+      return null;
+    }
+    const name = String(resourceName(ctx, resource.Id));
+    return (
+      <button
+        type="button"
+        tabIndex={-1}
+        aria-label={`Show ${name}`}
+        aria-current={current ? 'true' : undefined}
+        title={name}
+        onClick={() => setActiveIndustry(industryId)}
+        className="flex h-control w-9 items-center justify-center rounded-lg border border-transparent hover:bg-raised aria-[current=true]:border-line aria-[current=true]:bg-raised sm:w-control"
+      >
+        <img src={assets.iconUrl(`${resource.Id}.png`)} alt="" width={28} height={28} className="size-7 object-contain" />
+      </button>
+    );
+  };
 
   return (
     <section aria-labelledby="resources-heading" className="mt-3">
-      <h2 id="resources-heading" className="mb-1 text-sm font-semibold tracking-wide text-muted uppercase">
+      <h2 id="resources-heading" className={HEADING}>
         Resources
       </h2>
-      <div className={`flex items-center gap-1 p-1 ${box}`}>
-        <ul aria-label="Industries" className="flex shrink-0 gap-1">
-          {(ctx.balance.Industries ?? []).map((industry) => {
-            const resource = getResourceByIndustry(ctx, industry.Id);
-            if (!resource) {
-              return null;
-            }
-            const name = String(resourceName(ctx, resource.Id));
-            return (
-              <li key={industry.Id}>
-                <button
-                  type="button"
-                  tabIndex={-1}
-                  aria-label={`Show ${name}`}
-                  aria-current={industry.Id === activeId ? 'true' : undefined}
-                  title={name}
-                  onClick={() => setActiveIndustry(industry.Id)}
-                  className="flex h-control w-9 items-center justify-center rounded-lg border border-transparent hover:bg-raised aria-[current=true]:border-line aria-[current=true]:bg-raised sm:w-control"
-                >
-                  <img src={assets.iconUrl(`${resource.Id}.png`)} alt="" width={28} height={28} className="size-7 object-contain" />
-                </button>
-              </li>
-            );
-          })}
+      <div className={`flex items-center gap-4 p-1 ${box}`}>
+        <div data-testid="active-resource" className="flex min-w-0 flex-1 items-center gap-1">
+          {iconButton(activeId, true)}
+          {active && (
+            <AmountInput
+              label={`${String(resourceName(ctx, active.Id))} amount`}
+              powers={title.powers}
+              value={form.Counts[active.Id]?.[active.Id] ?? 0}
+              onValue={(value) => updateForm((next) => applyCount(next, active.Id, RESOURCE_KEY, value, Date.now()))}
+              className="flex-1 px-1 text-left sm:px-2"
+            />
+          )}
+        </div>
+        <ul aria-label="Industries" className="flex shrink-0 gap-0.5">
+          {industries
+            .filter((industry) => industry.Id !== activeId)
+            .map((industry) => (
+              <li key={industry.Id}>{iconButton(industry.Id, false)}</li>
+            ))}
         </ul>
-        {active && (
-          <AmountInput
-            label={`${String(resourceName(ctx, active.Id))} amount`}
-            powers={title.powers}
-            value={form.Counts[active.Id]?.[active.Id] ?? 0}
-            onValue={(value) => updateForm((next) => applyCount(next, active.Id, RESOURCE_KEY, value, Date.now()))}
-            className="h-control min-w-0 flex-1 px-1 text-left text-sm sm:px-2 sm:text-base"
-          />
-        )}
       </div>
     </section>
   );
@@ -375,7 +361,8 @@ function CycleBar({
 
 /** The researcher card of a generator's automator, with buttons to change its level in place. */
 function CardPopover({ researcherId, name }: { researcherId: string; name: string }) {
-  const { text: ctx, assets, form } = useSession();
+  const { text: ctx, assets, form, title } = useSession();
+  const { powers } = title;
   const { setLevel } = useResearcherActions();
   const researcher = (ctx.balance.Researchers ?? []).find((candidate) => candidate.Id === researcherId);
   if (!researcher) {
@@ -393,11 +380,11 @@ function CardPopover({ researcherId, name }: { researcherId: string; name: strin
         <button
           type="button"
           tabIndex={-1}
-          aria-label={`${name}, level ${level}. Show card`}
+          aria-label={`${name}, level ${bigNum(level, powers)}. Show card`}
           className={`flex min-h-control min-w-14 shrink-0 items-center justify-center gap-1 text-sm font-semibold hover:bg-raised aria-expanded:bg-raised ${box}`}
         >
           <img src={assets.active('shared/card.png')} alt="" width={20} height={20} className="size-5 object-contain" />
-          {level}
+          {bigNum(level, powers)}
         </button>
       </Popover.Trigger>
       <Popover.Portal>
@@ -411,7 +398,7 @@ function CardPopover({ researcherId, name }: { researcherId: string; name: strin
           <p className="text-sm font-semibold">
             {name}
             <br />
-            <span data-testid="card-level">Level {level}</span>
+            <span data-testid="card-level">Level {bigNum(level, powers)}</span>
           </p>
           <p className="flex min-h-5 items-center gap-1 text-sm tabular-nums">
             {effectIcon && <img src={assets.active(`shared/${effectIcon}`)} alt="" width={20} height={20} className="size-5 object-contain" />}
@@ -465,7 +452,7 @@ function GeneratorRow({
   };
 
   return (
-    <li className={`mb-1.5 break-inside-avoid p-1.5 ${box}`}>
+    <li className={`mb-1.5 p-1.5 ${box}`}>
       <div className="flex items-center gap-2">
         <div className="flex w-20 shrink-0 flex-col items-center gap-0.5 sm:w-32 sm:flex-row sm:gap-1.5">
           <button type="button" tabIndex={-1} aria-label={`Run ${name} once`} onClick={runOnce} className="flex size-11 shrink-0 items-center justify-center rounded-full pointer-fine:size-10">
@@ -476,7 +463,7 @@ function GeneratorRow({
             powers={title.powers}
             value={count}
             onValue={(value) => updateForm((next) => applyCount(next, resourceId, generatorKey(generator.Id), value, Date.now()))}
-            className="h-control w-full px-1 text-center text-sm"
+            className="w-full px-1 text-center"
           />
         </div>
 
@@ -533,7 +520,7 @@ function Generators({ industryId }: { industryId: string }) {
           )}
         </div>
       )}
-      <ul aria-label="Generators" className="lg:columns-2 lg:gap-2">
+      <ul aria-label="Generators">
         {industryGenerators(ctx, industryId).map((generator, index) => (
           <GeneratorRow
             key={generator.Id}
@@ -556,7 +543,6 @@ export function GameViewPage() {
 
   return (
     <div className="mx-auto max-w-5xl space-y-2">
-      <GameHeader />
       <Banners session={session} />
       <Stocks />
       <CurrentMissions />

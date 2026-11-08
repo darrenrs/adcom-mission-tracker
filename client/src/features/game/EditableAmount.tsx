@@ -26,7 +26,7 @@ export function EditableAmount({ label, value, onValue, powers, className = '', 
         powers={powers}
         onBlur={() => setEditing(false)}
         onFocus={(event) => event.target.select()}
-        className={`h-control w-full text-center ${className}`}
+        className={`w-full text-center ${className}`}
       />
     );
   }
@@ -36,7 +36,7 @@ export function EditableAmount({ label, value, onValue, powers, className = '', 
       type="button"
       aria-label={`Edit ${label}`}
       onClick={() => setEditing(true)}
-      className={`min-h-control w-full min-w-0 cursor-text rounded-lg px-1 text-center text-sm font-semibold tabular-nums hover:bg-raised ${className}`}
+      className={`min-h-control w-full min-w-0 cursor-text rounded-lg px-1 text-center text-base pointer-fine:text-sm font-semibold tabular-nums hover:bg-raised ${className}`}
     >
       <span className="block truncate">{shown ?? (value > 0 ? bigNum(value, powers) : '0')}</span>
     </button>

@@ -6,10 +6,10 @@ test.describe('desktop', () => {
   test.skip(({ isMobile }) => isMobile, 'Desktop layout only.');
   test.use({ viewport: { width: 1280, height: 800 } });
 
-  test('fits the page in 1,300px with short generator rows in two columns', async ({ page }) => {
+  test('fits the page in 1,870px with short generator rows in one column', async ({ page }) => {
     await page.goto(OPEN);
     await expect(page.getByRole('list', { name: 'Generators' })).toBeVisible();
-    expect(await page.evaluate(() => document.documentElement.scrollHeight)).toBeLessThanOrEqual(1300);
+    expect(await page.evaluate(() => document.documentElement.scrollHeight)).toBeLessThanOrEqual(1870);
 
     const boxes = await page.locator('[aria-label=Generators] li').evaluateAll((nodes) =>
       nodes.map((node) => {
@@ -22,7 +22,9 @@ test.describe('desktop', () => {
       expect(box.height).toBeLessThanOrEqual(80);
     }
     const first = boxes[0]!;
-    expect(boxes.some((box) => Math.abs(box.y - first.y) < 1 && box.x > first.x + 100)).toBe(true);
+    for (const box of boxes) {
+      expect(Math.abs(box.x - first.x)).toBeLessThan(1);
+    }
   });
 
   test('Tab goes from one number field straight to the next', async ({ page }) => {
