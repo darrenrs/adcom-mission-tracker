@@ -13,9 +13,30 @@ export interface StepKey {
   metaKey?: boolean;
 }
 
-/** Reads a typed amount: AdCom notation (`35.33 EE`) first, then a plain number. Empty text is 0, junk is NaN. */
+const SCIENTIFIC = /^-?\d+(?:\.\d+)?e[+-]?\d+$/i;
+
+/**
+ * Reads a typed amount: game notation (`35.33 EE`), scientific notation (`1.6e+18`) or plain digits.
+ * `KKK` is read as `KFC`, the name the game uses for that power. Empty text is 0, junk is NaN.
+ */
 export function parseAmount(text: string, powers: readonly string[]): number {
-  return fromBigNum(text, powers) || Number(text);
+  const trimmed = text.trim();
+  if (SCIENTIFIC.test(trimmed)) {
+    return Number(trimmed);
+  }
+  const named = trimmed.replace(/\bKKK\b/i, 'KFC');
+  return fromBigNum(named, powers) || Number(named);
+}
+
+/** What a field should show once the player leaves it: a valid amount in the game's format, or null to leave it alone. */
+export function formatAmountText(text: string, powers: readonly string[]): string | null {
+  const value = parseAmount(text, powers);
+  if (text.trim() === '' || !Number.isFinite(value) || value < 0) {
+    return null;
+  }
+  const shown = bigNum(value, powers);
+  // Keep the exact digits when the game's rounding would change the number.
+  return Math.abs(parseAmount(shown, powers) - value) <= value * 1e-9 ? shown : String(value);
 }
 
 /** 1 for plain Up, -1 for plain Down, and 0 for anything else, including either key with a modifier held. */

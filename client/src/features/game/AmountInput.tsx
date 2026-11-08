@@ -1,5 +1,6 @@
 import { useEffect, useState, type InputHTMLAttributes } from 'react';
-import { stepDirection, stepValue, parseAmount, type StepKind } from '@/domain/inputSteps';
+import { formatAmountText, parseAmount, stepDirection, stepValue, type StepKind } from '@/domain/inputSteps';
+import { inputClass } from '@/ui/inputStyles';
 import { amountText, isInvalidAmount } from '@/features/calculator/fields';
 
 interface Props extends Omit<InputHTMLAttributes<HTMLInputElement>, 'value' | 'onChange'> {
@@ -11,7 +12,7 @@ interface Props extends Omit<InputHTMLAttributes<HTMLInputElement>, 'value' | 'o
 }
 
 /** A number field that saves each valid change. Takes plain numbers or the game's notation, and plain Up and Down. */
-export function AmountInput({ label, value, onValue, powers, kind = 'count', className = '', ...rest }: Props) {
+export function AmountInput({ label, value, onValue, powers, kind = 'count', className = '', onBlur, ...rest }: Props) {
   const [text, setText] = useState(() => amountText(value, powers));
   const invalid = isInvalidAmount(text, powers);
 
@@ -39,6 +40,13 @@ export function AmountInput({ label, value, onValue, powers, kind = 'count', cla
       value={text}
       placeholder="0"
       onChange={(event) => change(event.target.value)}
+      onBlur={(event) => {
+        const formatted = formatAmountText(text, powers);
+        if (formatted !== null && formatted !== text) {
+          setText(formatted);
+        }
+        onBlur?.(event);
+      }}
       onKeyDown={(event) => {
         const direction = stepDirection(event);
         if (direction !== 0) {
@@ -49,7 +57,7 @@ export function AmountInput({ label, value, onValue, powers, kind = 'count', cla
           }
         }
       }}
-      className={`min-w-0 rounded-lg border border-line bg-canvas px-2 text-base aria-invalid:border-danger ${className}`}
+      className={`${inputClass} ${className}`}
       {...rest}
     />
   );
