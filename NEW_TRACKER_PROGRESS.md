@@ -143,6 +143,14 @@ The work:
   - Game View industry buttons are 36px wide on phones, so five fit at 320px.
   - Mission progress and reward buttons on Game View still take Tab focus, but none sits between the number fields.
 
+**Beta feedback round 2 (7 November)**
+- The event banner fills the top of every page under the navbar (`shell/PageBanner.tsx`), with the balance name in Oswald (`@fontsource/oswald`). It costs about 300px of height on every page, by the owner's choice.
+- Game View: stock titles ("Comrades • x/sec"), an Active Missions heading, the active resource grouped with its amount, and generators always in one column.
+- Amount fields accept scientific notation and full digits, read KKK as KFC, and settle into game format on leaving the field. All fields share `ui/inputStyles.ts`.
+- Researcher portraits are 2x tall in a 3:4 shape. Borders are solid, coloured by rarity. The generator info panel shows the automator's level and effect. Mission cards are 32% shorter.
+- Schedule: Today button, event icons in day cells, the chosen event's range highlighted (click selects, Open navigates), two source dots per event, and `at=` uses the exact start.
+- Settings shows the leaderboard connection status and "© 2026 Idle Game Tools". An MIT LICENSE now exists, keeping the original 2019-2022 authors' notice.
+
 **Auto-buy**
 - Fixed: auto-buy rounded up to the end of a 1-second or 1% step, so it read slower than plain online. It also never bought the mission's own generators, and spent them on deeper tiers.
 - Kept on purpose (owner, 4 November): for some Own missions, buying the deepest generators spends the shared resource and comrades the mission's generators cost, so auto-buy is genuinely slower (5 of 121 sampled missions, 1% to 2.6x). Auto-buy reports its own strategy's time, not the faster of the two.
@@ -205,7 +213,7 @@ npm run build
 
 `npm run golden` recaptures mission traces from `master`. Run it only when balance data changes. If the data has changed, the mission tests fail and tell you to run it. This command goes away in Phase 6.
 
-At the last commit, all 1,315 unit tests and 170 browser tests passed, and `npm run build` succeeded.
+At the last commit, all 1,322 unit tests and 206 browser tests passed, and `npm run build` succeeded.
 
 ## Where things are
 
