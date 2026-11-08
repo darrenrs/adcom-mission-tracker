@@ -8,6 +8,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { LeaderboardClient } from '../../server/leaderboard/client.js';
 import {
   computeBrackets,
+  computeStats,
   parseBoard,
   parseEvents,
   parseSegmentCategory,
@@ -154,6 +155,31 @@ describe('computeBrackets', () => {
   });
 });
 
+describe('computeStats', () => {
+  // board-active.json resolves 10 players: ranks 2,1,1,2,3,3,5,5 plus one with
+  // no customData and one with lteRank 0 (both ignored). Scores sum to 140300.
+  it('counts ranks, averages them and sums trophies', () => {
+    const stats = computeStats(parseBoard(fixture('board-active.json').resultMap));
+    expect(stats).toEqual({
+      players: 8,
+      rankDistribution: [2, 2, 2, 0, 2],
+      rankAverage: 22 / 8,
+      trophySum: 140300
+    });
+  });
+
+  it('has a null average and empty distribution without ranks', () => {
+    const resultMap = fixture('board-active.json').resultMap;
+    resultMap.resolvedPlayers.objectArray = [];
+    expect(computeStats(parseBoard(resultMap))).toEqual({
+      players: 0,
+      rankDistribution: [],
+      rankAverage: null,
+      trophySum: 140300
+    });
+  });
+});
+
 describe('shapePlayerResult', () => {
   const events = parseEvents(fixture('events.json'), { now: NOW });
   const cachedAt = '2026-08-11T12:00:00.000Z';
@@ -174,6 +200,8 @@ describe('shapePlayerResult', () => {
     expect(result.player).toEqual({
       playerId: PLAYER,
       ordinal: 102,
+      avatarId: 'x',
+      lteRank: 3,
       segmentId: 'defenseSPEND_100_TO_500:20',
       shortboardCategory: 'SPEND_100_TO_500',
       root: 'global',
@@ -198,14 +226,35 @@ describe('shapePlayerResult', () => {
     expect(result.division).toEqual({
       count: 5,
       entries: [
-        { ordinal: 100, position: 0, globalPosition: 7, trophies: 979, isPlayer: false },
-        { ordinal: 101, position: 1, globalPosition: 30, trophies: 910, isPlayer: false },
-        { ordinal: 102, position: 2, globalPosition: 41, trophies: 877, isPlayer: true },
-        { ordinal: 103, position: 3, globalPosition: 77, trophies: 769, isPlayer: false },
-        { ordinal: 104, position: 4, globalPosition: 150, trophies: 550, isPlayer: false }
+        { ordinal: 100, avatarId: 'x', lteRank: 3, position: 0, globalPosition: 7, trophies: 979, isPlayer: false },
+        { ordinal: 101, avatarId: 'x', lteRank: 3, position: 1, globalPosition: 30, trophies: 910, isPlayer: false },
+        { ordinal: 102, avatarId: 'x', lteRank: 3, position: 2, globalPosition: 41, trophies: 877, isPlayer: true },
+        { ordinal: 103, avatarId: 'x', lteRank: 3, position: 3, globalPosition: 77, trophies: 769, isPlayer: false },
+        { ordinal: 104, avatarId: 'x', lteRank: 3, position: 4, globalPosition: 150, trophies: 550, isPlayer: false }
       ]
     });
     expect(result.cachedAt).toBe(cachedAt);
+  });
+
+  it('reads avatarId and lteRank from resolved players, null when absent', () => {
+    const resultMap = fixture('player-results-active.json').resultMap;
+    const objects = resultMap.resolvedPlayers.objectArray;
+    objects[0].customData = { avatarId: 'av-7', lteRank: 5 };
+    delete objects[1].customData;
+    objects[3].customData = { avatarId: '', lteRank: 'high' };
+    const result = shapePlayerResult({
+      event: events[1],
+      playerId: PLAYER,
+      registration: fixture('registration-active.json').data,
+      resultMap,
+      board: null,
+      cachedAt
+    });
+    expect(result.player).toMatchObject({ avatarId: 'x', lteRank: 3 });
+    const byOrdinal = (n: number) => result.division.entries.find((e) => e.ordinal === n);
+    expect(byOrdinal(100)).toMatchObject({ avatarId: 'av-7', lteRank: 5 });
+    expect(byOrdinal(101)).toMatchObject({ avatarId: null, lteRank: null });
+    expect(byOrdinal(103)).toMatchObject({ avatarId: null, lteRank: null });
   });
 
   it('falls back to adjacent entries for global position when there is no board', () => {
@@ -238,6 +287,8 @@ describe('shapePlayerResult', () => {
     expect(result.player).toEqual({
       playerId: PLAYER,
       ordinal: 9,
+      avatarId: 'x',
+      lteRank: 3,
       segmentId: 'defenseRANK_19_TO_29:4',
       shortboardCategory: 'RANK_19_TO_29',
       root: 'global',
@@ -506,5 +557,94 @@ describe('routes', () => {
     expect(calls.filter((c) => c.includes('topCount=9999999'))).toHaveLength(1);
     // The duplicate request for the same player is also shared.
     expect(calls.filter((c) => c.endsWith(`/players/${PLAYER}`))).toHaveLength(1);
+  });
+
+  describe('stats', () => {
+    const url = `/api/leaderboard/${ACTIVE}/stats`;
+
+    it('serves distribution, average and trophy sum from the full board', async () => {
+      const { fetchImpl, calls } = makeUpstream();
+      const get = await start(CONFIGURED, fetchImpl);
+      const res = await get(`${url}?player=${PLAYER.toLowerCase()}`);
+      expect(res.status).toBe(200);
+      const body = await res.json();
+      expect(body).toEqual({
+        players: 8,
+        rankDistribution: [2, 2, 2, 0, 2],
+        rankAverage: 2.75,
+        trophySum: 140300,
+        cachedAt: '2026-08-11T12:00:00.000Z'
+      });
+      expect(calls.filter((c) => c.includes('topCount=9999999'))).toHaveLength(1);
+      expect(calls.some((c) => c.includes(`/players/${PLAYER}/results?offset=0&topCount=9999999`))).toBe(true);
+      expect(JSON.stringify(body)).not.toMatch(/test-token-value|upstream\.invalid/);
+    });
+
+    it('uses the cached board on later calls, with or without ?player=', async () => {
+      const { fetchImpl } = makeUpstream();
+      const get = await start(CONFIGURED, fetchImpl);
+      await get(`${url}?player=${PLAYER}`);
+      const after = fetchImpl.mock.calls.length;
+      expect((await get(`${url}?player=${PLAYER}`)).status).toBe(200);
+      expect((await get(url)).status).toBe(200);
+      expect(fetchImpl.mock.calls.length).toBe(after);
+    });
+
+    it('shares the board fetched by the player route', async () => {
+      const { fetchImpl, calls } = makeUpstream();
+      const get = await start(CONFIGURED, fetchImpl);
+      await get(`/api/leaderboard/${ACTIVE}/player/${PLAYER}`);
+      const res = await get(url);
+      expect(res.status).toBe(200);
+      expect((await res.json()).players).toBe(8);
+      expect(calls.filter((c) => c.includes('topCount=9999999'))).toHaveLength(1);
+    });
+
+    it('reuses the remembered anchor once the board has expired', async () => {
+      let clock = NOW;
+      const { fetchImpl, calls } = makeUpstream();
+      const get = await start(CONFIGURED, fetchImpl, () => clock);
+      await get(`${url}?player=${PLAYER}`);
+      clock += 5 * 60 * 1000 + 1;
+      expect((await get(url)).status).toBe(200);
+      const boards = calls.filter((c) => c.includes('topCount=9999999'));
+      expect(boards).toHaveLength(2);
+      expect(boards[1]).toContain(`/players/${PLAYER}/results`);
+    });
+
+    it('returns 400 without an anchor, or with a bad guid or player', async () => {
+      const { fetchImpl } = makeUpstream();
+      const get = await start(CONFIGURED, fetchImpl);
+      for (const p of [url, `${url}?player=ZZZ`, `${url}?player=${'A'.repeat(17)}`, `/api/leaderboard/nope/stats?player=${PLAYER}`]) {
+        const res = await get(p);
+        expect(res.status).toBe(400);
+        expect(await res.json()).toEqual({ error: 'bad-request' });
+      }
+      expect(fetchImpl.mock.calls.every((c) => !String(c[0]).includes('9999999'))).toBe(true);
+    });
+
+    it('returns 404 event-not-found for an unknown event', async () => {
+      const get = await start(CONFIGURED);
+      const res = await get(`/api/leaderboard/99999999-9999-4999-8999-999999999999/stats?player=${PLAYER}`);
+      expect(res.status).toBe(404);
+      expect(await res.json()).toEqual({ error: 'event-not-found' });
+    });
+
+    it('returns 503 when unconfigured, without calling upstream', async () => {
+      const { fetchImpl } = makeUpstream();
+      const get = await start({}, fetchImpl);
+      const res = await get(`${url}?player=${PLAYER}`);
+      expect(res.status).toBe(503);
+      expect((await res.json()).error).toBe('leaderboard-unavailable');
+      expect(fetchImpl).not.toHaveBeenCalled();
+    });
+
+    it('returns 502 upstream-failed without leaking details', async () => {
+      const { fetchImpl } = makeUpstream({ 'topCount=9999999': () => new Response('{}', { status: 500 }) });
+      const get = await start(CONFIGURED, fetchImpl);
+      const res = await get(`${url}?player=${PLAYER}`);
+      expect(res.status).toBe(502);
+      expect(await res.json()).toEqual({ error: 'upstream-failed' });
+    });
   });
 });

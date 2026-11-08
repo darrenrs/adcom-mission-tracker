@@ -2,6 +2,7 @@
 //
 //   GET /api/leaderboard/events  (always 200; unavailable:true when not configured or upstream fails)
 //   GET /api/leaderboard/:guid/player/:playerId
+//   GET /api/leaderboard/:guid/stats?player=<playfabId>
 //
 // Env: API_URL_LEADERBOARD, API_GCLOUD_TOKEN (both required),
 // API_APPLICATION_ID (default "adcom"), LEADERBOARD_PLAYER_TOP_COUNT
@@ -10,7 +11,7 @@
 
 import { InflightMap, TtlCache } from './cache.js';
 import { LeaderboardClient, readNumber, UpstreamError } from './client.js';
-import { parseBoard, parseEvents, PROJECT, shapePlayerResult } from './parse.js';
+import { computeStats, parseBoard, parseEvents, PROJECT, shapePlayerResult } from './parse.js';
 
 const EVENTS_TTL_MS = 10 * 60 * 1000;
 const BOARD_TTL_MS = 5 * 60 * 1000;
@@ -74,6 +75,9 @@ export function registerLeaderboardRoutes(app, options = {}) {
   const playerCache = new TtlCache({ ttlMs: PLAYER_TTL_MS, maxEntries: 500, now });
   const eventsInflight = new InflightMap();
   const boardInflight = new InflightMap();
+  // Last player id that fetched each event's board, so /stats can refetch an
+  // expired board without a ?player= parameter.
+  const anchors = new Map();
   const playerInflight = new InflightMap();
 
   const getEvents = async () => {
@@ -97,6 +101,7 @@ export function registerLeaderboardRoutes(app, options = {}) {
       return cached;
     }
     return boardInflight.run(guid, async () => {
+      anchors.set(guid, anchorPlayerId);
       const body = await client.get(
         `/leaderboards/${guid}/players/${anchorPlayerId}/results?offset=0&topCount=${FULL_TOP_COUNT}&resolvePlayers=true`,
         { operation: 'full-board', timeoutMs: Math.max(boardTimeoutMs, client.timeoutMs) }
@@ -111,11 +116,7 @@ export function registerLeaderboardRoutes(app, options = {}) {
   };
 
   const buildPlayerResult = async (guid, playerId) => {
-    const events = await getEvents();
-    const event = events.find((e) => e.guid.toLowerCase() === guid);
-    if (!event) {
-      throw new RouteError(404, 'event-not-found');
-    }
+    const event = await findEvent(guid);
 
     let registration;
     try {
@@ -154,6 +155,25 @@ export function registerLeaderboardRoutes(app, options = {}) {
       board,
       cachedAt: new Date(now()).toISOString()
     });
+  };
+
+  const findEvent = async (guid) => {
+    const events = await getEvents();
+    const event = events.find((e) => e.guid.toLowerCase() === guid);
+    if (!event) {
+      throw new RouteError(404, 'event-not-found');
+    }
+    return event;
+  };
+
+  const buildStats = async (guid, playerId) => {
+    const event = await findEvent(guid);
+    const anchor = playerId ?? anchors.get(event.guid);
+    if (!boardCache.get(event.guid) && !anchor) {
+      throw new RouteError(400, 'bad-request');
+    }
+    const board = await getBoard(event.guid, anchor);
+    return { ...computeStats(board), cachedAt: new Date(now()).toISOString() };
   };
 
   const unavailable = (res) =>
@@ -217,6 +237,26 @@ export function registerLeaderboardRoutes(app, options = {}) {
       res.json(result);
     } catch (error) {
       fail(res, error, 'player');
+    }
+  });
+
+  app.get('/api/leaderboard/:guid/stats', async (req, res) => {
+    if (!client) {
+      return unavailable(res);
+    }
+    const { guid } = req.params;
+    const player = req.query.player;
+    if (
+      !GUID_PATTERN.test(guid) ||
+      (player !== undefined && (typeof player !== 'string' || !PLAYER_ID_PATTERN.test(player)))
+    ) {
+      return res.status(400).json({ error: 'bad-request' });
+    }
+
+    try {
+      res.json(await buildStats(guid.toLowerCase(), player?.toUpperCase()));
+    } catch (error) {
+      fail(res, error, 'stats');
     }
   });
 }

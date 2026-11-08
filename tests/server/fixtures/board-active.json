@@ -8,12 +8,84 @@
    "objectArray": [
     {
      "playerId": "AAAAAAAAAAAAAAA1",
-     "sequence": 4242
+     "sequence": 4242,
+     "customData": {
+      "avatarId": "av-a",
+      "lteRank": 2
+     }
+    },
+    {
+     "playerId": "B000000000000000",
+     "sequence": 1000,
+     "customData": {
+      "avatarId": "av-0",
+      "lteRank": 1
+     }
+    },
+    {
+     "playerId": "B000000000000001",
+     "sequence": 1001,
+     "customData": {
+      "avatarId": "av-1",
+      "lteRank": 1
+     }
+    },
+    {
+     "playerId": "B000000000000002",
+     "sequence": 1002,
+     "customData": {
+      "avatarId": "av-2",
+      "lteRank": 2
+     }
+    },
+    {
+     "playerId": "B000000000000003",
+     "sequence": 1003,
+     "customData": {
+      "avatarId": "av-3",
+      "lteRank": 3
+     }
+    },
+    {
+     "playerId": "B000000000000004",
+     "sequence": 1004,
+     "customData": {
+      "avatarId": "av-4",
+      "lteRank": 3
+     }
+    },
+    {
+     "playerId": "B000000000000005",
+     "sequence": 1005,
+     "customData": {
+      "avatarId": "av-5",
+      "lteRank": 5
+     }
+    },
+    {
+     "playerId": "B000000000000006",
+     "sequence": 1006,
+     "customData": {
+      "avatarId": "av-6",
+      "lteRank": 5
+     }
+    },
+    {
+     "playerId": "B000000000000007",
+     "sequence": 1007
+    },
+    {
+     "playerId": "B000000000000008",
+     "sequence": 1008,
+     "customData": {
+      "avatarId": "av-8",
+      "lteRank": 0
+     }
     }
    ],
-   "available": 1,
+   "available": 10,
    "offset": 0,
-   "count": 1
+   "count": 10
   },
   "results": {
    "rootResults": {

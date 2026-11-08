@@ -84,9 +84,13 @@ export function parseSegmentCategory(segmentId) {
   return match ? match[0] : null;
 }
 
+const rankOf = (value) => (Number.isInteger(value) && value >= 1 ? value : null);
+
 // Reduce a full-board response to what the routes need: the player count, the
-// scores indexed by 0-based position and a playerId -> position map. Returns
-// null when the response has no global top results (archived event).
+// scores indexed by 0-based position, a playerId -> position map, the sum of
+// all scores and each resolved player's event rank (lteRank, 1-based integers
+// only; players without one are skipped). Returns null when the response has no
+// global top results (archived event).
 export function parseBoard(resultMap) {
   const entries = resultMap?.results?.rootResults?.topResults?.rankedEntry;
   if (!Array.isArray(entries) || entries.length === 0) {
@@ -95,16 +99,50 @@ export function parseBoard(resultMap) {
 
   const scores = [];
   const positionById = new Map();
+  let trophySum = 0;
   entries.forEach((entry, index) => {
     const position = num(entry?.position?.position) ?? index;
     scores[position] = entry.score;
     positionById.set(entry.playerId, position);
+    trophySum += num(entry?.score) ?? 0;
   });
+
+  const lteRanks = [];
+  for (const player of resultMap?.resolvedPlayers?.objectArray ?? []) {
+    const rank = rankOf(player?.customData?.lteRank);
+    if (rank !== null) {
+      lteRanks.push(rank);
+    }
+  }
 
   return {
     count: num(entries[0]?.position?.count) ?? entries.length,
     scores,
-    positionById
+    positionById,
+    trophySum,
+    lteRanks
+  };
+}
+
+// Event rank distribution for GET /stats, from a parseBoard() result.
+// rankDistribution[i] is the number of players at rank i + 1, as long as the
+// highest rank seen.
+export function computeStats(board) {
+  const ranks = board.lteRanks;
+  const rankDistribution = [];
+  let cumulative = 0;
+  for (const rank of ranks) {
+    while (rankDistribution.length < rank) {
+      rankDistribution.push(0);
+    }
+    rankDistribution[rank - 1] += 1;
+    cumulative += rank;
+  }
+  return {
+    players: ranks.length,
+    rankDistribution,
+    rankAverage: ranks.length > 0 ? cumulative / ranks.length : null,
+    trophySum: board.trophySum
   };
 }
 
@@ -147,9 +185,22 @@ const ordinalMap = (resultMap) => {
   return map;
 };
 
+// playerId -> { avatarId, lteRank } from the resolved players' customData.
+const profileMap = (resultMap) => {
+  const map = new Map();
+  for (const player of resultMap?.resolvedPlayers?.objectArray ?? []) {
+    const avatarId = player?.customData?.avatarId;
+    map.set(player.playerId, {
+      avatarId: typeof avatarId === 'string' && avatarId !== '' ? avatarId : null,
+      lteRank: rankOf(player?.customData?.lteRank)
+    });
+  }
+  return map;
+};
+
 // Division rows from segment top results plus the entries around the player,
 // de-duplicated by player and ordered by position.
-function divisionEntries(resultMap, board, playerId, ordinals) {
+function divisionEntries(resultMap, board, playerId, ordinals, profiles) {
   const segment = resultMap?.results?.segmentResults;
   const merged = new Map();
   for (const entry of [
@@ -164,6 +215,8 @@ function divisionEntries(resultMap, board, playerId, ordinals) {
   const entries = [...merged.values()]
     .map((entry) => ({
       ordinal: ordinals.get(entry.playerId) ?? null,
+      avatarId: profiles.get(entry.playerId)?.avatarId ?? null,
+      lteRank: profiles.get(entry.playerId)?.lteRank ?? null,
       position: num(entry.position?.position) ?? 0,
       globalPosition: board?.positionById.get(entry.playerId) ?? null,
       trophies: num(entry.score) ?? 0,
@@ -179,12 +232,15 @@ function divisionEntries(resultMap, board, playerId, ordinals) {
 // Build the PlayerResult. `board` is parseBoard() output (active events) or null.
 export function shapePlayerResult({ event, playerId, registration, resultMap, board, cachedAt }) {
   const ordinals = ordinalMap(resultMap);
+  const profiles = profileMap(resultMap);
   const rootResults = resultMap?.results?.rootResults;
   const isActive = Boolean(rootResults?.topResults?.rankedEntry?.length);
 
   const player = {
     playerId,
     ordinal: ordinals.get(playerId) ?? null,
+    avatarId: profiles.get(playerId)?.avatarId ?? null,
+    lteRank: profiles.get(playerId)?.lteRank ?? null,
     segmentId: registration?.segmentId ?? null,
     shortboardCategory: parseSegmentCategory(registration?.segmentId),
     root: registration?.root ?? null,
@@ -222,7 +278,7 @@ export function shapePlayerResult({ event, playerId, registration, resultMap, bo
   player.globalPosition = board?.positionById.get(playerId) ?? num(adjacent?.position?.position);
   player.globalCount = board?.count ?? num(adjacent?.position?.count) ?? num(rootResults.topResults.rankedEntry[0]?.position?.count);
 
-  const division = divisionEntries(resultMap, board, playerId, ordinals);
+  const division = divisionEntries(resultMap, board, playerId, ordinals, profiles);
   const own = division.entries.find((e) => e.isPlayer);
   if (own) {
     player.divisionPosition = own.position;
