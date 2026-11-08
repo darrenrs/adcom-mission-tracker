@@ -13,6 +13,7 @@ import { industryTiers } from '@/engine/model';
 import { projectComrades, projectForward } from '@/engine/project';
 import type { EtaRange } from '@/engine/simulate';
 import { useSession, useTracker } from '@/state/store';
+import { HelpTip } from '@/ui/HelpTip';
 import { CalculatorOptions, type OptionsState } from './CalculatorOptions';
 import { COMRADES_KEY, countsTimeStamp, CPS_KEY, generatorKey, importedText, PROGRESS_KEY, RESOURCE_KEY } from './fields';
 import { GeneratorsPanel } from './GeneratorsPanel';
@@ -48,11 +49,21 @@ export function MissionCalculator({ mission }: { mission: Mission }) {
   const resource = industryId ? getResourceByIndustry(ctx, industryId) : undefined;
 
   return (
-    <section aria-labelledby="calculator-heading" className="space-y-3 rounded-xl border border-line bg-surface p-4">
-      <h2 id="calculator-heading" className="flex items-center gap-2 text-base font-semibold">
-        <Calculator aria-hidden size={18} className="text-muted" />
-        Calculator
-      </h2>
+    <section aria-labelledby="calculator-heading" className="space-y-1 rounded-xl border border-line bg-surface p-3 pointer-fine:p-2.5">
+      <div className="flex items-center gap-1">
+        <h2 id="calculator-heading" className="flex items-center gap-2 text-base font-semibold">
+          <Calculator aria-hidden size={18} className="text-muted" />
+          Calculator
+        </h2>
+        {industryId && resource && (
+          <HelpTip label="Using the calculator">
+            <p>
+              Enter your generators, researchers and trades from the game, then press Calculate to see when this mission will finish. Your numbers
+              are saved as you type.
+            </p>
+          </HelpTip>
+        )}
+      </div>
       {industryId && resource ? (
         <CalculatorBody key={mission.Id} mission={mission} industryId={industryId} resourceId={resource.Id} />
       ) : (
@@ -212,12 +223,7 @@ function CalculatorBody({ mission, industryId, resourceId }: BodyProps) {
   const running = outcome?.kind === 'running';
 
   return (
-    <div ref={root} className="space-y-4">
-      <p className="text-sm text-muted">
-        Enter your generators, researchers and trades from the game, then press Calculate to see when this mission will finish. Your numbers are
-        saved as you type.
-      </p>
-
+    <div ref={root} className="space-y-2">
       <Tabs.Root value={tab} onValueChange={setTab}>
         <Tabs.List aria-label="Calculator sections" className={TAB_LIST}>
           <Tabs.Trigger value="generators" className={TAB_TRIGGER}>
@@ -234,7 +240,7 @@ function CalculatorBody({ mission, industryId, resourceId }: BodyProps) {
           </Tabs.Trigger>
         </Tabs.List>
 
-        <Tabs.Content value="generators" className="space-y-4 pt-4">
+        <Tabs.Content value="generators" className="space-y-2 pt-2">
           <GeneratorsPanel mission={mission} industryId={industryId} fields={counts} disabled={disabledKeys} />
           <TimeLeftFields
             ctx={ctx}
@@ -244,10 +250,10 @@ function CalculatorBody({ mission, industryId, resourceId }: BodyProps) {
             onChange={(id, text) => setTimeLeft((previous) => ({ ...previous, [id]: text }))}
           />
         </Tabs.Content>
-        <Tabs.Content value="researchers" className="pt-4">
+        <Tabs.Content value="researchers" className="pt-2">
           <ResearcherGrid researchers={researchers} propaganda label={researchersWord} />
         </Tabs.Content>
-        <Tabs.Content value="trades" className="pt-4">
+        <Tabs.Content value="trades" className="pt-2">
           <TradesPanel fields={tradeFields} />
         </Tabs.Content>
       </Tabs.Root>
@@ -279,7 +285,7 @@ function CalculatorBody({ mission, industryId, resourceId }: BodyProps) {
         </p>
       )}
 
-      <div role="status" aria-live="polite" className="min-h-6 text-sm">
+      <div role="status" aria-live="polite" className="min-h-5 text-sm">
         {outcome && <OutcomeText outcome={outcome} powers={powers} researchers={researchersWord.toLowerCase()} comrades={comrade.toLowerCase()} />}
       </div>
     </div>

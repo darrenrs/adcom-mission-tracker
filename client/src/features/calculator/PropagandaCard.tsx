@@ -13,25 +13,31 @@ export function PropagandaCard() {
   const on = Boolean(form.ResearcherLevels['PropagandaBoost']);
 
   return (
-    <li className="flex min-w-0 flex-col rounded-xl border-2 border-line bg-surface p-2 text-center">
-      <div className="relative mx-auto aspect-4/5 w-3/4 overflow-hidden rounded-lg sm:w-full">
+    <li className="flex min-w-0 items-center gap-2 rounded-xl border-2 border-line bg-surface p-1.5 pointer-fine:p-1">
+      <div className="relative size-14 shrink-0 overflow-hidden rounded-lg pointer-fine:size-12">
         <img src={on ? boost.onIconUrl : boost.offIconUrl} alt="" loading="lazy" className="size-full object-contain" />
-        <img src={boost.targetIconUrl} alt="" loading="lazy" className="absolute top-0 right-0 size-9 rounded-bl-lg bg-black/50 object-contain p-0.5" />
+        <img src={boost.targetIconUrl} alt="" loading="lazy" className="absolute top-0 right-0 size-5 rounded-bl-md bg-black/50 object-contain p-px" />
       </div>
-      <p className="mt-1.5 line-clamp-2 min-h-8 text-xs leading-4 font-medium">{boost.name}</p>
-      <p className="mt-1 flex min-h-5 items-center justify-center gap-1 text-sm" data-testid="propaganda-power">
-        <img src={assets.active('shared/boost_power.png')} alt="" className="size-5 object-contain" />
-        <span>{on ? `x${boost.power}` : 'x1'}</span>
-      </p>
-      <button
-        type="button"
-        aria-pressed={on}
-        aria-label={`${boost.name}: ${on ? 'on' : 'off'}`}
-        onClick={() => setPropaganda(!on)}
-        className="mt-1 min-h-control rounded-lg border border-line text-sm font-medium aria-pressed:border-accent aria-pressed:bg-accent-soft aria-pressed:text-accent enabled:hover:bg-raised"
-      >
-        {on ? 'Active' : 'Boost'}
-      </button>
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-sm leading-4 font-medium" title={boost.name}>
+          {boost.name}
+        </p>
+        <div className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-0.5">
+          <p className="flex items-center gap-1 text-xs" data-testid="propaganda-power">
+            <img src={assets.active('shared/boost_power.png')} alt="" className="size-4 object-contain" />
+            <span>{on ? `x${boost.power}` : 'x1'}</span>
+          </p>
+          <button
+            type="button"
+            aria-pressed={on}
+            aria-label={`${boost.name}: ${on ? 'on' : 'off'}`}
+            onClick={() => setPropaganda(!on)}
+            className="h-control min-w-24 rounded-lg border border-line px-3 text-sm font-medium aria-pressed:border-accent aria-pressed:bg-accent-soft aria-pressed:text-accent enabled:hover:bg-raised"
+          >
+            {on ? 'Active' : 'Boost'}
+          </button>
+        </div>
+      </div>
     </li>
   );
 }

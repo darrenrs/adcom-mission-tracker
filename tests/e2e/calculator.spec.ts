@@ -96,22 +96,23 @@ test('Import Counts is hidden for now', async ({ page }) => {
   await expect(calc.getByText(/Import Counts/)).toHaveCount(0);
 });
 
-test('generator fields read top to bottom in tier order', async ({ page }) => {
+test('generator fields read top to bottom in tier order, column by column', async ({ page }) => {
   await page.goto(OWN_FARMERS);
   const fields = calculator(page).locator('input[data-field-key^="gen:"]');
   await expect(fields.first()).toBeVisible();
   const count = await fields.count();
   expect(count).toBeGreaterThan(1);
-  const tops = [];
-  const lefts = [];
+  const boxes = [];
   for (let index = 0; index < count; index++) {
     const box = await fields.nth(index).boundingBox();
-    tops.push(box?.y ?? 0);
-    lefts.push(Math.round(box?.x ?? 0));
+    boxes.push({ x: Math.round(box?.x ?? 0), y: box?.y ?? 0 });
   }
-  expect([...tops].sort((a, b) => a - b)).toEqual(tops);
-  expect(new Set(tops).size).toBe(count);
-  expect(new Set(lefts).size).toBe(1);
+  // DOM order is tier order. Within a column the fields go down, and the next column starts after the last.
+  for (let index = 1; index < count; index++) {
+    const previous = boxes[index - 1] as { x: number; y: number };
+    const current = boxes[index] as { x: number; y: number };
+    expect(current.x > previous.x || (current.x === previous.x && current.y > previous.y), `field ${index}`).toBe(true);
+  }
 });
 
 test('comrades per second is read-only text that follows Trades', async ({ page }) => {

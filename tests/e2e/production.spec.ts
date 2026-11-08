@@ -55,17 +55,19 @@ test('opening a generator shows its info in the expanded area', async ({ page })
   await expect.poll(async () => (await item.innerText()).length).toBeGreaterThan(closed + 20);
 });
 
-test('researcher cards show level out of max, unlock and guaranteed ranks, the cost of the next level and a quote', async ({ page }) => {
+test('researcher cards show level out of max and the cost of the next level, with unlock, guaranteed rank and quote in a popover', async ({ page }) => {
   await page.goto('?view=production&tab=researchers');
   const ringo = card(page, 'Ringo Ringlet');
   const level = page.getByRole('textbox', { name: /^Level of Ringo Ringlet/ });
   const max = (await level.getAttribute('aria-label'))?.match(/0 to (\d+)/)?.[1] as string;
 
   await expect(ringo.getByTestId('researcher-level')).toHaveText(`Level 0 / ${max}`);
-  await expect(ringo.getByText(/^Unlocks at Rank \d+$/)).toBeVisible();
-  await expect(ringo.getByText(/^First guaranteed: (Rank \d+|First free capsule)$/)).toBeVisible();
-  await expect(ringo.getByText('There\'s Potatoes in them there hills...')).toBeVisible();
-  await expect(ringo).toHaveCSS('text-align', 'center');
+  await ringo.getByRole('button', { name: 'Details for Ringo Ringlet' }).click();
+  await expect(page.getByText(/^Unlocks at Rank \d+$/)).toBeVisible();
+  await expect(page.getByText(/^First guaranteed: (Rank \d+|First free capsule)$/)).toBeVisible();
+  await expect(page.getByText('There\'s Potatoes in them there hills...')).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(page.getByText(/^Unlocks at Rank \d+$/)).toHaveCount(0);
 
   // Level 1 to 2 costs the first entry of the rarity's cost table.
   await level.fill('1');
@@ -97,8 +99,9 @@ test('the next row of cards starts at one height even when cards differ', async 
 test('Ages cards have no quote', async ({ page }) => {
   await page.goto('?title=ages&mode=evergreen&view=production&tab=researchers');
   await expect(page.getByRole('textbox', { name: /^Level of / }).first()).toBeVisible();
-  await expect(page.getByText(/^“/)).toHaveCount(0);
+  await page.getByRole('button', { name: /^Details for / }).first().click();
   await expect(page.getByText(/^Unlocks at Rank/).first()).toBeVisible();
+  await expect(page.getByText(/^“/)).toHaveCount(0);
 });
 
 test('the propaganda card says Boost or Active, with its power', async ({ page }) => {

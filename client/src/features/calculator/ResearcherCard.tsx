@@ -13,6 +13,7 @@ import {
 import type { Researcher } from '@/domain/types';
 import { useSearchParam } from '@/state/navigation';
 import { useSession } from '@/state/store';
+import { InfoPopover } from '@/ui/InfoPopover';
 import { useResearcherActions } from './useResearcherActions';
 
 /** The game's rarity colours, which players know by heart. Event researchers had none in legacy. */
@@ -46,7 +47,7 @@ const EFFECT_ICON: Readonly<Record<string, string>> = {
 
 const stepButton =
   'flex size-control shrink-0 items-center justify-center rounded-lg border border-line bg-surface text-ink enabled:hover:bg-raised disabled:opacity-40';
-const inputClass = 'h-control min-w-0 rounded-lg border border-line bg-canvas px-2 text-center text-base aria-invalid:border-danger';
+const inputClass = 'h-control w-12 min-w-0 rounded-lg border border-line bg-canvas px-1 text-center text-base aria-invalid:border-danger pointer-fine:w-11 pointer-fine:text-sm';
 
 function LevelInput({ researcher, level, max, label }: { researcher: Researcher; level: number; max: number | null; label: string }) {
   const { setLevel } = useResearcherActions();
@@ -78,7 +79,7 @@ function LevelInput({ researcher, level, max, label }: { researcher: Researcher;
       }}
       onFocus={(event) => event.target.select()}
       onBlur={() => setDraft(null)}
-      className={`${inputClass} w-0 flex-1`}
+      className={inputClass}
     />
   );
 }
@@ -96,7 +97,7 @@ function NextCost({ researcher, level, max }: { researcher: Researcher; level: n
   }
   const scienceIcon = assets.active(ctx.mode === 'evergreen' ? 'main/darkscience.png' : 'event/darkscience.png');
   return (
-    <p className="flex flex-wrap items-center justify-center gap-x-3 gap-y-0.5 text-xs" aria-label="Cost of the next level">
+    <p className="flex items-center gap-x-2 text-xs whitespace-nowrap" aria-label="Cost of the next level">
       <span className="inline-flex items-center gap-1" data-testid="next-cost-cards">
         <img src={assets.active('shared/card.png')} alt="Cards" className="size-4 object-contain" />
         {bigNum(cost.cards, powers)}
@@ -138,64 +139,66 @@ export function ResearcherCard({ researcher }: { researcher: Researcher }) {
   return (
     <li
       ref={card}
-      className={`flex min-w-0 flex-col rounded-xl border-2 bg-surface p-2 text-center ${RARITY_BORDER[rarity] ?? 'border-line'} ${highlighted ? 'ring-2 ring-accent' : ''}`}
+      className={`flex min-w-0 items-center gap-2 rounded-xl border-2 bg-surface p-1.5 pointer-fine:p-1 ${RARITY_BORDER[rarity] ?? 'border-line'} ${highlighted ? 'ring-2 ring-accent' : ''}`}
     >
-      <div className={`relative mx-auto block aspect-4/5 w-3/4 overflow-hidden rounded-lg sm:w-full ${RARITY_CLASS[rarity] ?? 'bg-raised'}`}>
-        <img src={assets.iconUrl(`${researcher.Id}.png`)} alt="" loading="lazy" className="size-full object-fill" />
+      <div className={`relative size-14 shrink-0 overflow-hidden rounded-lg pointer-fine:size-12 ${RARITY_CLASS[rarity] ?? 'bg-raised'}`}>
+        <img src={assets.iconUrl(`${researcher.Id}.png`)} alt="" loading="lazy" className="size-full object-cover" />
         {targetIcon && (
-          <img
-            src={targetIcon}
-            alt=""
-            loading="lazy"
-            className="absolute top-0 right-0 size-9 rounded-bl-lg bg-black/50 object-contain p-0.5"
-          />
+          <img src={targetIcon} alt="" loading="lazy" className="absolute top-0 right-0 size-5 rounded-bl-md bg-black/50 object-contain p-px" />
         )}
       </div>
 
-      <p className="mt-1.5 line-clamp-2 min-h-8 text-xs leading-4 font-medium">{name}</p>
-      <p className="mt-0.5 text-xs font-semibold" data-testid="researcher-level">
-        {levelText}
-      </p>
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center gap-1">
+          <p className="min-w-0 flex-1 truncate text-sm leading-4 font-medium" title={name}>
+            {name}
+          </p>
+          <InfoPopover label={`Details for ${name}`} className="relative z-10 -my-3.5 pointer-fine:-my-2">
+            <div className="space-y-1">
+              <p>Unlocks at Rank {details.unlockRank}</p>
+              {guaranteed && <p>{guaranteed}</p>}
+              {quote && <p className="text-muted italic">&ldquo;{quote}&rdquo;</p>}
+            </div>
+          </InfoPopover>
+        </div>
 
-      <div className="mt-1 flex items-center justify-center gap-1 text-sm">
-        {effectIcon && <img src={assets.active(`shared/${effectIcon}`)} alt="" className="size-5 object-contain" />}
-        <span className="min-h-5" aria-label={label.value ? `Value ${label.value}` : undefined}>
-          {label.value || ' '}
-        </span>
+        <div className="mt-0.5 flex min-w-0 items-center gap-1.5 text-xs">
+          <span className="font-semibold whitespace-nowrap" data-testid="researcher-level">
+            {levelText}
+          </span>
+          {effectIcon && <img src={assets.active(`shared/${effectIcon}`)} alt="" className="size-4 shrink-0 object-contain" />}
+          <span className="min-w-0 truncate" aria-label={label.value ? `Value ${label.value}` : undefined}>
+            {label.value}
+          </span>
+        </div>
+
+        <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5">
+          <div className="flex items-center gap-1">
+            <button
+              type="button"
+              tabIndex={-1}
+              aria-label={`Lower ${name}`}
+              disabled={level <= 0}
+              onClick={() => setLevel(researcher, level - 1)}
+              className={stepButton}
+            >
+              <Minus aria-hidden size={16} />
+            </button>
+            <LevelInput researcher={researcher} level={level} max={max} label={`Level of ${name}${max ? `, 0 to ${max}` : ''}`} />
+            <button
+              type="button"
+              tabIndex={-1}
+              aria-label={`Raise ${name}`}
+              disabled={max !== null && level >= max}
+              onClick={() => setLevel(researcher, level + 1)}
+              className={stepButton}
+            >
+              <Plus aria-hidden size={16} />
+            </button>
+          </div>
+          <NextCost researcher={researcher} level={level} max={max} />
+        </div>
       </div>
-
-      <div className="mt-1 flex items-center gap-1">
-        <button
-          type="button"
-          aria-label={`Lower ${name}`}
-          disabled={level <= 0}
-          onClick={() => setLevel(researcher, level - 1)}
-          className={stepButton}
-        >
-          <Minus aria-hidden size={16} />
-        </button>
-        <LevelInput researcher={researcher} level={level} max={max} label={`Level of ${name}${max ? `, 0 to ${max}` : ''}`} />
-        <button
-          type="button"
-          aria-label={`Raise ${name}`}
-          disabled={max !== null && level >= max}
-          onClick={() => setLevel(researcher, level + 1)}
-          className={stepButton}
-        >
-          <Plus aria-hidden size={16} />
-        </button>
-      </div>
-
-      <div className="mt-1.5 min-h-5">
-        <NextCost researcher={researcher} level={level} max={max} />
-      </div>
-
-      <div className="mt-1.5 space-y-0.5 border-t border-line pt-1.5 text-xs text-muted">
-        <p>Unlocks at Rank {details.unlockRank}</p>
-        {guaranteed && <p>{guaranteed}</p>}
-      </div>
-
-      {quote && <p className="mt-1.5 text-xs text-muted italic">&ldquo;{quote}&rdquo;</p>}
     </li>
   );
 }

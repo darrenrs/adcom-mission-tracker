@@ -1,5 +1,7 @@
 import { getEta } from '@/domain/format';
 import { resourceName } from '@/domain/gameText';
+import { useSession } from '@/state/store';
+import { HelpTip } from '@/ui/HelpTip';
 import { cycleProgress } from './timeLeft';
 import { NumberField } from './NumberField';
 import type { GameTextContext } from '@/domain/gameText';
@@ -20,18 +22,19 @@ interface Props {
 }
 
 export function TimeLeftFields({ ctx, tiers, candidates, texts, onChange }: Props) {
+  const { assets } = useSession();
   if (candidates.length === 0) {
     return null;
   }
   return (
-    <section className="space-y-3 rounded-xl border border-line bg-surface p-3" aria-label="Time left">
-      <div>
+    <section className="space-y-1 rounded-xl border border-line bg-surface p-2" aria-label="Time left">
+      <div className="flex items-center gap-1">
         <h3 className="text-sm font-semibold">Time left (optional)</h3>
-        <p className="text-xs text-muted">
-          If you can see how long a long cycle has left in the game, enter it. This tightens the result. Examples: 24m, 1h 5m, 90s.
-        </p>
+        <HelpTip label="Time left">
+          <p>If you can see how long a long cycle has left in the game, enter it. This tightens the result. Examples: 24m, 1h 5m, 90s.</p>
+        </HelpTip>
       </div>
-      <div className="grid gap-3 sm:grid-cols-2">
+      <div className="grid gap-1.5 sm:grid-cols-2 lg:grid-cols-3">
         {candidates.map((index) => {
           const tier = tiers[index] as Tier;
           const text = texts[tier.id] ?? '';
@@ -40,11 +43,12 @@ export function TimeLeftFields({ ctx, tiers, candidates, texts, onChange }: Prop
             <NumberField
               key={tier.id}
               label={`Time left on ${String(resourceName(ctx, tier.id))}`}
+              iconUrl={assets.iconUrl(`${tier.id}.png`)}
               value={text}
               onChange={(next) => onChange(tier.id, next)}
               invalid={error !== null}
               error={error ?? undefined}
-              placeholder={`Up to ${getEta(tier.cycleSeconds, ctx.title.powers)}`}
+              placeholder={`Time left, up to ${getEta(tier.cycleSeconds, ctx.title.powers)}`}
               inputMode="text"
             />
           );

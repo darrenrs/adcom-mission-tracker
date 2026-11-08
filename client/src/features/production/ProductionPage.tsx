@@ -10,6 +10,7 @@ import { useFieldKeyboard } from '@/features/calculator/useFieldKeyboard';
 import { useTradeFields } from '@/features/calculator/useTradeFields';
 import { useSearchParam } from '@/state/navigation';
 import { useSession } from '@/state/store';
+import { HelpTip } from '@/ui/HelpTip';
 import { AllGenerators } from './AllGenerators';
 import { ResearcherBulkActions } from './ResearcherBulkActions';
 
@@ -44,12 +45,12 @@ export function ProductionPage() {
   const tradesWord = upperCaseFirstLetter(ctx.localization['conditionmodel.trade.plural'] ?? 'trades');
 
   return (
-    <div ref={root} className="space-y-3">
-      <div>
+    <div ref={root} className="space-y-2">
+      <div className="flex items-center gap-1">
         <h1 className="text-lg font-semibold">Production</h1>
-        <p className="text-sm text-muted">
-          Every generator, researcher and trade in one place. Levels you set here are the same ones the mission calculators use.
-        </p>
+        <HelpTip label="Production">
+          <p>Every generator, researcher and trade in one place. Levels you set here are the same ones the mission calculators use.</p>
+        </HelpTip>
       </div>
 
       <Tabs.Root value={tab} onValueChange={setTab}>
@@ -68,16 +69,16 @@ export function ProductionPage() {
           </Tabs.Trigger>
         </Tabs.List>
 
-        <Tabs.Content value="generators" className="pt-4">
+        <Tabs.Content value="generators" className="pt-2">
           <AllGenerators />
         </Tabs.Content>
-        <Tabs.Content value="researchers" className="pt-4">
-          <div className="space-y-3">
+        <Tabs.Content value="researchers" className="pt-2">
+          <div className="space-y-2">
             <ResearcherBulkActions researchers={researchers} word={researchersWord} />
             <ResearcherGrid researchers={researchers} propaganda label={researchersWord} />
           </div>
         </Tabs.Content>
-        <Tabs.Content value="trades" className="pt-4">
+        <Tabs.Content value="trades" className="pt-2">
           <TradesPanel fields={tradeFields} />
         </Tabs.Content>
       </Tabs.Root>

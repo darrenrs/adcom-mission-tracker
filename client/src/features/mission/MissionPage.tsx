@@ -43,7 +43,7 @@ function BackButton() {
     <button
       type="button"
       onClick={goBack}
-      className="inline-flex min-h-control items-center gap-2 rounded-lg px-3 text-sm font-medium text-muted hover:bg-raised hover:text-ink"
+      className="inline-flex min-h-control items-center gap-2 rounded-lg px-2 text-sm font-medium text-muted hover:bg-raised hover:text-ink"
     >
       <ArrowLeft aria-hidden size={18} />
       Back
@@ -99,7 +99,7 @@ export function RewardView({ parts, mode, assets }: { parts: RewardPart[]; mode:
         </p>
       )}
       {items.length > 0 && (
-        <ul className="space-y-1">
+        <ul className="flex flex-wrap gap-x-4 gap-y-1">
           {items.map((part, index) => (
             <li key={index} className="flex items-center gap-2">
               {part.kind === 'card' ? (
@@ -146,10 +146,12 @@ export function MissionPage({ missionId }: { missionId: string }) {
   const completedAt = completionTimes[mission.Id];
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-2 pointer-fine:space-y-1.5">
       <BackButton />
 
-      <section className={`rounded-xl border border-l-4 border-line p-4 ${TONE_CLASS[missionTone(mission)]}`}>
+      <section
+        className={`grid gap-2 rounded-xl border border-l-4 border-line p-3 pointer-fine:p-2.5 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center lg:gap-x-6 ${TONE_CLASS[missionTone(mission)]}`}
+      >
         <div className="flex items-start gap-3">
           {iconUrl && <img src={iconUrl} alt="" width={40} height={40} className="size-10 shrink-0 object-contain" />}
           <div className="min-w-0 flex-1">
@@ -160,7 +162,7 @@ export function MissionPage({ missionId }: { missionId: string }) {
           </div>
         </div>
 
-        <div className="mt-4 flex items-start gap-3 text-sm">
+        <div className="flex items-start gap-3 text-sm lg:max-w-xl lg:border-l lg:border-line lg:pl-4">
           {reward.url ? (
             <img
               src={reward.url}
@@ -179,9 +181,8 @@ export function MissionPage({ missionId }: { missionId: string }) {
         </div>
 
         {status === 'completed' && completedAt !== undefined && (
-          <p className="mt-4 text-sm text-muted">Completed {getTimeStampLocaleString(completedAt)}</p>
+          <p className="text-sm text-muted lg:col-span-2">Completed {getTimeStampLocaleString(completedAt)}</p>
         )}
-
       </section>
 
       <MissionCalculator mission={mission} />

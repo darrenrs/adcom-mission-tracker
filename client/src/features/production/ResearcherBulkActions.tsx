@@ -3,7 +3,7 @@ import { useState } from 'react';
 import type { Researcher } from '@/domain/types';
 import { useResearcherActions } from '@/features/calculator/useResearcherActions';
 
-const button = 'min-h-control rounded-lg border border-line px-4 text-sm font-medium hover:bg-raised';
+const button = 'min-h-control rounded-lg border border-line px-3 text-sm font-medium hover:bg-raised';
 
 /** Max all, and Set all to 0 behind a confirmation, because it throws away every level entered. */
 export function ResearcherBulkActions({ researchers, word }: { researchers: readonly Researcher[]; word: string }) {
@@ -11,7 +11,7 @@ export function ResearcherBulkActions({ researchers, word }: { researchers: read
   const [confirming, setConfirming] = useState(false);
 
   return (
-    <div className="flex flex-wrap gap-2">
+    <div className="flex flex-wrap gap-1.5">
       <button type="button" onClick={() => setAll(researchers, 'max')} className={button}>
         Max all
       </button>

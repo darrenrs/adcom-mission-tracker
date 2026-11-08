@@ -9,7 +9,7 @@ Start here when picking the work up. Nothing on this branch is deployed, because
 ## Next step
 
 1. The owner adds `API_URL_LEADERBOARD` and `API_GCLOUD_TOKEN` to the tracker's `.env` (same values as adcom-leaderboard). Then check one real PlayFab ID against the old leaderboard page, and confirm the per-player call returns the whole Shortboard (see Leaderboard notes).
-2. The owner reviews the 4 November work.
+2. The owner reviews the 4 November work and the density pass on the beta.
 3. Wait for the owner's go-ahead before starting Phase 4.
 
 ## Ground rules from the owner
@@ -127,6 +127,22 @@ The work:
 - The mode menu has Motherland, the live event, Schedule (react-day-picker calendar with an event list) and All Events (every balance by name, opened as a preview). The Events tab is gone.
 - AdCom has no calendar icon in its assets; a plain icon stands in until the owner adds one. Event accent colours do not exist in the data; researcher card backgrounds wait for them.
 
+**Density pass (7 November, after beta feedback)**
+- Controls use a size token: 44px on touch screens, 32px with a mouse (`h-control`, `size-control` and so on in `styles.css`).
+- Explanations and details live in small anchored popovers (`client/src/ui/HelpTip.tsx`, `InfoPopover.tsx`). There are no new modals.
+- On wide screens the tabs share the header row. The rank controls open in a popover.
+- Tab moves straight between number fields: steppers, help, info and card buttons have `tabIndex={-1}`.
+- Measured at 1280×800:
+  - Calculator Researchers tab: 1,917px to 500px.
+  - Generators tab: 1,274px to 216px.
+  - Calculator start: 406px to 207px.
+  - Game View: 2,197px to 1,067px.
+  - Pinned bar: 101px to 56px.
+- Height limits and Tab order are checked by `tests/e2e/density*.spec.ts`.
+- Small compromises:
+  - Game View industry buttons are 36px wide on phones, so five fit at 320px.
+  - Mission progress and reward buttons on Game View still take Tab focus, but none sits between the number fields.
+
 **Auto-buy**
 - Fixed: auto-buy rounded up to the end of a 1-second or 1% step, so it read slower than plain online. It also never bought the mission's own generators, and spent them on deeper tiers.
 - Kept on purpose (owner, 4 November): for some Own missions, buying the deepest generators spends the shared resource and comrades the mission's generators cost, so auto-buy is genuinely slower (5 of 121 sampled missions, 1% to 2.6x). Auto-buy reports its own strategy's time, not the faster of the two.
@@ -146,6 +162,8 @@ The work:
 - **First load is still slow.** The API payload is unchanged, because this work is front-end only.
 
 ## Open questions
+
+- Roadmap: graphs of production and comrade requirements by rank. Not in the Future Plan; plan separately.
 
 - Should Motherland hide generators a player does not own yet? It shows 11 fields before Calculate.
 - Are the researcher cards too dense on a phone?
@@ -187,7 +205,7 @@ npm run build
 
 `npm run golden` recaptures mission traces from `master`. Run it only when balance data changes. If the data has changed, the mission tests fail and tell you to run it. This command goes away in Phase 6.
 
-At the last commit, all 1,315 unit tests and 156 browser tests passed, and `npm run build` succeeded.
+At the last commit, all 1,315 unit tests and 170 browser tests passed, and `npm run build` succeeded.
 
 ## Where things are
 
