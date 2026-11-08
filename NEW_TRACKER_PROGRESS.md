@@ -151,6 +151,10 @@ The work:
 - Schedule: Today button, event icons in day cells, the chosen event's range highlighted (click selects, Open navigates), two source dots per event, and `at=` uses the exact start.
 - Settings shows the leaderboard connection status and "© 2026 Idle Game Tools". An MIT LICENSE now exists, keeping the original 2019-2022 authors' notice.
 
+**Fields (7 November)**
+- Body text is Barlow; every typed field is Geist Mono. Invalid fields turn red with no visible warning text.
+- Negative numbers are invalid everywhere except typed mission progress (the calculator's Mission Progress field and Game View's progress for non-Own missions). Players use negative progress to stand in for another goal; remove this exception once custom objectives exist.
+
 **Auto-buy**
 - Fixed: auto-buy rounded up to the end of a 1-second or 1% step, so it read slower than plain online. It also never bought the mission's own generators, and spent them on deeper tiers.
 - Kept on purpose (owner, 4 November): for some Own missions, buying the deepest generators spends the shared resource and comrades the mission's generators cost, so auto-buy is genuinely slower (5 of 121 sampled missions, 1% to 2.6x). Auto-buy reports its own strategy's time, not the faster of the two.

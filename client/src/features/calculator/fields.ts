@@ -73,8 +73,11 @@ export function countsTimeStamp(form: FormValues, resourceId: string): number | 
   return form.Counts[resourceId]?.['TimeStamp'] || null;
 }
 
-export function isInvalidAmount(text: string, powers: readonly string[]): boolean {
-  // Game amounts are never negative, so a minus sign makes the field invalid rather than saving it.
+/**
+ * Game amounts are never negative, so a minus sign makes a field invalid rather than saving it. Mission progress is the
+ * exception: players type a negative progress to stand in for a different goal, until custom goals exist.
+ */
+export function isInvalidAmount(text: string, powers: readonly string[], allowNegative = false): boolean {
   const value = parseAmount(text, powers);
-  return Number.isNaN(value) || value < 0;
+  return Number.isNaN(value) || (!allowNegative && value < 0);
 }

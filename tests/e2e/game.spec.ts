@@ -89,6 +89,24 @@ test('keeps typed progress per mission across a reload', async ({ page }) => {
   await expect(card.getByRole('button', { name: /^Edit progress/ })).toContainText('1 /');
 });
 
+test('typed mission progress may be negative, but generator counts may not', async ({ page }) => {
+  await page.goto('?title=adcom&mode=lte');
+  const typed = page
+    .getByRole('list', { name: 'Current missions' })
+    .getByRole('listitem')
+    .filter({ hasNot: page.getByText(/^Own /) })
+    .first();
+  await typed.getByRole('button', { name: /^Edit progress/ }).click();
+  await typed.getByRole('textbox').fill('-50');
+  await expect(typed.getByRole('textbox')).not.toHaveAttribute('aria-invalid', 'true');
+  await typed.getByRole('textbox').blur();
+  await expect(typed.getByRole('button', { name: /^Edit progress/ })).toContainText('-50 /');
+
+  const count = page.getByRole('list', { name: 'Generators' }).getByRole('textbox').first();
+  await count.fill('-5');
+  await expect(count).toHaveAttribute('aria-invalid', 'true');
+});
+
 test('switches industry, edits its amount, and remembers the choice', async ({ page }) => {
   await openGame(page);
   await page.getByRole('button', { name: 'Show Land' }).click();

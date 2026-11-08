@@ -172,8 +172,10 @@ function MissionCard({ mission }: { mission: BoardMission }) {
       </div>
 
       <div className="relative mx-1.5 mb-1.5 overflow-hidden rounded-lg bg-raised">
-        <span aria-hidden className="absolute inset-y-0 left-0 bg-success/30" style={{ width: `${Math.min(progress / goal, 1) * 100}%` }} />
+        <span aria-hidden className="absolute inset-y-0 left-0 bg-success/30" style={{ width: `${Math.min(Math.max(progress / goal, 0), 1) * 100}%` }} />
         <EditableAmount
+          // Typed progress may go negative to stand in for another goal; Own missions edit real generator counts.
+          allowNegative={!isLinkedProgress(ctx, mission)}
           label={`progress of ${description.text}`}
           value={progress}
           onValue={setProgress}

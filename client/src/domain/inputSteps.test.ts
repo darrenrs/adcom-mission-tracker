@@ -44,4 +44,10 @@ describe('negative amounts', () => {
     expect(isInvalidAmount('0', powers)).toBe(false);
     expect(isInvalidAmount('1.6e+18', powers)).toBe(false);
   });
+
+  it('are allowed where mission progress stands in for another goal', async () => {
+    const { isInvalidAmount } = await import('@/features/calculator/fields');
+    expect(isInvalidAmount('-5', powers, true)).toBe(false);
+    expect(isInvalidAmount('junk', powers, true)).toBe(true);
+  });
 });

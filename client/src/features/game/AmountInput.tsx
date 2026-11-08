@@ -9,12 +9,14 @@ interface Props extends Omit<InputHTMLAttributes<HTMLInputElement>, 'value' | 'o
   onValue(value: number): void;
   powers: readonly string[];
   kind?: StepKind;
+  /** Mission progress only: players use negative values to stand in for other goals. */
+  allowNegative?: boolean;
 }
 
 /** A number field that saves each valid change. Takes plain numbers or the game's notation, and plain Up and Down. */
-export function AmountInput({ label, value, onValue, powers, kind = 'count', className = '', onBlur, ...rest }: Props) {
+export function AmountInput({ label, value, onValue, powers, kind = 'count', className = '', onBlur, allowNegative = false, ...rest }: Props) {
   const [text, setText] = useState(() => amountText(value, powers));
-  const invalid = isInvalidAmount(text, powers);
+  const invalid = isInvalidAmount(text, powers, allowNegative);
 
   // Another field may change the same number, such as an Own mission and its generator.
   useEffect(() => {
@@ -23,7 +25,7 @@ export function AmountInput({ label, value, onValue, powers, kind = 'count', cla
 
   const change = (next: string) => {
     setText(next);
-    if (!isInvalidAmount(next, powers)) {
+    if (!isInvalidAmount(next, powers, allowNegative)) {
       onValue(parseAmount(next, powers));
     }
   };

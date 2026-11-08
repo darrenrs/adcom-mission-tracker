@@ -10,15 +10,17 @@ interface Props {
   className?: string;
   /** The text to show instead of the plain amount, such as `3 / 20`. */
   shown?: string;
+  allowNegative?: boolean;
 }
 
 /** Shows an amount, and turns into a field when tapped. */
-export function EditableAmount({ label, value, onValue, powers, className = '', shown }: Props) {
+export function EditableAmount({ label, value, onValue, powers, className = '', shown, allowNegative = false }: Props) {
   const [editing, setEditing] = useState(false);
 
   if (editing) {
     return (
       <AmountInput
+        allowNegative={allowNegative}
         autoFocus
         label={label}
         value={value}
