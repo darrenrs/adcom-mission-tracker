@@ -104,6 +104,22 @@ test('researcher portraits are tall, card shaped and have solid borders', async 
   expect(new Set(styles)).toEqual(new Set(['solid']));
 });
 
+test('researcher images stay inside their container at about 3:4', async ({ page }) => {
+  await page.goto('?view=production&tab=researchers');
+  const card = page.getByRole('list', { name: 'Researchers' }).getByRole('listitem').first();
+  const portrait = card.getByTestId('researcher-portrait');
+  await expect(portrait).toBeVisible();
+  const container = await portrait.boundingBox();
+  const image = await portrait.locator('img').first().boundingBox();
+  const slack = 0.5;
+  expect(image && container).toBeTruthy();
+  expect(image!.x).toBeGreaterThanOrEqual(container!.x - slack);
+  expect(image!.y).toBeGreaterThanOrEqual(container!.y - slack);
+  expect(image!.x + image!.width).toBeLessThanOrEqual(container!.x + container!.width + slack);
+  expect(image!.y + image!.height).toBeLessThanOrEqual(container!.y + container!.height + slack);
+  expect(image!.height / image!.width).toBeCloseTo(4 / 3, 1);
+});
+
 test('the next row of cards starts at one height even when cards differ', async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 900 });
   await page.goto('?view=production&tab=researchers');

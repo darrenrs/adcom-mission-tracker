@@ -155,6 +155,14 @@ The work:
 - Body text is Barlow; every typed field is Geist Mono. Invalid fields turn red with no visible warning text.
 - Negative numbers are invalid everywhere except typed mission progress (the calculator's Mission Progress field and Game View's progress for non-Own missions). Players use negative progress to stand in for another goal; remove this exception once custom objectives exist.
 
+**Round 3 (7 November)**
+- Up/Down steps by magnitude: 1 below 100, then 10^(digits − 2), with the smaller step down from an exact power of ten and snapping onto the grid (`stepAmount` in `client/src/domain/inputSteps.ts`). Researcher levels and trade costs keep their own steps.
+- Infinity and NaN are never valid; generator counts must be whole below 2^53.
+- Calculator fields are one column under Generators, Resources and Comrades, inside a form, so Enter calculates.
+- Researcher pictures fill their 3:4 box with `object-cover`.
+- Game View: larger stock titles, count box under each generator picture (fits "999.99 AAAAA"), ms/μs cycle times, and a manual cycle whose timer counts down and resets.
+- The calculation time search now reaches 1e300 seconds, so "cannot finish" only means nothing produces.
+
 **Auto-buy**
 - Fixed: auto-buy rounded up to the end of a 1-second or 1% step, so it read slower than plain online. It also never bought the mission's own generators, and spent them on deeper tiers.
 - Kept on purpose (owner, 4 November): for some Own missions, buying the deepest generators spends the shared resource and comrades the mission's generators cost, so auto-buy is genuinely slower (5 of 121 sampled missions, 1% to 2.6x). Auto-buy reports its own strategy's time, not the faster of the two.
@@ -217,7 +225,7 @@ npm run build
 
 `npm run golden` recaptures mission traces from `master`. Run it only when balance data changes. If the data has changed, the mission tests fail and tell you to run it. This command goes away in Phase 6.
 
-At the last commit, all 1,322 unit tests and 206 browser tests passed, and `npm run build` succeeded.
+At the last commit, all 1,333 unit tests and 216 browser tests passed, and `npm run build` succeeded.
 
 ## Where things are
 

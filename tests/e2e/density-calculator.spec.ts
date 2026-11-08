@@ -20,7 +20,8 @@ test.describe('desktop', () => {
     expect(top).toBeLessThanOrEqual(200);
 
     const generators = await calc.getByRole('tabpanel').boundingBox();
-    expect(generators?.height).toBeLessThanOrEqual(400);
+    // One column with three headed groups, so taller than the old columns.
+    expect(generators?.height).toBeLessThanOrEqual(680);
 
     await calc.getByRole('tab', { name: 'Researchers' }).click();
     await expect(calc.getByRole('textbox', { name: /^Level of / }).first()).toBeVisible();

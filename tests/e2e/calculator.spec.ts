@@ -93,8 +93,47 @@ test('steps with plain arrow keys', async ({ page }) => {
   await expect(farmers).toHaveValue('10');
   await page.keyboard.press('Alt+KeyR');
   await expect(farmers).toBeFocused();
-  await page.keyboard.press('Enter');
+
+  await farmers.fill('307');
+  await farmers.press('ArrowUp');
+  await expect(farmers).toHaveValue('310');
+});
+
+test('Enter in a calculator field calculates', async ({ page }) => {
+  await page.goto(OWN_FARMERS);
+  const calc = calculator(page);
+  const farmers = calc.getByLabel('# of Farmers');
+  await farmers.fill('30');
+  await farmers.press('Enter');
+  await expect(calc.getByRole('status')).toContainText(/ETA: /);
+
+  await page.goto(OWN_FARMERS);
+  await calc.getByRole('tab', { name: /Researchers/ }).click();
   await expect(calc.getByRole('status')).toBeEmpty();
+  await calc.getByRole('textbox', { name: /^Level of / }).first().press('Enter');
+  await expect(calc.getByRole('status')).not.toBeEmpty();
+});
+
+test('Infinity and fractional generator counts are invalid', async ({ page }) => {
+  await page.goto(OWN_FARMERS);
+  const calc = calculator(page);
+  const farmers = calc.getByLabel('# of Farmers');
+  await farmers.fill('Infinity');
+  await expect(farmers).toHaveAttribute('aria-invalid', 'true');
+  await farmers.fill('2.5');
+  await expect(farmers).toHaveAttribute('aria-invalid', 'true');
+  await farmers.fill('2');
+  await expect(farmers).not.toHaveAttribute('aria-invalid', 'true');
+  const resource = calc.locator('input[data-field-key="resource"]');
+  await resource.fill('Infinity');
+  await expect(resource).toHaveAttribute('aria-invalid', 'true');
+});
+
+test('the Generators tab groups fields under Generators, Resources and Comrades', async ({ page }) => {
+  await page.goto(OWN_FARMERS);
+  const calc = calculator(page);
+  const headings = calc.getByRole('tabpanel').getByRole('heading', { level: 4 });
+  await expect(headings).toHaveText(['Generators', 'Resources', 'Comrades']);
 });
 
 test('Import Counts is hidden for now', async ({ page }) => {
@@ -106,7 +145,7 @@ test('Import Counts is hidden for now', async ({ page }) => {
   await expect(calc.getByText(/Import Counts/)).toHaveCount(0);
 });
 
-test('generator fields read top to bottom in tier order, column by column', async ({ page }) => {
+test('generator fields sit in one column, in tier order', async ({ page }) => {
   await page.goto(OWN_FARMERS);
   const fields = calculator(page).locator('input[data-field-key^="gen:"]');
   await expect(fields.first()).toBeVisible();
@@ -117,11 +156,11 @@ test('generator fields read top to bottom in tier order, column by column', asyn
     const box = await fields.nth(index).boundingBox();
     boxes.push({ x: Math.round(box?.x ?? 0), y: box?.y ?? 0 });
   }
-  // DOM order is tier order. Within a column the fields go down, and the next column starts after the last.
   for (let index = 1; index < count; index++) {
     const previous = boxes[index - 1] as { x: number; y: number };
     const current = boxes[index] as { x: number; y: number };
-    expect(current.x > previous.x || (current.x === previous.x && current.y > previous.y), `field ${index}`).toBe(true);
+    expect(current.x, `field ${index}`).toBe(previous.x);
+    expect(current.y, `field ${index}`).toBeGreaterThan(previous.y);
   }
 });
 

@@ -93,7 +93,7 @@ function CalculatorBody({ mission, industryId, resourceId }: BodyProps) {
   const [tab, setTab] = useState('generators');
   const [outcome, setOutcome] = useState<Outcome | null>(null);
   const latestRun = useRef(0);
-  const root = useRef<HTMLDivElement>(null);
+  const root = useRef<HTMLFormElement>(null);
 
   const isCollect = mission.Condition.ConditionType === 'ResourcesEarnedSinceSubscription';
   const isOwn = mission.Condition.ConditionType === 'ResourceQuantity';
@@ -223,7 +223,17 @@ function CalculatorBody({ mission, industryId, resourceId }: BodyProps) {
   const running = outcome?.kind === 'running';
 
   return (
-    <div ref={root} className="space-y-2">
+    <form
+      ref={root}
+      noValidate
+      className="space-y-2"
+      onSubmit={(event) => {
+        event.preventDefault();
+        if (!running) {
+          calculate();
+        }
+      }}
+    >
       <Tabs.Root value={tab} onValueChange={setTab}>
         <Tabs.List aria-label="Calculator sections" className={TAB_LIST}>
           <Tabs.Trigger value="generators" className={TAB_TRIGGER}>
@@ -266,7 +276,7 @@ function CalculatorBody({ mission, industryId, resourceId }: BodyProps) {
       />
 
       <div className="flex flex-wrap items-center gap-2">
-        <button type="button" onClick={() => calculate()} disabled={running} className={primaryButton}>
+        <button type="submit" disabled={running} className={primaryButton}>
           {running ? 'Calculating…' : 'Calculate'}
         </button>
         {/* Import Counts is hidden for now. importCounts and its note stay so it can come back. */}
@@ -288,7 +298,7 @@ function CalculatorBody({ mission, industryId, resourceId }: BodyProps) {
       <div role="status" aria-live="polite" className="min-h-5 text-sm">
         {outcome && <OutcomeText outcome={outcome} powers={powers} researchers={researchersWord.toLowerCase()} comrades={comrade.toLowerCase()} />}
       </div>
-    </div>
+    </form>
   );
 }
 

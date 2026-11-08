@@ -19,6 +19,8 @@ interface Props {
   disabled: ReadonlySet<string>;
 }
 
+const groupHeading = 'mb-1 text-xs font-semibold tracking-wide text-muted uppercase';
+
 export function GeneratorsPanel({ mission, industryId, fields, disabled }: Props) {
   const session = useSession();
   const { text: ctx, assets, form } = session;
@@ -56,63 +58,78 @@ export function GeneratorsPanel({ mission, industryId, fields, disabled }: Props
         </HelpTip>
       </div>
 
-      <div className="columns-1 gap-x-4 sm:columns-2 lg:columns-3">
-        {generators.map((generator) => {
-          const key = generatorKey(generator.Id);
-          const name = String(resourceName(ctx, generator.Id));
-          const isOpen = open === generator.Id;
-          return (
-            <div key={generator.Id} className="mb-1.5 min-w-0 break-inside-avoid pointer-fine:mb-1">
-              {field(key, `# of ${name}`, assets.iconUrl(`${generator.Id}.png`), {
-                attributes: { 'data-field': 'count', 'data-field-key': key },
-                trailing: (
-                  <button
-                    type="button"
-                    tabIndex={-1}
-                    aria-expanded={isOpen}
-                    aria-controls={`${detailsId}-${generator.Id}`}
-                    aria-label={`Details of ${name}`}
-                    onClick={() => setOpen(isOpen ? null : generator.Id)}
-                    className="flex size-control shrink-0 items-center justify-center rounded-lg border border-line text-muted hover:bg-raised hover:text-ink aria-expanded:bg-raised aria-expanded:text-ink"
-                  >
-                    <Info aria-hidden size={16} />
-                  </button>
-                )
-              })}
-              <div id={`${detailsId}-${generator.Id}`} hidden={!isOpen} className="mt-1.5 rounded-lg border border-line bg-surface p-3">
-                {isOpen && <GeneratorInfo generator={generator} />}
-              </div>
-            </div>
-          );
-        })}
-
-        <div className="mb-1.5 break-inside-avoid pointer-fine:mb-1">
-          {field(RESOURCE_KEY, `# of ${resourceLabel}`, assets.iconUrl(`${resource?.Id ?? ''}.png`), {
-            attributes: { 'data-field': 'count', 'data-field-key': RESOURCE_KEY }
-          })}
-        </div>
-        {mission.Condition.ConditionType === 'ResourcesEarnedSinceSubscription' && (
-          <div className="mb-1.5 break-inside-avoid pointer-fine:mb-1">
-            {field(PROGRESS_KEY, 'Mission Progress', assets.iconUrl(`${resource?.Id ?? ''}.png`), {
-              attributes: { 'data-field': 'count', 'data-field-key': PROGRESS_KEY }
+      <div className="space-y-2">
+        <section aria-labelledby={`${detailsId}-generators`}>
+          <h4 id={`${detailsId}-generators`} className={groupHeading}>
+            Generators
+          </h4>
+          <div className="space-y-1.5 pointer-fine:space-y-1">
+            {generators.map((generator) => {
+              const key = generatorKey(generator.Id);
+              const name = String(resourceName(ctx, generator.Id));
+              const isOpen = open === generator.Id;
+              return (
+                <div key={generator.Id} className="min-w-0">
+                  {field(key, `# of ${name}`, assets.iconUrl(`${generator.Id}.png`), {
+                    attributes: { 'data-field': 'count', 'data-field-key': key },
+                    trailing: (
+                      <button
+                        type="button"
+                        tabIndex={-1}
+                        aria-expanded={isOpen}
+                        aria-controls={`${detailsId}-${generator.Id}`}
+                        aria-label={`Details of ${name}`}
+                        onClick={() => setOpen(isOpen ? null : generator.Id)}
+                        className="flex size-control shrink-0 items-center justify-center rounded-lg border border-line text-muted hover:bg-raised hover:text-ink aria-expanded:bg-raised aria-expanded:text-ink"
+                      >
+                        <Info aria-hidden size={16} />
+                      </button>
+                    )
+                  })}
+                  <div id={`${detailsId}-${generator.Id}`} hidden={!isOpen} className="mt-1.5 rounded-lg border border-line bg-surface p-3">
+                    {isOpen && <GeneratorInfo generator={generator} />}
+                  </div>
+                </div>
+              );
             })}
           </div>
-        )}
-        <div className="mb-1.5 break-inside-avoid pointer-fine:mb-1">
-          {field(COMRADES_KEY, `# of ${comrade}`, assets.iconUrl('comrade.png'), {
-            attributes: { 'data-field': 'comrades', 'data-field-key': COMRADES_KEY }
-          })}
-        </div>
-        <div className="flex min-h-control min-w-0 break-inside-avoid items-center gap-1.5 text-sm">
-          <img src={assets.active('shared/comrades_per_second.png')} alt="" width={24} height={24} className="size-6 shrink-0 object-contain" />
-          <span className="min-w-0 font-medium">{comrade} per second</span>
-          <span className="font-semibold" data-testid="comrades-per-second">
-            {bigNum(form.Trades.TotalComrades || 0, ctx.title.powers)}
-          </span>
-          <HelpTip label={`${comrade} per second`}>
-            <p>Worked out from your trades.</p>
-          </HelpTip>
-        </div>
+        </section>
+
+        <section aria-labelledby={`${detailsId}-resources`}>
+          <h4 id={`${detailsId}-resources`} className={groupHeading}>
+            Resources
+          </h4>
+          <div className="space-y-1.5 pointer-fine:space-y-1">
+            {field(RESOURCE_KEY, `# of ${resourceLabel}`, assets.iconUrl(`${resource?.Id ?? ''}.png`), {
+              attributes: { 'data-field': 'count', 'data-field-key': RESOURCE_KEY }
+            })}
+            {mission.Condition.ConditionType === 'ResourcesEarnedSinceSubscription' &&
+              field(PROGRESS_KEY, 'Mission Progress', assets.iconUrl(`${resource?.Id ?? ''}.png`), {
+                attributes: { 'data-field': 'count', 'data-field-key': PROGRESS_KEY }
+              })}
+          </div>
+        </section>
+
+        <section aria-labelledby={`${detailsId}-comrades`}>
+          <h4 id={`${detailsId}-comrades`} className={groupHeading}>
+            Comrades
+          </h4>
+          <div className="space-y-1.5 pointer-fine:space-y-1">
+            {field(COMRADES_KEY, `# of ${comrade}`, assets.iconUrl('comrade.png'), {
+              attributes: { 'data-field': 'comrades', 'data-field-key': COMRADES_KEY }
+            })}
+            <div className="flex min-h-control min-w-0 items-center gap-1.5 text-sm">
+              <img src={assets.active('shared/comrades_per_second.png')} alt="" width={24} height={24} className="size-6 shrink-0 object-contain" />
+              <span className="min-w-0 font-medium">{comrade} per second</span>
+              <span className="font-semibold" data-testid="comrades-per-second">
+                {bigNum(form.Trades.TotalComrades || 0, ctx.title.powers)}
+              </span>
+              <HelpTip label={`${comrade} per second`}>
+                <p>Worked out from your trades.</p>
+              </HelpTip>
+            </div>
+          </div>
+        </section>
       </div>
     </div>
   );
