@@ -42,11 +42,72 @@ test('Schedule shows a calendar and an event list, and opens the chosen event', 
   await expect(page.getByRole('grid')).toBeVisible();
 
   const list = page.getByRole('list', { name: 'Events' });
-  await expect(list.getByRole('button').first()).toBeVisible();
-  await list.getByRole('button').last().click();
+  await expect(list.getByRole('button', { name: /^Open / }).first()).toBeVisible();
+  await list.getByRole('button', { name: /^Open / }).last().click();
   await expect(page).toHaveURL(/mode=lte/);
   await expect(page).toHaveURL(/at=\d+/);
   await expect(page).not.toHaveURL(/view=schedule/);
+});
+
+test('Today returns the calendar to the current month and selects today', async ({ page }) => {
+  await page.goto('?title=adcom&mode=evergreen&view=schedule');
+  const month = new Intl.DateTimeFormat('en-US', { month: 'long', year: 'numeric' }).format(new Date());
+  const grid = page.getByRole('grid');
+  await expect(grid).toBeVisible();
+  await page.getByRole('button', { name: /Previous Month/ }).click();
+  await page.getByRole('button', { name: /Previous Month/ }).click();
+  await expect(grid).not.toHaveAccessibleName(new RegExp(month));
+  await page.getByRole('button', { name: 'Today', exact: true }).click();
+  await expect(grid).toHaveAccessibleName(new RegExp(month));
+  await expect(grid.getByRole('gridcell', { selected: true })).toHaveText(new RegExp(`^${new Date().getDate()}`));
+});
+
+test('rows carry two dots for the schedule file and the leaderboard API', async ({ page }) => {
+  const live = await liveEvent(page);
+  await mockEvents(page, [
+    {
+      guid: '55555555-5555-5555-5555-555555555555',
+      theme: live.ThemeId,
+      start: new Date(live.StartTimeMillis).toISOString(),
+      end: new Date(live.EndTimeMillis).toISOString(),
+      status: 'active',
+      live: true,
+      players: 10,
+      divisionSize: 25
+    },
+    { guid: '66666666-6666-6666-6666-666666666666', theme: 'zzapionly', start: new Date(Date.now() + 400 * DAY).toISOString(), end: new Date(Date.now() + 404 * DAY).toISOString(), status: 'active', live: false, players: 0, divisionSize: 25 }
+  ]);
+  await page.goto('?title=adcom&mode=evergreen&view=schedule');
+  const list = page.getByRole('list', { name: 'Events' });
+  const apiOnly = list.getByRole('listitem').filter({ hasText: 'Zzapionly' });
+  await expect(apiOnly.getByRole('img', { name: 'Schedule file: not found' })).toBeVisible();
+  await expect(apiOnly.getByRole('img', { name: 'Leaderboard API: found' })).toBeVisible();
+  const matched = list.getByRole('listitem').filter({ has: page.getByRole('img', { name: 'Leaderboard API: found' }) }).filter({ has: page.getByRole('img', { name: 'Schedule file: found' }) });
+  await expect(matched).toHaveCount(1);
+  await expect(list.getByRole('img', { name: 'Leaderboard API: not found' }).first()).toBeVisible();
+});
+
+test('the API dot is grey when the leaderboard API is unavailable', async ({ page }) => {
+  await page.route('**/api/leaderboard/events', (route) => route.fulfill({ json: { events: [], unavailable: true } }));
+  await page.goto('?title=adcom&mode=evergreen&view=schedule');
+  const list = page.getByRole('list', { name: 'Events' });
+  await expect(list.getByRole('img', { name: 'Schedule file: found' }).first()).toBeVisible();
+  await expect(list.getByRole('img', { name: 'Leaderboard API: unknown' }).first()).toBeVisible();
+  await expect(list.getByRole('img', { name: /Leaderboard API: (found|not found)/ })).toHaveCount(0);
+});
+
+test('Open goes to the exact start of the event, and picking a row highlights its dates', async ({ page }) => {
+  const start = Date.now() + 30 * DAY;
+  const end = start + 4 * DAY;
+  await mockEvents(page, [
+    { guid: '77777777-7777-7777-7777-777777777777', theme: 'zzapionly', start: new Date(start).toISOString(), end: new Date(end).toISOString(), status: 'active', live: false, players: 0, divisionSize: 25 }
+  ]);
+  await page.goto('?title=adcom&mode=evergreen&view=schedule');
+  const row = page.getByRole('list', { name: 'Events' }).getByRole('listitem').filter({ hasText: 'Zzapionly' });
+  await row.locator('[aria-pressed]').click();
+  await expect(page.getByRole('grid').locator('.bg-accent-soft').first()).toBeVisible();
+  await row.getByRole('button', { name: /^Open / }).click();
+  await expect(page).toHaveURL(new RegExp(`at=${start}(&|$)`));
 });
 
 test('All Events lists balances alphabetically by name and previews the chosen one', async ({ page }) => {

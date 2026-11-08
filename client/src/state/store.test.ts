@@ -176,3 +176,44 @@ describe('tracker store', () => {
     expect(store.getState().status).toBe('loading');
   });
 });
+
+describe('leaderboard status', () => {
+  const boot = (load: TrackerDeps['loadLeaderboardEvents'], search = '?mode=evergreen') => {
+    const deps: TrackerDeps = {
+      storage: createTrackerStorage(memoryBackend()),
+      loadData: async () => data,
+      runtime: { titleIds: { adcom: '6bf5', ages: 'dc4bb' }, assetBaseByTitleId: {} },
+      now: () => 1000,
+      search: () => search,
+      loadLeaderboardEvents: load
+    };
+    const store = createTrackerStore(deps);
+    return { store, done: store.getState().boot() };
+  };
+  const settle = () => new Promise((resolve) => setTimeout(resolve, 0));
+
+  it('checks, then connects when the API answers', async () => {
+    let answer: (events: []) => void = () => undefined;
+    const { store, done } = boot(() => new Promise((resolve) => (answer = resolve)));
+    expect(store.getState().leaderboardStatus).toBe('checking');
+    await done;
+    expect(store.getState().leaderboardStatus).toBe('checking');
+    answer([]);
+    await settle();
+    expect(store.getState().leaderboardStatus).toBe('connected');
+  });
+
+  it('is unavailable when the API fails', async () => {
+    const { store, done } = boot(() => Promise.reject(new Error('down')));
+    await done;
+    await settle();
+    expect(store.getState().leaderboardStatus).toBe('unavailable');
+  });
+
+  it('is none for Ages', async () => {
+    const { store, done } = boot(async () => [], '?title=ages&mode=evergreen');
+    await done;
+    await settle();
+    expect(store.getState().leaderboardStatus).toBe('none');
+  });
+});

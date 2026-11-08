@@ -223,7 +223,7 @@ test('keeps links in Settings and only the fan content notice in the footer', as
 
   await page.getByRole('button', { name: 'Settings' }).click();
   const sheet = page.getByRole('dialog');
-  await expect(sheet.getByRole('link')).toHaveText(['GitHub', 'Privacy', 'Terms']);
+  await expect(sheet.getByRole('link')).toHaveText(['GitHub', 'Privacy', 'Terms', 'Idle Game Tools']);
   await expect(sheet.getByText(/^Build \S{1,7}$/)).toBeVisible();
 });
 

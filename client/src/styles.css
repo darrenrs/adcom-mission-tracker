@@ -3,6 +3,7 @@
 @custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
 
 @theme {
+  --font-display: "Oswald", "Arial Narrow", Impact, sans-serif;
   --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --color-canvas: var(--canvas);
   --color-surface: var(--surface);

@@ -1,5 +1,7 @@
 import { expect, test, type Page } from '@playwright/test';
 import { getCurrentLteInfo } from '../../client/src/domain/schedule';
+import { bigNum } from '../../client/src/domain/format';
+import { TITLES } from '../../client/src/domain/titles';
 import type { LteScheduleData } from '../../client/src/domain/types';
 
 const GUID = '44444444-4444-4444-4444-444444444444';
@@ -30,7 +32,7 @@ async function setUp(page: Page, player: (id: string) => { status: number; json?
   return { live, event };
 }
 
-function result(theme: string) {
+function result(theme: string, globalPosition = 2000, globalCount = 100_000) {
   return {
     event: { guid: GUID, theme, start: '', end: '', status: 'active' },
     player: {
@@ -42,8 +44,8 @@ function result(theme: string) {
       trophies: 45000,
       joined: '2026-11-03T16:05:00Z',
       updated: '2026-11-04T10:00:00Z',
-      globalPosition: 2000,
-      globalCount: 100_000,
+      globalPosition,
+      globalCount,
       divisionPosition: 1,
       divisionCount: 3
     },
@@ -141,4 +143,15 @@ test('never scrolls the page sideways', async ({ page }) => {
   await expect(page.getByText('2,001 / 100,000')).toBeVisible();
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
   expect(overflow).toBeLessThanOrEqual(0);
+});
+
+test('writes places above a million in the game\'s number format', async ({ page }) => {
+  const { live } = await setUp(page, () => ({ status: 200, json: result(live.ThemeId, 2_500_000, 5_000_000) }));
+  await page.goto('?title=adcom&mode=lte&view=leaderboard');
+  await page.getByLabel('PlayFab ID').fill('ABC123');
+  await page.getByRole('button', { name: 'Show results' }).click();
+  const { powers } = TITLES.adcom;
+  const position = `${bigNum(2_500_001, powers)} / ${bigNum(5_000_000, powers)}`;
+  expect(position).not.toContain('2,500,001');
+  await expect(page.getByText(position)).toBeVisible();
 });

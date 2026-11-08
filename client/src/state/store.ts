@@ -60,6 +60,8 @@ export interface Session {
   form: FormValues;
 }
 
+export type LeaderboardStatus = 'checking' | 'connected' | 'unavailable' | 'none';
+
 export interface TrackerState {
   status: 'loading' | 'ready' | 'error';
   error: string | null;
@@ -67,6 +69,8 @@ export interface TrackerState {
   settings: Settings;
   /** Events from the leaderboard API: null until loaded, and always null for Ages, which has no leaderboard. */
   leaderboardEvents: LeaderboardEvent[] | null;
+  /** Whether the leaderboard API answered: `none` for Ages, which has no leaderboard. */
+  leaderboardStatus: LeaderboardStatus;
   boot(): Promise<void>;
   syncLocation(): void;
   clickMission(missionId: string): void;
@@ -93,7 +97,7 @@ export interface TrackerDeps {
   search(): string;
   /** Puts the game and mode on show in the URL once they are decided. */
   showInUrl?(title: string, mode: string): void;
-  /** The leaderboard API's events. Rejects or returns an empty list when the server has no leaderboard set up. */
+  /** The leaderboard API's events. Rejects when the server has no leaderboard set up. */
   loadLeaderboardEvents?(): Promise<LeaderboardEvent[]>;
   /** The ID the old leaderboard site saved, copied once so players need not type it again. */
   legacyPlayerId?(): string | null;
@@ -284,8 +288,10 @@ export function createTrackerStore(deps: TrackerDeps): StoreApi<TrackerState> {
 
     const loadEvents = async (title: TitleConfig) => {
       let events: LeaderboardEvent[] = [];
+      let status: LeaderboardStatus = 'unavailable';
       try {
         events = (await deps.loadLeaderboardEvents?.()) ?? [];
+        status = deps.loadLeaderboardEvents ? 'connected' : 'unavailable';
       } catch {
         // No leaderboard: the schedule file still drives the calendar.
       }
@@ -293,7 +299,7 @@ export function createTrackerStore(deps: TrackerDeps): StoreApi<TrackerState> {
       if (session?.title.key !== title.key) {
         return;
       }
-      set({ leaderboardEvents: events });
+      set({ leaderboardEvents: events, leaderboardStatus: status });
       // A link to an event only the API knows about can only open now.
       if (events.length > 0 && parseStartupParams(deps.search()).at !== null) {
         set({ session: startSession(title, session.data) });
@@ -309,7 +315,9 @@ export function createTrackerStore(deps: TrackerDeps): StoreApi<TrackerState> {
         storage.set('activeTitle', title.key);
         const data = await dataFor(title);
         if (title.isAges) {
-          set({ leaderboardEvents: null });
+          set({ leaderboardEvents: null, leaderboardStatus: 'none' });
+        } else if (get().leaderboardEvents === null) {
+          set({ leaderboardStatus: 'checking' });
         }
         set({ status: 'ready', session: startSession(title, data), settings: readSettings(storage, title) });
         if (!title.isAges && get().leaderboardEvents === null) {
@@ -327,6 +335,7 @@ export function createTrackerStore(deps: TrackerDeps): StoreApi<TrackerState> {
       error: null,
       session: null,
       leaderboardEvents: null,
+      leaderboardStatus: 'checking',
       settings: readSettings(storage, readTitle(storage, deps.search())),
 
       boot: () => open(readTitle(storage, deps.search())),
@@ -519,9 +528,13 @@ function browserDeps(): TrackerDeps {
     loadLeaderboardEvents: async () => {
       const response = await fetch('api/leaderboard/events');
       if (!response.ok) {
-        return [];
+        throw new Error(`Leaderboard events: ${response.status}`);
       }
-      return ((await response.json()) as { events?: LeaderboardEvent[] }).events ?? [];
+      const body = (await response.json()) as { events?: LeaderboardEvent[]; unavailable?: boolean };
+      if (body.unavailable) {
+        throw new Error('Leaderboard events: unavailable');
+      }
+      return body.events ?? [];
     }
   };
 }

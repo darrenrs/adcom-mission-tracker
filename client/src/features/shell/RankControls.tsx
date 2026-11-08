@@ -2,6 +2,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useEffect, useId, useRef, useState, type FormEvent } from 'react';
 import { parseRankInput, type RankProgress } from '@/domain/missionView';
 import { CURRENT_SECTION_ID } from '@/features/missions/MissionSections';
+import { inputClass } from '@/ui/inputStyles';
 import { navigateStartup } from '@/state/navigation';
 import { useSession, useTracker } from '@/state/store';
 
@@ -75,7 +76,7 @@ export function RankControls({ progress, onClose }: { progress: RankProgress; on
             setValue(event.target.value);
             setInvalid(false);
           }}
-          className="h-control w-24 min-w-0 rounded-lg border border-line bg-canvas px-3 text-center text-base"
+          className={`${inputClass} w-24 text-center`}
         />
         <button type="submit" className="h-control rounded-lg bg-accent px-4 text-sm font-medium text-white dark:text-black">
           Go

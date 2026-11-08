@@ -15,6 +15,8 @@ import {
 } from '@/domain/leaderboardView';
 import type { MissionReward } from '@/domain/types';
 import { partIconUrl } from '@/features/mission/MissionPage';
+import { bigNum } from '@/domain/format';
+import { inputClass } from '@/ui/inputStyles';
 import { PLAYER_ID, useSession, useTracker } from '@/state/store';
 import { useLeaderboardEntry } from './useLeaderboard';
 
@@ -91,7 +93,7 @@ function PlayerIdForm() {
           aria-invalid={text !== '' && !valid ? true : undefined}
           aria-describedby={`${id}-hint`}
           onChange={(event) => setText(event.target.value.toUpperCase().replace(/\s/g, ''))}
-          className="mt-1 h-control w-full rounded-lg border border-line bg-canvas px-3 font-mono text-base aria-invalid:border-danger"
+          className={`${inputClass} mt-1 w-full font-mono`}
         />
         <p id={`${id}-hint`} className="mt-1 text-xs text-muted">
           Found in the game&apos;s settings. It is saved in this browser and used for every event.
@@ -145,19 +147,22 @@ function Stat({ label, children }: { label: string; children: ReactNode }) {
 }
 
 function MoveUpRow({ trophies, columns }: { trophies: number | null; columns: number }) {
+  const { title } = useSession();
   if (trophies === null) {
     return null;
   }
   return (
     <tr>
       <td colSpan={columns} className="py-1 text-center text-sm font-semibold text-accent">
-        ▲ {trophies.toLocaleString()} trophies needed to move up ▲
+        ▲ {bigNum(trophies, title.powers)} trophies needed to move up ▲
       </td>
     </tr>
   );
 }
 
 function GlobalTable({ result, rows }: { result: PlayerResult; rows: GlobalRow[] }) {
+  const { title } = useSession();
+  const { powers } = title;
   const { globalPosition: position, trophies } = result.player;
   const count = result.global?.count ?? 0;
   const currentIndex = rows.findIndex((row) => row.current);
@@ -195,8 +200,8 @@ function GlobalTable({ result, rows }: { result: PlayerResult; rows: GlobalRow[]
               <Rows key={row.name} before={index === currentIndex ? <MoveUpRow trophies={moveUp} columns={4} /> : null}>
                 <tr className={`h-12 border-t border-line ${row.current ? 'bg-raised font-bold' : ''}`} aria-current={row.current ? 'true' : undefined}>
                   <td className="px-2">{row.name}</td>
-                  <td className="px-2 tabular-nums">{row.position.toLocaleString()}</td>
-                  <td className="px-2 tabular-nums">{row.score?.toLocaleString() ?? '—'}</td>
+                  <td className="px-2 tabular-nums">{bigNum(row.position, powers)}</td>
+                  <td className="px-2 tabular-nums">{row.score === null ? '—' : bigNum(row.score, powers)}</td>
                   <td className="px-2">
                     <Reward reward={row.reward} />
                   </td>
@@ -220,7 +225,8 @@ function Rows({ before, children }: { before: ReactNode; children: ReactNode }) 
 }
 
 function ShortboardTable({ result, shortLeaderboardId }: { result: PlayerResult; shortLeaderboardId: string | undefined }) {
-  const { data } = useSession();
+  const { data, title } = useSession();
+  const { powers } = title;
   const division = result.division;
   if (!division) {
     return null;
@@ -253,11 +259,11 @@ function ShortboardTable({ result, shortLeaderboardId }: { result: PlayerResult;
               return (
                 <Rows key={`${entry.position}-${entry.ordinal ?? index}`} before={index === playerIndex ? <MoveUpRow trophies={moveUp} columns={5} /> : null}>
                   <tr className={`h-12 border-t border-line ${entry.isPlayer ? 'bg-raised font-bold' : ''}`} aria-current={entry.isPlayer ? 'true' : undefined}>
-                    <td className="px-2 tabular-nums">{place}</td>
+                    <td className="px-2 tabular-nums">{bigNum(place, powers)}</td>
                     <td className="px-2">{playerName(entry.ordinal)}</td>
-                    <td className="px-2 tabular-nums">{entry.trophies.toLocaleString()}</td>
+                    <td className="px-2 tabular-nums">{bigNum(entry.trophies, powers)}</td>
                     <td className="px-2 tabular-nums">
-                      {globalPlace?.toLocaleString() ?? '—'}
+                      {globalPlace === null ? '—' : bigNum(globalPlace, powers)}
                       {share !== null && share >= 5e-4 && <span className="ml-1 text-muted">{(share * 100).toFixed(1)}%</span>}
                     </td>
                     <td className="px-2">
@@ -278,7 +284,8 @@ const DATE = new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle
 const when = (iso: string | null) => (iso ? DATE.format(new Date(iso)) : '—');
 
 function Results({ result, globalLeaderboardId, shortLeaderboardId }: { result: PlayerResult; globalLeaderboardId?: string; shortLeaderboardId?: string }) {
-  const { data } = useSession();
+  const { data, title } = useSession();
+  const { powers } = title;
   const { player } = result;
   const number = shortboardNumber(player.segmentId);
   const rows = globalRows(result, data.schedule, globalLeaderboardId);
@@ -292,13 +299,13 @@ function Results({ result, globalLeaderboardId, shortLeaderboardId }: { result: 
       )}
       <div className="grid gap-2 sm:grid-cols-3">
         <Stat label="Trophies">
-          <p className="text-4xl font-bold tabular-nums">{player.trophies?.toLocaleString() ?? '—'}</p>
+          <p className="text-4xl font-bold tabular-nums">{player.trophies === null ? '—' : bigNum(player.trophies, powers)}</p>
         </Stat>
         <Stat label="Global position">
           {player.globalPosition !== null && player.globalCount ? (
             <>
               <p className="text-xl font-semibold tabular-nums">
-                {(player.globalPosition + 1).toLocaleString()} / {player.globalCount.toLocaleString()}
+                {bigNum(player.globalPosition + 1, powers)} / {bigNum(player.globalCount, powers)}
               </p>
               <p className="text-sm text-muted">{topPercent(player.globalPosition, player.globalCount)}</p>
             </>
@@ -310,7 +317,7 @@ function Results({ result, globalLeaderboardId, shortLeaderboardId }: { result: 
           <p className="text-xl font-semibold">{shortboardLabel(player.shortboardCategory)}</p>
           <p className="text-sm text-muted">
             {number !== null && `Shortboard ${number}`}
-            {player.divisionPosition !== null && player.divisionCount ? ` · ${player.divisionPosition + 1} of ${player.divisionCount}` : ''}
+            {player.divisionPosition !== null && player.divisionCount ? ` · ${bigNum(player.divisionPosition + 1, powers)} of ${bigNum(player.divisionCount, powers)}` : ''}
           </p>
         </Stat>
       </div>

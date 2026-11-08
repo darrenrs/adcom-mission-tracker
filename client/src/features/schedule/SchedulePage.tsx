@@ -1,9 +1,10 @@
-import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
-import { DayPicker } from 'react-day-picker';
+import { createContext, useContext, useEffect, useMemo, useRef, useState, type ButtonHTMLAttributes, type CSSProperties } from 'react';
+import { DayPicker, type CalendarDay, type Modifiers } from 'react-day-picker';
 import 'react-day-picker/style.css';
+import type { AssetResolver } from '@/domain/assets';
 import type { EventEntry } from '@/domain/eventList';
 import { navigateStartup } from '@/state/navigation';
-import { useSession } from '@/state/store';
+import { useSession, useTracker } from '@/state/store';
 import { dateRange, lteFullName } from './eventLabels';
 import { currentEntry, useEventEntries } from './useEventEntries';
 
@@ -15,64 +16,167 @@ function startOfDay(time: number): number {
   return date.getTime();
 }
 
-/** Picks an event from a calendar, or from the list beside it. */
+interface DayEvents {
+  byDay: ReadonlyMap<number, readonly EventEntry[]>;
+  assets: AssetResolver;
+}
+
+const DayEventsContext = createContext<DayEvents | null>(null);
+
+/** A calendar day: its number, and the icon of each event running that day. */
+function DayButton({ day, modifiers, children, ...props }: { day: CalendarDay; modifiers: Modifiers } & ButtonHTMLAttributes<HTMLButtonElement>) {
+  const events = useContext(DayEventsContext);
+  const ref = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    if (modifiers.focused) {
+      ref.current?.focus();
+    }
+  }, [modifiers.focused]);
+  const running = events?.byDay.get(startOfDay(day.date.getTime())) ?? [];
+
+  return (
+    <button ref={ref} {...props} className={`${props.className ?? ''} flex-col gap-0.5 py-1`}>
+      <span>{children}</span>
+      <span className="flex h-6 items-center justify-center gap-0.5 sm:h-8">
+        {running.slice(0, 2).map((entry) => (
+          <img
+            key={entry.key}
+            src={events?.assets.active(`shared/themeicons/${entry.themeId}.png`)}
+            alt=""
+            loading="lazy"
+            className={`${running.length > 1 ? 'size-4 sm:size-5' : 'size-6 sm:size-8'} object-contain`}
+          />
+        ))}
+      </span>
+    </button>
+  );
+}
+
+type Found = 'found' | 'not found' | 'unknown';
+
+const DOT_CLASS: Record<Found, string> = { found: 'bg-success', 'not found': 'bg-danger', unknown: 'bg-muted/50' };
+
+function Dot({ source, state }: { source: string; state: Found }) {
+  const label = `${source}: ${state}`;
+  return <span role="img" aria-label={label} title={label} className={`size-3 rounded-full ${DOT_CLASS[state]}`} />;
+}
+
+/** Picks an event from a calendar, or from the list beside it. A row highlights its dates, and Open goes to the event. */
 export function SchedulePage() {
   const session = useSession();
   const { assets, localization, title } = session;
   const entries = useEventEntries();
+  const apiStatus = useTracker((state) => state.leaderboardStatus);
   const current = currentEntry(session, entries);
-  const [selected, setSelected] = useState<Date | undefined>(() => new Date(current?.start ?? Date.now()));
+  const [selected, setSelected] = useState<Date>(() => new Date(current?.start ?? Date.now()));
+  const [month, setMonth] = useState<Date>(selected);
+  const [chosenKey, setChosenKey] = useState<string | undefined>(current?.key);
   const list = useRef<HTMLUListElement>(null);
 
-  const eventDays = useMemo(() => {
-    const days: Date[] = [];
+  const byDay = useMemo(() => {
+    const days = new Map<number, EventEntry[]>();
     for (const entry of entries) {
       for (let day = startOfDay(entry.start); day < entry.end; day += DAY) {
-        days.push(new Date(day));
+        days.set(day, [...(days.get(day) ?? []), entry]);
       }
     }
     return days;
   }, [entries]);
 
-  const day = selected ? startOfDay(selected.getTime()) : null;
-  const onDay = (entry: EventEntry) => day !== null && entry.start < day + DAY && entry.end > day;
+  const day = startOfDay(selected.getTime());
+  const onDay = (entry: EventEntry) => entry.start < day + DAY && entry.end > day;
+  const chosen = entries.find((entry) => entry.key === chosenKey);
+  const range = chosen ? { from: new Date(startOfDay(chosen.start)), to: new Date(startOfDay(Math.max(chosen.start, chosen.end - 1))) } : undefined;
 
   // Picking a day brings its first event into view in the list.
   useEffect(() => {
     list.current?.querySelector('[data-on-day="true"]')?.scrollIntoView({ block: 'nearest' });
   }, [day]);
 
-  const open = (entry: EventEntry) => navigateStartup({ mode: 'lte', at: String(entry.start + 1), view: null });
+  const pickDay = (date: Date) => {
+    setSelected(date);
+    setMonth(date);
+    setChosenKey(byDay.get(startOfDay(date.getTime()))?.[0]?.key);
+  };
+  const choose = (entry: EventEntry) => {
+    setChosenKey(entry.key);
+    setMonth(new Date(entry.start));
+  };
+  const open = (entry: EventEntry) => navigateStartup({ mode: 'lte', at: String(entry.start), view: null });
+  const apiState = (entry: EventEntry): Found => (apiStatus !== 'connected' ? 'unknown' : entry.api ? 'found' : 'not found');
 
   return (
     <div className="space-y-3">
-      <h1 className="text-lg font-semibold">Schedule</h1>
-      <div className="grid gap-3 md:grid-cols-[auto_minmax(0,1fr)]">
-        <div className="justify-self-center rounded-xl border border-line bg-surface p-2 md:justify-self-start">
-          <DayPicker
-            mode="single"
-            selected={selected}
-            onSelect={setSelected}
-            defaultMonth={selected}
-            modifiers={{ event: eventDays }}
-            modifiersClassNames={{ event: 'font-bold text-accent underline underline-offset-4' }}
-            style={{ '--rdp-accent-color': 'var(--accent)', '--rdp-accent-background-color': 'var(--accent-soft)' } as CSSProperties}
-          />
+      <div className="flex items-center justify-between gap-2">
+        <h1 className="text-lg font-semibold">Schedule</h1>
+        <button
+          type="button"
+          onClick={() => pickDay(new Date())}
+          className="h-control rounded-lg border border-line bg-surface px-4 text-sm font-medium hover:bg-raised"
+        >
+          Today
+        </button>
+      </div>
+      <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_minmax(0,22rem)]">
+        <div className="rounded-xl border border-line bg-surface p-2">
+          <DayEventsContext.Provider value={{ byDay, assets }}>
+            <DayPicker
+              mode="single"
+              required
+              selected={selected}
+              onSelect={(date) => pickDay(date)}
+              month={month}
+              onMonthChange={setMonth}
+              modifiers={{ chosen: range ?? [] }}
+              modifiersClassNames={{ chosen: 'bg-accent-soft' }}
+              components={{ DayButton }}
+              className="w-full"
+              classNames={{ months: 'w-full', month: 'w-full', month_grid: 'w-full table-fixed', today: 'font-bold text-accent' }}
+              style={
+                {
+                  '--rdp-accent-color': 'var(--accent)',
+                  '--rdp-accent-background-color': 'var(--accent-soft)',
+                  '--rdp-day-width': 'auto',
+                  '--rdp-day-height': '4.5rem',
+                  '--rdp-day_button-width': '100%',
+                  '--rdp-day_button-height': '100%',
+                  '--rdp-day_button-border-radius': '0.5rem'
+                } as CSSProperties
+              }
+            />
+          </DayEventsContext.Provider>
         </div>
         <ul ref={list} aria-label="Events" className="max-h-[70dvh] space-y-1 overflow-y-auto rounded-xl border border-line bg-surface p-2">
           {entries.map((entry) => (
-            <li key={entry.key} data-on-day={onDay(entry)}>
+            <li
+              key={entry.key}
+              data-on-day={onDay(entry)}
+              className={`flex items-center gap-1 rounded-lg ${onDay(entry) ? 'ring-1 ring-accent' : ''} ${entry.key === chosenKey ? 'bg-accent-soft' : ''}`}
+            >
               <button
                 type="button"
-                onClick={() => open(entry)}
+                onClick={() => choose(entry)}
+                aria-pressed={entry.key === chosenKey}
                 aria-current={entry === current ? 'true' : undefined}
-                className={`flex w-full items-center gap-3 rounded-lg px-2 py-2 text-left hover:bg-raised aria-[current=true]:bg-raised ${onDay(entry) ? 'ring-1 ring-accent' : ''}`}
+                className="flex min-w-0 flex-1 items-center gap-3 rounded-lg px-2 py-2 text-left hover:bg-raised aria-[current=true]:bg-raised"
               >
                 <img src={assets.active(`shared/themeicons/${entry.themeId}.png`)} alt="" width={40} height={40} loading="lazy" className="size-10 shrink-0 object-contain" />
                 <span className="min-w-0">
                   <span className="block text-base font-semibold">{lteFullName(entry.themeId, localization, title)}</span>
                   <span className="block text-sm text-muted">{dateRange(entry.start, entry.end)}</span>
                 </span>
+              </button>
+              <span className="flex shrink-0 items-center gap-1.5 px-1">
+                <Dot source="Schedule file" state={entry.schedule ? 'found' : 'not found'} />
+                <Dot source="Leaderboard API" state={apiState(entry)} />
+              </span>
+              <button
+                type="button"
+                onClick={() => open(entry)}
+                aria-label={`Open ${lteFullName(entry.themeId, localization, title)}`}
+                className="h-control shrink-0 rounded-lg border border-line px-3 text-sm font-medium hover:bg-raised"
+              >
+                Open
               </button>
             </li>
           ))}

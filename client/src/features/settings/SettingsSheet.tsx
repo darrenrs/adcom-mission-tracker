@@ -139,7 +139,22 @@ function SettingsBody({ onClose }: { onClose: () => void }) {
   );
 }
 
+function leaderboardLine(status: string, count: number): string {
+  switch (status) {
+    case 'connected':
+      return `Leaderboard: connected (${count} ${count === 1 ? 'event' : 'events'})`;
+    case 'unavailable':
+      return 'Leaderboard: not available';
+    case 'none':
+      return 'Leaderboard: not used in this game';
+    default:
+      return 'Leaderboard: checking…';
+  }
+}
+
 function About() {
+  const status = useTracker((state) => state.leaderboardStatus);
+  const count = useTracker((state) => state.leaderboardEvents?.length ?? 0);
   const [build, setBuild] = useState('');
 
   useEffect(() => {
@@ -172,7 +187,14 @@ function About() {
           </a>
         </li>
       </ul>
+      <p className="text-sm">{leaderboardLine(status, count)}</p>
       {build && <p className="text-sm text-muted">Build {build}</p>}
+      <p className="text-sm text-muted">
+        ©{' '}2026{' '}
+        <a className="underline" href="https://idlegametools.com">
+          Idle Game Tools
+        </a>
+      </p>
     </Group>
   );
 }
