@@ -140,7 +140,8 @@ export function ResearcherCard({ researcher }: { researcher: Researcher }) {
         className={`relative aspect-[3/4] h-28 shrink-0 self-start overflow-hidden rounded-lg pointer-fine:h-24 ${RARITY_CLASS[rarity] ?? 'bg-raised'}`}
         data-testid="researcher-portrait"
       >
-        <img src={assets.iconUrl(`${researcher.Id}.png`)} alt="" loading="lazy" className="h-full w-full object-cover" />
+        {/* The art is stored square but drawn narrower in the game, so it is squeezed to 3:4, not cropped. */}
+        <img src={assets.iconUrl(`${researcher.Id}.png`)} alt="" loading="lazy" className="h-full w-full object-fill" />
         {targetIcon && (
           <img src={targetIcon} alt="" loading="lazy" className="absolute top-0 right-0 size-5 rounded-bl-md bg-black/50 object-contain p-px" />
         )}

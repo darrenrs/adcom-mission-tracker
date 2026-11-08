@@ -422,7 +422,7 @@ function CardPopover({ researcherId, name }: { researcherId: string; name: strin
           aria-label={`${name} card`}
           className="z-50 flex w-52 max-w-[calc(100vw-1rem)] flex-col items-center gap-1.5 rounded-xl border border-line bg-surface p-2 text-center text-ink shadow-lg"
         >
-          <img src={assets.iconUrl(`${researcherId}.png`)} alt="" width={80} height={80} className="size-20 rounded-lg object-contain" />
+          <img src={assets.iconUrl(`${researcherId}.png`)} alt="" className="aspect-[3/4] h-20 rounded-lg object-fill" />
           <p className="text-sm font-semibold">
             {name}
             <br />

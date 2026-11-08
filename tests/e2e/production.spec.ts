@@ -118,6 +118,8 @@ test('researcher images stay inside their container at about 3:4', async ({ page
   expect(image!.x + image!.width).toBeLessThanOrEqual(container!.x + container!.width + slack);
   expect(image!.y + image!.height).toBeLessThanOrEqual(container!.y + container!.height + slack);
   expect(image!.height / image!.width).toBeCloseTo(4 / 3, 1);
+  // The square art is squeezed to the card shape, not cropped.
+  expect(await portrait.locator('img').first().evaluate((img) => getComputedStyle(img).objectFit)).toBe('fill');
 });
 
 test('the next row of cards starts at one height even when cards differ', async ({ page }) => {

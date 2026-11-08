@@ -110,7 +110,7 @@ export function GeneratorDetailsView({ details }: { details: GeneratorDetails })
         <section>
           <h4 className={heading}>Automator</h4>
           <div className="mt-1 flex items-center gap-2">
-            <img src={assets.iconUrl(`${automator.id}.png`)} alt="" width={80} height={80} className="size-20 shrink-0 rounded-lg object-contain" />
+            <img src={assets.iconUrl(`${automator.id}.png`)} alt="" className="aspect-[3/4] h-20 shrink-0 rounded-lg object-fill" />
             <div className="min-w-0">
               <p className="font-medium">{researcherName(ctx, researcher)}</p>
               <p className="flex items-center gap-1.5">

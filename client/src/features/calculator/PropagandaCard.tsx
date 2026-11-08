@@ -15,7 +15,7 @@ export function PropagandaCard() {
   return (
     <li className="flex min-w-0 items-stretch gap-1.5 rounded-xl border-2 border-line bg-surface p-1">
       <div className="relative aspect-[3/4] h-28 shrink-0 self-start overflow-hidden rounded-lg pointer-fine:h-24">
-        <img src={on ? boost.onIconUrl : boost.offIconUrl} alt="" loading="lazy" className="h-full w-full object-cover" />
+        <img src={on ? boost.onIconUrl : boost.offIconUrl} alt="" loading="lazy" className="h-full w-full object-fill" />
         <img src={boost.targetIconUrl} alt="" loading="lazy" className="absolute top-0 right-0 size-5 rounded-bl-md bg-black/50 object-contain p-px" />
       </div>
       <div className="flex min-w-0 flex-1 flex-col gap-1">
