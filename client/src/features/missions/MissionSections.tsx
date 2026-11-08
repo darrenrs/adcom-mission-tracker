@@ -194,12 +194,12 @@ function LteRankGroupView({ session, rank, missions, shared }: SectionProps & { 
   return (
     <Collapsible.Root asChild>
       <section aria-label={`Upcoming in Rank ${rank}`} className="border-t border-line">
-        <div className="flex min-h-11 items-center gap-3 px-4 pt-2">
+        <div className="flex min-h-control items-center gap-3 px-4 pt-2">
           <h3 className={rankHeading}>Rank {rank}</h3>
           {details.hasContent && (
             <Collapsible.Trigger
               aria-label={`Rank ${rank} details`}
-              className="ml-auto flex min-h-11 items-center gap-1.5 rounded-lg px-3 text-sm text-muted hover:bg-raised hover:text-ink data-[state=open]:bg-raised data-[state=open]:text-ink"
+              className="ml-auto flex min-h-control items-center gap-1.5 rounded-lg px-3 text-sm text-muted hover:bg-raised hover:text-ink data-[state=open]:bg-raised data-[state=open]:text-ink"
             >
               <Info aria-hidden size={18} />
               Details

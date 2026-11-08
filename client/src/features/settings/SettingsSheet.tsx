@@ -4,7 +4,7 @@ import { useEffect, useId, useState, type ReactNode } from 'react';
 import { getBasicLteName } from '@/domain/schedule';
 import { useSession, useTracker, type ThemeSetting } from '@/state/store';
 
-const quietButton = 'min-h-11 rounded-lg border border-line px-4 text-sm font-medium hover:bg-raised';
+const quietButton = 'min-h-control rounded-lg border border-line px-4 text-sm font-medium hover:bg-raised';
 
 function Group({ title, children }: { title: string; children: ReactNode }) {
   return (
@@ -39,7 +39,7 @@ function Segmented<T extends string>({ legend, value, options, onChange }: Segme
               onChange={() => onChange(option.value)}
               className="peer sr-only"
             />
-            <span className="flex min-h-11 cursor-pointer items-center justify-center rounded-md px-3 text-sm font-medium text-muted peer-checked:bg-surface peer-checked:text-ink peer-checked:shadow-sm peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-accent">
+            <span className="flex min-h-control cursor-pointer items-center justify-center rounded-md px-3 text-sm font-medium text-muted peer-checked:bg-surface peer-checked:text-ink peer-checked:shadow-sm peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-accent">
               {option.label}
             </span>
           </label>
@@ -71,7 +71,7 @@ function ResetRow({ label, description, confirmLabel, onConfirm }: ResetRowProps
       <p className="text-sm">{description}</p>
       {armed ? (
         <div className="flex flex-wrap gap-2">
-          <button type="button" onClick={onConfirm} className="min-h-11 rounded-lg bg-danger px-4 text-sm font-medium text-white dark:text-black">
+          <button type="button" onClick={onConfirm} className="min-h-control rounded-lg bg-danger px-4 text-sm font-medium text-white dark:text-black">
             {confirmLabel}
           </button>
           <button type="button" onClick={() => setArmed(false)} className={quietButton}>
@@ -82,7 +82,7 @@ function ResetRow({ label, description, confirmLabel, onConfirm }: ResetRowProps
         <button
           type="button"
           onClick={() => setArmed(true)}
-          className="min-h-11 rounded-lg border border-danger bg-danger-soft px-4 text-sm font-medium text-danger"
+          className="min-h-control rounded-lg border border-danger bg-danger-soft px-4 text-sm font-medium text-danger"
         >
           {label}
         </button>
@@ -188,7 +188,7 @@ export function SettingsSheet({ open, onOpenChange }: { open: boolean; onOpenCha
             <Dialog.Title className="text-base font-semibold">Settings</Dialog.Title>
             <Dialog.Close
               aria-label="Close settings"
-              className="flex size-11 items-center justify-center rounded-lg text-muted hover:bg-raised hover:text-ink"
+              className="flex size-control items-center justify-center rounded-lg text-muted hover:bg-raised hover:text-ink"
             >
               <X aria-hidden size={20} />
             </Dialog.Close>

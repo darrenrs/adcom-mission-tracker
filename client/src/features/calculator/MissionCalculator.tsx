@@ -34,9 +34,9 @@ type Outcome =
   | { kind: 'failed'; message: string };
 
 const primaryButton =
-  'inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-accent px-5 text-sm font-medium text-white enabled:hover:opacity-90 disabled:opacity-50 dark:text-black';
+  'inline-flex min-h-control items-center justify-center gap-2 rounded-lg bg-accent px-5 text-sm font-medium text-white enabled:hover:opacity-90 disabled:opacity-50 dark:text-black';
 const secondaryButton =
-  'inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-line bg-surface px-4 text-sm font-medium enabled:hover:bg-raised disabled:opacity-50';
+  'inline-flex min-h-control items-center justify-center gap-2 rounded-lg border border-line bg-surface px-4 text-sm font-medium enabled:hover:bg-raised disabled:opacity-50';
 
 const SHOW_IMPORT = false;
 

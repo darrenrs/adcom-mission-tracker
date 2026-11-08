@@ -41,7 +41,7 @@ export function NumberField({ label, value, onChange, iconUrl, invalid, error, d
           aria-describedby={invalid && error ? `${id}-error` : undefined}
           onChange={(event) => onChange(event.target.value)}
           {...attributes}
-          className="h-11 min-w-0 flex-1 rounded-lg border border-line bg-canvas px-3 text-base disabled:opacity-50 aria-invalid:border-danger"
+          className="h-control min-w-0 flex-1 rounded-lg border border-line bg-canvas px-3 text-base disabled:opacity-50 aria-invalid:border-danger"
         />
         {trailing}
       </div>

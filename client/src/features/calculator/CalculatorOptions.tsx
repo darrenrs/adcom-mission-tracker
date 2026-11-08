@@ -41,7 +41,7 @@ function Check({ checked, disabled, onChange, label, hint }: { checked: boolean;
 }
 
 const SEGMENT =
-  'flex min-h-11 flex-1 cursor-pointer items-center justify-center px-4 text-sm font-medium text-muted peer-checked:bg-accent peer-checked:text-white peer-focus-visible:outline-2 peer-focus-visible:-outline-offset-2 peer-focus-visible:outline-accent dark:peer-checked:text-black';
+  'flex min-h-control flex-1 cursor-pointer items-center justify-center px-4 text-sm font-medium text-muted peer-checked:bg-accent peer-checked:text-white peer-focus-visible:outline-2 peer-focus-visible:-outline-offset-2 peer-focus-visible:outline-accent dark:peer-checked:text-black';
 
 export function CalculatorOptions({ value, onChange, comradeName, showComradesOnly }: Props) {
   const name = useId();

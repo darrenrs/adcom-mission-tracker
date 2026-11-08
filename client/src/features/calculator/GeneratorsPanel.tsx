@@ -71,7 +71,7 @@ export function GeneratorsPanel({ mission, industryId, fields, disabled }: Props
                     aria-controls={`${detailsId}-${generator.Id}`}
                     aria-label={`Details of ${name}`}
                     onClick={() => setOpen(isOpen ? null : generator.Id)}
-                    className="flex size-11 shrink-0 items-center justify-center rounded-lg border border-line text-muted hover:bg-raised hover:text-ink aria-expanded:bg-raised aria-expanded:text-ink"
+                    className="flex size-control shrink-0 items-center justify-center rounded-lg border border-line text-muted hover:bg-raised hover:text-ink aria-expanded:bg-raised aria-expanded:text-ink"
                   >
                     <Info aria-hidden size={18} />
                   </button>
@@ -108,7 +108,7 @@ export function GeneratorsPanel({ mission, industryId, fields, disabled }: Props
             <img src={assets.active('shared/comrades_per_second.png')} alt="" width={24} height={24} className="size-6 shrink-0 object-contain" />
             <span>{comrade} per second</span>
           </p>
-          <p className="mt-1 flex min-h-11 items-center text-base font-semibold" data-testid="comrades-per-second">
+          <p className="mt-1 flex min-h-control items-center text-base font-semibold" data-testid="comrades-per-second">
             {bigNum(form.Trades.TotalComrades || 0, ctx.title.powers)}
           </p>
           <p className="text-xs text-muted">Worked out from your trades.</p>

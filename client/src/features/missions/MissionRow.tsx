@@ -28,7 +28,7 @@ export const TONE_CLASS: Record<MissionTone, string> = {
 };
 
 const sideButton =
-  'flex min-h-12 min-w-11 shrink-0 items-center justify-center rounded-lg text-muted enabled:hover:bg-raised enabled:hover:text-ink disabled:cursor-not-allowed';
+  'flex min-h-12 min-w-control shrink-0 items-center justify-center rounded-lg text-muted enabled:hover:bg-raised enabled:hover:text-ink disabled:cursor-not-allowed';
 
 function Eta({ timestamp, powers }: { timestamp: number; powers: readonly string[] }) {
   const now = useMinuteClock();

@@ -35,14 +35,14 @@ export function CompleteEarlierDialog({ session, missionId, onClose }: CompleteE
             You can undo any of them from Completed.
           </Dialog.Description>
           <div className="flex flex-wrap justify-end gap-2">
-            <Dialog.Close className="min-h-11 rounded-lg border border-line px-4 text-sm font-medium hover:bg-raised">Cancel</Dialog.Close>
+            <Dialog.Close className="min-h-control rounded-lg border border-line px-4 text-sm font-medium hover:bg-raised">Cancel</Dialog.Close>
             <button
               type="button"
               onClick={() => {
                 completeMissionsBefore(target.Id);
                 onClose();
               }}
-              className="min-h-11 rounded-lg bg-accent px-4 text-sm font-medium text-white dark:text-black"
+              className="min-h-control rounded-lg bg-accent px-4 text-sm font-medium text-white dark:text-black"
             >
               Mark {missions} complete
             </button>

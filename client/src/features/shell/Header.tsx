@@ -1,14 +1,13 @@
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 import { CalendarDays, Check, ChevronDown, List, Settings } from 'lucide-react';
 import { useState } from 'react';
-import { rankProgress } from '@/domain/missionView';
 import { getCurrentLteInfo, getBasicLteName } from '@/domain/schedule';
 import { SettingsSheet } from '@/features/settings/SettingsSheet';
 import type { LteInfo } from '@/domain/types';
 import { navigate, navigateStartup, useView, type ViewName } from '@/state/navigation';
 import { useSession } from '@/state/store';
 import { RankBar } from './RankBar';
-import { RankControls } from './RankControls';
+import { Tabs } from './Tabs';
 
 function Indicator() {
   return (
@@ -30,12 +29,11 @@ function menuSelection(view: ViewName, mode: string, lteInfo: LteInfo | null, li
 }
 
 const menuItem =
-  'flex min-h-11 cursor-pointer items-center gap-3 rounded-md px-3 text-sm outline-none data-[highlighted]:bg-raised';
+  'flex min-h-control cursor-pointer items-center gap-3 rounded-md px-3 text-sm outline-none data-[highlighted]:bg-raised';
 
 export function Header() {
   const session = useSession();
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [rankOpen, setRankOpen] = useState(false);
   const { title, mode, lteInfo, assets, data } = session;
 
   const liveLte = getCurrentLteInfo(data.schedule, Date.now(), title.isAges);
@@ -46,9 +44,9 @@ export function Header() {
 
   return (
     <header className="mx-auto w-full max-w-360">
-      <div className="grid h-14 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-1 px-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,20rem)_minmax(0,1fr)] sm:gap-2 sm:px-4">
+      <div className="grid h-14 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-1 px-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,20rem)_minmax(0,1fr)] sm:gap-2 sm:px-4 lg:grid-cols-[auto_minmax(0,1fr)_minmax(0,18rem)_auto]">
         <DropdownMenu.Root>
-          <DropdownMenu.Trigger aria-label={`Mode: ${displayName}`} className="flex min-h-11 max-w-full min-w-0 items-center gap-2 justify-self-start rounded-lg px-1 font-semibold hover:bg-raised sm:px-2">
+          <DropdownMenu.Trigger aria-label={`Mode: ${displayName}`} className="flex min-h-control max-w-full min-w-0 items-center gap-2 justify-self-start rounded-lg px-1 font-semibold hover:bg-raised sm:px-2">
             <img src={displayIcon} alt="" className="size-7 shrink-0 object-contain" />
             <span className="hidden truncate sm:inline">{displayName}</span>
             <ChevronDown aria-hidden size={16} className="shrink-0 text-muted" />
@@ -88,14 +86,16 @@ export function Header() {
           </DropdownMenu.Portal>
         </DropdownMenu.Root>
 
-        <RankBar open={rankOpen} onToggle={() => setRankOpen((open) => !open)} />
+        <Tabs className="hidden h-full min-w-0 items-stretch gap-1 overflow-x-auto lg:flex" />
+
+        <RankBar />
 
         <div className="flex items-center justify-self-end sm:gap-1">
           <button
             type="button"
             onClick={() => navigateStartup({ title: otherGame })}
             title={`Switch to ${title.isAges ? 'AdVenture Communist' : 'AdVenture Ages'}`}
-            className="flex min-h-11 min-w-11 items-center justify-center rounded-lg hover:bg-raised"
+            className="flex min-h-control min-w-control items-center justify-center rounded-lg hover:bg-raised"
           >
             <img src={assets.forTitle(otherGame, 'shared/themeicons/main.png')} alt="Switch game" className="size-7 object-contain" />
           </button>
@@ -103,14 +103,13 @@ export function Header() {
             type="button"
             aria-label="Settings"
             onClick={() => setSettingsOpen(true)}
-            className="flex min-h-11 min-w-11 items-center justify-center rounded-lg text-muted hover:bg-raised hover:text-ink"
+            className="flex min-h-control min-w-control items-center justify-center rounded-lg text-muted hover:bg-raised hover:text-ink"
           >
             <Settings aria-hidden size={22} />
           </button>
         </div>
 
       </div>
-      {rankOpen && <RankControls progress={rankProgress(session.board)} onClose={() => setRankOpen(false)} />}
 
       <SettingsSheet open={settingsOpen} onOpenChange={setSettingsOpen} />
     </header>

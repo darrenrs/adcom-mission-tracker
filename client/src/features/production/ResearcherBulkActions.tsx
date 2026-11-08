@@ -3,7 +3,7 @@ import { useState } from 'react';
 import type { Researcher } from '@/domain/types';
 import { useResearcherActions } from '@/features/calculator/useResearcherActions';
 
-const button = 'min-h-11 rounded-lg border border-line px-4 text-sm font-medium hover:bg-raised';
+const button = 'min-h-control rounded-lg border border-line px-4 text-sm font-medium hover:bg-raised';
 
 /** Max all, and Set all to 0 behind a confirmation, because it throws away every level entered. */
 export function ResearcherBulkActions({ researchers, word }: { researchers: readonly Researcher[]; word: string }) {
@@ -35,7 +35,7 @@ export function ResearcherBulkActions({ researchers, word }: { researchers: read
                   setAll(researchers, 0);
                   setConfirming(false);
                 }}
-                className="min-h-11 rounded-lg bg-accent px-4 text-sm font-medium text-white dark:text-black"
+                className="min-h-control rounded-lg bg-accent px-4 text-sm font-medium text-white dark:text-black"
               >
                 Set all to 0
               </button>

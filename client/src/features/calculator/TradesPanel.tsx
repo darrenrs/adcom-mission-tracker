@@ -9,7 +9,7 @@ import { ResearcherGrid } from './ResearcherGrid';
 import type { TradeFields } from './useTradeFields';
 
 const arrowButton =
-  'flex size-11 shrink-0 items-center justify-center rounded-lg border border-line bg-surface enabled:hover:bg-raised';
+  'flex size-control shrink-0 items-center justify-center rounded-lg border border-line bg-surface enabled:hover:bg-raised';
 
 /** Next trade costs, what the trades add up to, and the trade researchers. Shared by the calculator and Production. */
 export function TradesPanel({ fields }: { fields: TradeFields }) {
@@ -55,7 +55,7 @@ export function TradesPanel({ fields }: { fields: TradeFields }) {
                   data-field-key={row.resourceId}
                   onChange={(event) => fields.type(row.resourceId, event.target.value)}
                   onBlur={() => fields.finish(row.resourceId)}
-                  className="h-11 min-w-0 flex-1 rounded-lg border border-line bg-canvas px-3 text-base aria-invalid:border-danger"
+                  className="h-control min-w-0 flex-1 rounded-lg border border-line bg-canvas px-3 text-base aria-invalid:border-danger"
                 />
                 <button type="button" aria-label={`Increase ${name} ${trades}`} onClick={() => fields.step(row.resourceId, 1, value)} className={arrowButton}>
                   <ChevronUp aria-hidden size={18} className="text-success" />

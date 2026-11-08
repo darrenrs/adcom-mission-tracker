@@ -18,9 +18,12 @@
   --color-success-soft: var(--success-soft);
   --color-warning: var(--warning);
   --color-warning-soft: var(--warning-soft);
+  /* h-control, min-h-control, size-control: a full tap target on touch screens, smaller with a mouse or trackpad. */
+  --spacing-control: var(--control);
 }
 
 :root {
+  --control: 2.75rem;
   --canvas: #f4f2ee;
   --surface: #ffffff;
   --raised: #ece9e2;
@@ -64,6 +67,12 @@
 :root[data-theme="dark"][data-title="ages"] {
   --accent: #e8a744;
   --accent-soft: #392c17;
+}
+
+@media (pointer: fine) {
+  :root {
+    --control: 2rem;
+  }
 }
 
 body {

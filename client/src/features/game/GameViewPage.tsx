@@ -253,7 +253,7 @@ function Resources({ activeId }: { activeId: string }) {
                   aria-current={industry.Id === activeId ? 'true' : undefined}
                   title={name}
                   onClick={() => setActiveIndustry(industry.Id)}
-                  className="flex size-9 items-center justify-center rounded-lg border border-transparent hover:bg-raised aria-[current=true]:border-line aria-[current=true]:bg-raised sm:size-11"
+                  className="flex size-9 items-center justify-center rounded-lg border border-transparent hover:bg-raised aria-[current=true]:border-line aria-[current=true]:bg-raised sm:size-control"
                 >
                   <img src={assets.iconUrl(`${resource.Id}.png`)} alt="" width={28} height={28} className="size-7 object-contain" />
                 </button>
@@ -374,7 +374,7 @@ function CardPopover({ researcherId, name }: { researcherId: string; name: strin
   const max = researcherMaxLevel(ctx.balance, researcher) ?? level;
   const value = researcherValueLabel(ctx, researcher, level).value;
   const effectIcon = EFFECT_ICON[researcher.ModType];
-  const step = 'flex size-11 items-center justify-center rounded-lg border border-line bg-surface hover:bg-raised disabled:opacity-40';
+  const step = 'flex size-control items-center justify-center rounded-lg border border-line bg-surface hover:bg-raised disabled:opacity-40';
 
   return (
     <Popover.Root>
@@ -382,7 +382,7 @@ function CardPopover({ researcherId, name }: { researcherId: string; name: strin
         <button
           type="button"
           aria-label={`${name}, level ${level}. Show card`}
-          className={`flex min-h-11 min-w-14 shrink-0 items-center justify-center gap-1 text-sm font-semibold hover:bg-raised aria-expanded:bg-raised ${box}`}
+          className={`flex min-h-control min-w-14 shrink-0 items-center justify-center gap-1 text-sm font-semibold hover:bg-raised aria-expanded:bg-raised ${box}`}
         >
           <img src={assets.active('shared/card.png')} alt="" width={20} height={20} className="size-5 object-contain" />
           {level}
@@ -471,7 +471,7 @@ function GeneratorRow({
         <div className="min-w-0 flex-1 space-y-2">
           <CycleBar tier={tier} details={details} count={count} manual={manual} />
           <div className="flex items-stretch gap-2">
-            <p className="flex min-h-11 min-w-0 flex-1 items-center justify-center rounded-lg border border-success/30 bg-success-soft px-2 text-center text-sm font-semibold break-words">
+            <p className="flex min-h-control min-w-0 flex-1 items-center justify-center rounded-lg border border-success/30 bg-success-soft px-2 text-center text-sm font-semibold break-words">
               {name} - Tier {tierNumber}
             </p>
             {automator && <CardPopover researcherId={automator.id} name={automator.name} />}
@@ -480,7 +480,7 @@ function GeneratorRow({
               aria-label={`${name} details`}
               aria-expanded={open}
               onClick={() => setOpen((value) => !value)}
-              className={`flex size-11 shrink-0 items-center justify-center text-muted hover:bg-raised hover:text-ink aria-expanded:bg-raised ${box}`}
+              className={`flex size-control shrink-0 items-center justify-center text-muted hover:bg-raised hover:text-ink aria-expanded:bg-raised ${box}`}
             >
               <Info aria-hidden size={20} />
             </button>

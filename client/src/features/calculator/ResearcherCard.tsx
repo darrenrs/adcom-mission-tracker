@@ -45,8 +45,8 @@ const EFFECT_ICON: Readonly<Record<string, string>> = {
 };
 
 const stepButton =
-  'flex size-11 shrink-0 items-center justify-center rounded-lg border border-line bg-surface text-ink enabled:hover:bg-raised disabled:opacity-40';
-const inputClass = 'h-11 min-w-0 rounded-lg border border-line bg-canvas px-2 text-center text-base aria-invalid:border-danger';
+  'flex size-control shrink-0 items-center justify-center rounded-lg border border-line bg-surface text-ink enabled:hover:bg-raised disabled:opacity-40';
+const inputClass = 'h-control min-w-0 rounded-lg border border-line bg-canvas px-2 text-center text-base aria-invalid:border-danger';
 
 function LevelInput({ researcher, level, max, label }: { researcher: Researcher; level: number; max: number | null; label: string }) {
   const { setLevel } = useResearcherActions();

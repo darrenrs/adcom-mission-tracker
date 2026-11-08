@@ -28,7 +28,7 @@ export function PropagandaCard() {
         aria-pressed={on}
         aria-label={`${boost.name}: ${on ? 'on' : 'off'}`}
         onClick={() => setPropaganda(!on)}
-        className="mt-1 min-h-11 rounded-lg border border-line text-sm font-medium aria-pressed:border-accent aria-pressed:bg-accent-soft aria-pressed:text-accent enabled:hover:bg-raised"
+        className="mt-1 min-h-control rounded-lg border border-line text-sm font-medium aria-pressed:border-accent aria-pressed:bg-accent-soft aria-pressed:text-accent enabled:hover:bg-raised"
       >
         {on ? 'Active' : 'Boost'}
       </button>

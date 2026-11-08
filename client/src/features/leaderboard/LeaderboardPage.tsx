@@ -91,13 +91,13 @@ function PlayerIdForm() {
           aria-invalid={text !== '' && !valid ? true : undefined}
           aria-describedby={`${id}-hint`}
           onChange={(event) => setText(event.target.value.toUpperCase().replace(/\s/g, ''))}
-          className="mt-1 h-11 w-full rounded-lg border border-line bg-canvas px-3 font-mono text-base aria-invalid:border-danger"
+          className="mt-1 h-control w-full rounded-lg border border-line bg-canvas px-3 font-mono text-base aria-invalid:border-danger"
         />
         <p id={`${id}-hint`} className="mt-1 text-xs text-muted">
           Found in the game&apos;s settings. It is saved in this browser and used for every event.
         </p>
       </div>
-      <button type="submit" disabled={!valid} className="mb-5 h-11 rounded-lg bg-accent px-4 text-sm font-medium text-white disabled:opacity-50 dark:text-black">
+      <button type="submit" disabled={!valid} className="mb-5 h-control rounded-lg bg-accent px-4 text-sm font-medium text-white disabled:opacity-50 dark:text-black">
         Show results
       </button>
     </form>

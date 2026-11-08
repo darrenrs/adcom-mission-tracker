@@ -43,7 +43,7 @@ function BackButton() {
     <button
       type="button"
       onClick={goBack}
-      className="inline-flex min-h-11 items-center gap-2 rounded-lg px-3 text-sm font-medium text-muted hover:bg-raised hover:text-ink"
+      className="inline-flex min-h-control items-center gap-2 rounded-lg px-3 text-sm font-medium text-muted hover:bg-raised hover:text-ink"
     >
       <ArrowLeft aria-hidden size={18} />
       Back

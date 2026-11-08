@@ -6,7 +6,7 @@ import { navigateStartup } from '@/state/navigation';
 import { useSession, useTracker } from '@/state/store';
 
 const iconButton =
-  'flex size-11 shrink-0 items-center justify-center rounded-lg border border-line text-muted hover:bg-raised hover:text-ink';
+  'flex size-control shrink-0 items-center justify-center rounded-lg border border-line text-muted hover:bg-raised hover:text-ink';
 
 /** Motherland moves freely between ranks. An event only moves forward, which completes what comes before. */
 export function RankControls({ progress, onClose }: { progress: RankProgress; onClose(): void }) {
@@ -44,7 +44,7 @@ export function RankControls({ progress, onClose }: { progress: RankProgress; on
   };
 
   return (
-    <form onSubmit={submit} noValidate aria-label="Change rank" className="mx-auto w-full max-w-sm space-y-2 px-3 pb-3">
+    <form onSubmit={submit} noValidate aria-label="Change rank" className="w-80 max-w-[calc(100vw-1rem)] space-y-2 p-3">
       <div className="flex items-center justify-center gap-2">
         {!isLte && (
           <button
@@ -75,9 +75,9 @@ export function RankControls({ progress, onClose }: { progress: RankProgress; on
             setValue(event.target.value);
             setInvalid(false);
           }}
-          className="h-11 w-24 min-w-0 rounded-lg border border-line bg-canvas px-3 text-center text-base"
+          className="h-control w-24 min-w-0 rounded-lg border border-line bg-canvas px-3 text-center text-base"
         />
-        <button type="submit" className="h-11 rounded-lg bg-accent px-4 text-sm font-medium text-white dark:text-black">
+        <button type="submit" className="h-control rounded-lg bg-accent px-4 text-sm font-medium text-white dark:text-black">
           Go
         </button>
         <button
