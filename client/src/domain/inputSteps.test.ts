@@ -1,10 +1,33 @@
 import { describe, expect, it } from 'vitest';
 import { formatAmountText, parseAmount, stepAmount } from './inputSteps';
 import { TITLES } from './titles';
+import { isInvalidAmount } from '@/features/calculator/fields';
 
 const powers = TITLES.adcom.powers;
 
 describe('parseAmount', () => {
+  it('reads game amounts exactly, so whole amounts stay whole', () => {
+    expect(parseAmount('1.1 AA', powers)).toBe(1_100_000_000_000_000);
+    expect(parseAmount('16.1 K', powers)).toBe(16_100);
+    expect(parseAmount('32.3 K', powers)).toBe(32_300);
+    expect(parseAmount('2.35 AA', powers)).toBe(2.35e15);
+    // Every amount with up to two decimals below 2^53 is a whole number, as a generator count must be.
+    for (let power = 1; power <= 5; power++) {
+      for (let hundredths = 100; hundredths < 100_000; hundredths += 7) {
+        const text = `${(hundredths / 100).toFixed(2)} ${powers[power - 1]}`;
+        const value = parseAmount(text, powers);
+        if (value < Number.MAX_SAFE_INTEGER) {
+          expect(Number.isInteger(value), text).toBe(true);
+        }
+      }
+    }
+  });
+
+  it('accepts 1.1 AA in a whole-number field', () => {
+    expect(isInvalidAmount('1.1 AA', powers, false, true)).toBe(false);
+    expect(isInvalidAmount('1.5', powers, false, true)).toBe(true);
+  });
+
   it('reads game notation, scientific notation and plain digits', () => {
     expect(parseAmount('1.6 BB', powers)).toBe(1.6e18);
     expect(parseAmount('1.6e+18', powers)).toBe(1.6e18);

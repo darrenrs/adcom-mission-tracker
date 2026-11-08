@@ -105,7 +105,10 @@ describe.each(TITLE_KEYS)('number field steps match legacy (%s)', (titleKey) => 
     for (const text of sampleTexts(powers)) {
       const expected = legacy.run<number>('fromBigNum(__text) || Number(__text)', { __text: text });
       comparisons++;
-      expect(Object.is(parseAmount(text, powers), expected), text).toBe(true);
+      const ours = parseAmount(text, powers);
+      // We read amounts exactly; legacy multiplied in floating point and can be a few units off in the last place.
+      const close = Number.isFinite(expected) && Math.abs(ours - expected) <= Math.abs(expected) * 8 * Number.EPSILON;
+      expect(Object.is(ours, expected) || close, text).toBe(true);
     }
   });
 });

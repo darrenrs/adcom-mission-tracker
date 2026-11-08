@@ -34,9 +34,18 @@ function same(label: string, ours: () => unknown, legacy: () => unknown) {
   const actual = outcome(ours);
   if ('error' in expected && 'error' in actual) {
     expect(actual.error, label).toBe(expected.error);
+  } else if (nearlySameNumber(actual, expected)) {
+    // fromBigNum reads amounts exactly; legacy multiplied in floating point and can be a few units off in the last place.
+    return;
   } else {
     expect(actual, label).toEqual(expected);
   }
+}
+
+function nearlySameNumber(actual: unknown, expected: unknown): boolean {
+  const a = (actual as { value?: unknown }).value;
+  const b = (expected as { value?: unknown }).value;
+  return typeof a === 'number' && typeof b === 'number' && Number.isFinite(b) && Math.abs(a - b) <= Math.abs(b) * 8 * Number.EPSILON;
 }
 
 const LOCALES = [undefined, 'en-US', 'en-GB', 'en-IN', 'de-DE', 'de-CH', 'fr-FR', 'es-ES', 'hu-HU', 'ru-RU', 'pt-BR', 'sv-SE', 'it-IT', 'ja-JP', 'ar-EG'];

@@ -189,7 +189,7 @@ The work:
 
 - **Longer offline ETAs:** offline Own missions that cost generators can be much longer than before. Legacy ignored those costs, so its answers were too optimistic.
 - **Comparison with legacy:** on sampled missions, online results are within 3% and offline resource goals within 1%. The engine has not been checked against real in-game numbers yet.
-- **Legacy bugs not carried over:** the Advance To Rank off-by-one, and Reset All wiping other tools' data.
+- **Legacy bugs not carried over:** the Advance To Rank off-by-one, Reset All wiping other tools' data, and game amounts read in floating point (8 November): "1.1 AA" came out as 1,100,000,000,000,000.1, so whole-number fields rejected about 1 in 40 one-decimal amounts. `fromBigNum` now reads them exactly; the legacy comparisons allow a few units in the last place.
 - **Calculator defaults changed:** with propaganda on by default, new saves calculate with the boost applied.
 - **Save compatibility:** old saves are copied under the new prefix and the originals are kept, for rollback. The `IconConfig` and `ListStyleActiveConfig` settings are not carried over.
 - **Still open on `master`, outside this work:** the `/api/import` security issue and the unprotected admin page. The leaderboard crash and unauthenticated Discord account writes are also open, in its own repo.

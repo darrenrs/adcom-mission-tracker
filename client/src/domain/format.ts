@@ -59,11 +59,21 @@ export function fromBigNum(x: string | null | undefined, powers: readonly string
     const powerIndex = powers.indexOf(second.toUpperCase());
     const mantissa = parseLocaleNumber(first, locale);
     if (powerIndex !== -1 && !isNaN(mantissa)) {
-      return mantissa * Math.pow(1000, powerIndex + 1);
+      return timesThousands(mantissa, powerIndex + 1);
     }
   }
 
   return NaN;
+}
+
+/**
+ * `mantissa × 1000^power`, read as a decimal so the result is the nearest number to the written amount.
+ * Multiplying in floating point is not: 1.1 × 1000^5 gives 1,100,000,000,000,000.1, which a whole-number
+ * field then rejects (legacy had this bug, for about 1 in 40 one-decimal amounts).
+ */
+function timesThousands(mantissa: number, power: number): number {
+  const [digits = '', exponent = '0'] = String(mantissa).split('e');
+  return Number(`${digits}e${Number(exponent) + 3 * power}`);
 }
 
 /** Parses digits written with the separators of `locale` (default: the runtime's own). */
