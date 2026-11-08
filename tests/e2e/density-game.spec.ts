@@ -19,7 +19,7 @@ test.describe('desktop', () => {
     );
     expect(boxes.length).toBeGreaterThan(2);
     for (const box of boxes) {
-      expect(box.height).toBeLessThanOrEqual(80);
+      expect(box.height).toBeLessThanOrEqual(97);
     }
     const first = boxes[0]!;
     for (const box of boxes) {

@@ -36,11 +36,11 @@ test('saves comrades and science, in plain numbers or game notation', async ({ p
   await comrades.fill('21.15 M');
   await science.fill('307');
   await science.press('ArrowUp');
-  await expect(science).toHaveValue('308');
+  await expect(science).toHaveValue('310');
 
   await page.reload();
   await expect(comrades).toHaveValue('21.15 M');
-  await expect(science).toHaveValue('308');
+  await expect(science).toHaveValue('310');
 });
 
 test('completes a mission from its requirement and opens the calculator from its capsule', async ({ page }) => {

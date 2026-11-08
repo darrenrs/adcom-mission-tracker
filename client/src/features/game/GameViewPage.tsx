@@ -2,7 +2,7 @@ import * as Popover from '@radix-ui/react-popover';
 import { Info, Minus, Plus } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { bigNum, shortBigNum } from '@/domain/format';
-import { hasActiveResearcher } from '@/domain/generatorInfo';
+import { formatCycleTime, hasActiveResearcher } from '@/domain/generatorInfo';
 import { describeMission, getResourceByIndustry, resourceName } from '@/domain/gameText';
 import type { BoardMission } from '@/domain/missions';
 import { inMissionOrder, missionIconUrl, missionRequirement, missionRewardIcon, missionTone } from '@/domain/missionView';
@@ -54,7 +54,7 @@ function Stocks() {
   const science = String(resourceName(ctx, mode === 'evergreen' ? 'scientist' : 'darkscience'));
   const scienceIcon = assets.active(mode === 'evergreen' ? 'main/darkscience.png' : 'event/darkscience.png');
   const stock = `flex min-w-0 flex-col justify-center gap-0.5 p-1.5 ${box}`;
-  const heading = 'truncate text-center text-xs leading-4 font-semibold text-muted tabular-nums';
+  const heading = 'truncate text-center text-base leading-5 font-semibold text-muted tabular-nums';
   const line = 'flex items-center gap-1';
   const icon = 'size-6 shrink-0 object-contain sm:size-8';
   const input = 'flex-1 px-1 text-center';
@@ -315,12 +315,14 @@ function CycleBar({
   tier,
   details,
   count,
-  manual
+  manual,
+  onManualDone
 }: {
   tier: Tier | undefined;
   details: ReturnType<typeof generatorDetails>;
   count: number;
   manual: ManualRun | null;
+  onManualDone: () => void;
 }) {
   const { title } = useSession();
   const { powers } = title;
@@ -329,6 +331,31 @@ function CycleBar({
   const seconds = tier?.cycleSeconds ?? 0;
   const perCycle = (tier?.outputPerCycle ?? 0) * count;
   const crits = (tier?.critChance ?? 0) > 0;
+  const idleText = formatCycleTime(details.output.cycleSeconds, powers);
+  const [countdown, setCountdown] = useState<string | null>(null);
+  const active = !running && manual !== null;
+
+  // Counts the label down over a manual run, then hands the bar back to idle.
+  useEffect(() => {
+    if (!active || !manual) {
+      setCountdown(null);
+      return;
+    }
+    const start = performance.now();
+    let frame = 0;
+    const tick = () => {
+      const elapsed = (performance.now() - start) / 1000;
+      if (elapsed >= manual.seconds) {
+        setCountdown(null);
+        onManualDone();
+        return;
+      }
+      setCountdown(formatCycleTime(manual.seconds - elapsed, powers));
+      frame = requestAnimationFrame(tick);
+    };
+    tick();
+    return () => cancelAnimationFrame(frame);
+  }, [active, manual?.id, manual?.seconds, powers]);
 
   return (
     <div className="relative flex h-8 items-center justify-between overflow-hidden rounded-lg bg-raised px-2 text-sm pointer-fine:h-6 font-semibold">
@@ -349,7 +376,7 @@ function CycleBar({
           style={{ transformOrigin: 'left', animation: `generator-cycle ${manual.seconds}s linear 1 forwards` }}
         />
       )}
-      <span className="relative">{running ? '' : details.output.cycleText}</span>
+      <span className="relative">{running ? '' : (countdown ?? idleText)}</span>
       <span className="relative flex items-center gap-1 tabular-nums">
         <img src={details.output.iconUrl} alt="" width={20} height={20} className="size-5 object-contain" />
         {shortBigNum(fast ? perCycle / seconds : perCycle, powers)}
@@ -455,7 +482,7 @@ function GeneratorRow({
   return (
     <li className={`mb-1.5 p-1.5 ${box}`}>
       <div className="flex items-center gap-2">
-        <div className="flex w-20 shrink-0 flex-col items-center gap-0.5 sm:w-32 sm:flex-row sm:gap-1.5">
+        <div className="flex w-32 shrink-0 flex-col items-center gap-0.5">
           <button type="button" tabIndex={-1} aria-label={`Run ${name} once`} onClick={runOnce} className="flex size-11 shrink-0 items-center justify-center rounded-full pointer-fine:size-10">
             <img src={details.iconUrl} alt="" width={40} height={40} className="size-10 rounded-full bg-raised object-contain p-0.5" />
           </button>
@@ -470,7 +497,7 @@ function GeneratorRow({
         </div>
 
         <div className="min-w-0 flex-1 space-y-1">
-          <CycleBar tier={tier} details={details} count={count} manual={manual} />
+          <CycleBar tier={tier} details={details} count={count} manual={manual} onManualDone={() => setManual(null)} />
           <div className="flex items-stretch gap-1.5">
             <p className="flex min-h-control min-w-0 flex-1 items-center justify-center rounded-lg border border-success/30 bg-success-soft px-2 text-center text-sm leading-tight font-semibold break-words">
               {name} - Tier {tierNumber}
