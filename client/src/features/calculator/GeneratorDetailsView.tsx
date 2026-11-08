@@ -48,13 +48,13 @@ export function GeneratorDetailsView({ details }: { details: GeneratorDetails })
   ];
 
   return (
-    <div className="space-y-3 text-sm">
+    <div className="space-y-2 text-sm">
       {description && <p className="italic">{description}</p>}
 
       <div className="flex justify-between gap-4">
         <section>
           <h4 className={heading}>Costs</h4>
-          <div className="mt-1 flex flex-wrap gap-3">
+          <div className="mt-0.5 flex flex-wrap gap-2">
             {details.costs.map((cost) => (
               <Item key={cost.resourceId} iconUrl={cost.iconUrl} name={cost.name}>
                 {cost.text}
@@ -65,7 +65,7 @@ export function GeneratorDetailsView({ details }: { details: GeneratorDetails })
 
         <section>
           <h4 className={`${heading} text-right`}>Outputs</h4>
-          <div className="mt-1 flex flex-wrap justify-end gap-3">
+          <div className="mt-0.5 flex flex-wrap justify-end gap-2">
             <Item iconUrl={output.iconUrl} name={output.name}>
               {output.perCycleText}
             </Item>
@@ -78,7 +78,7 @@ export function GeneratorDetailsView({ details }: { details: GeneratorDetails })
 
       <section>
         <h4 className={heading}>Generates</h4>
-        <dl className="mt-1 grid grid-cols-[1fr_auto] gap-x-3 gap-y-1">
+        <dl className="mt-0.5 grid grid-cols-[1fr_auto] gap-x-3 gap-y-0.5">
           {generates.map(([label, value]) => (
             <Fragment key={label}>
               <dt>{label}</dt>
@@ -93,7 +93,7 @@ export function GeneratorDetailsView({ details }: { details: GeneratorDetails })
 
       <section>
         <h4 className={heading}>Modifiers</h4>
-        <div className="mt-1 flex flex-wrap justify-between gap-2">
+        <div className="mt-0.5 flex flex-wrap justify-between gap-2">
           {modifiers.map(([label, file, value]) => (
             <Item key={label} iconUrl={shared(file)} name={label}>
               {value}
@@ -105,7 +105,7 @@ export function GeneratorDetailsView({ details }: { details: GeneratorDetails })
       {automator && researcher && (
         <section>
           <h4 className={heading}>Automator</h4>
-          <div className="mt-1 flex items-center gap-2">
+          <div className="mt-0.5 flex items-center gap-2">
             <img src={assets.iconUrl(`${automator.id}.png`)} alt="" width={40} height={40} className="size-10 shrink-0 rounded-lg object-contain" />
             <div className="min-w-0">
               <p className="font-medium">{researcherName(ctx, researcher)}</p>

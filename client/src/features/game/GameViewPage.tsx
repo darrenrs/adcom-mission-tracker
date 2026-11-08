@@ -61,7 +61,7 @@ function GameHeader() {
     return null;
   }
   return (
-    <header className="relative flex min-h-28 items-start justify-between gap-3 overflow-hidden rounded-xl p-3 sm:min-h-36 sm:p-4">
+    <header className="relative flex min-h-24 items-start justify-between gap-3 overflow-hidden rounded-xl p-2.5 sm:min-h-28 sm:p-3">
       {banner && !broken && (
         <>
           <img
@@ -75,8 +75,8 @@ function GameHeader() {
         </>
       )}
       <div className="min-w-0">
-        <h2 className="text-xl font-extrabold tracking-wide break-words uppercase sm:text-3xl">{name}</h2>
-        {description && <p className="mt-1 max-w-prose text-sm font-medium break-words">{description}</p>}
+        <h2 className="text-xl font-extrabold tracking-wide break-words uppercase sm:text-2xl">{name}</h2>
+        {description && <p className="mt-0.5 max-w-prose text-sm font-medium break-words">{description}</p>}
       </div>
       {dates && <p className="shrink-0 text-right text-xs font-semibold sm:text-sm">{dates}</p>}
     </header>
@@ -93,61 +93,69 @@ function Stocks() {
   const comrades = String(resourceName(ctx, 'comrade'));
   const science = String(resourceName(ctx, mode === 'evergreen' ? 'scientist' : 'darkscience'));
   const scienceIcon = assets.active(mode === 'evergreen' ? 'main/darkscience.png' : 'event/darkscience.png');
-  const stock = `flex min-w-0 flex-col items-center gap-1 p-2 ${box}`;
-  const icon = 'size-8 shrink-0 object-contain';
-  const input = 'h-10 w-full px-1 text-center text-sm';
+  const stock = `flex min-w-0 flex-col justify-center gap-0.5 p-1.5 ${box}`;
+  const line = 'flex items-center gap-1';
+  const icon = 'size-6 shrink-0 object-contain sm:size-8';
+  const input = 'h-control min-w-0 flex-1 px-1 text-center text-sm';
 
   return (
     <section aria-label="Stocks" className="grid grid-cols-3 gap-2">
       <div className={stock}>
-        <button
-          type="button"
-          aria-label="Open Trades"
-          title="Open Trades"
-          onClick={() => navigate({ view: 'production', tab: 'trades' })}
-          className="rounded-lg hover:bg-raised"
-        >
-          <img src={assets.iconUrl('comrade.png')} alt="" width={32} height={32} className={icon} />
-        </button>
-        <AmountInput
-          label={comrades}
-          kind="comrades"
-          powers={powers}
-          value={form.Counts['comrade']?.['comrade'] ?? 0}
-          onValue={(value) => updateForm((next) => applyCount(next, 'comrade', COMRADES_KEY, value, Date.now()))}
-          className={input}
-        />
-        <p aria-label="Comrades per second" className="max-w-full truncate text-xs text-muted tabular-nums">
+        <div className={line}>
+          <button
+            type="button"
+            tabIndex={-1}
+            aria-label="Open Trades"
+            title="Open Trades"
+            onClick={() => navigate({ view: 'production', tab: 'trades' })}
+            className="flex min-h-control shrink-0 items-center rounded-lg hover:bg-raised"
+          >
+            <img src={assets.iconUrl('comrade.png')} alt="" width={32} height={32} className={icon} />
+          </button>
+          <AmountInput
+            label={comrades}
+            kind="comrades"
+            powers={powers}
+            value={form.Counts['comrade']?.['comrade'] ?? 0}
+            onValue={(value) => updateForm((next) => applyCount(next, 'comrade', COMRADES_KEY, value, Date.now()))}
+            className={input}
+          />
+        </div>
+        <p aria-label="Comrades per second" className="max-w-full truncate text-center text-xs leading-4 text-muted tabular-nums">
           {shortBigNum(form.Trades.TotalComrades, powers)}/sec
         </p>
       </div>
       <div className={stock}>
-        <img src={scienceIcon} alt="" width={32} height={32} className={icon} />
-        <AmountInput
-          label={science}
-          powers={powers}
-          value={form.Counts[SCIENCE]?.[SCIENCE] ?? 0}
-          onValue={(value) =>
-            updateForm((next) => {
-              next.Counts[SCIENCE] = { ...next.Counts[SCIENCE], [SCIENCE]: value };
-            })
-          }
-          className={input}
-        />
+        <div className={line}>
+          <img src={scienceIcon} alt="" width={32} height={32} className={icon} />
+          <AmountInput
+            label={science}
+            powers={powers}
+            value={form.Counts[SCIENCE]?.[SCIENCE] ?? 0}
+            onValue={(value) =>
+              updateForm((next) => {
+                next.Counts[SCIENCE] = { ...next.Counts[SCIENCE], [SCIENCE]: value };
+              })
+            }
+            className={input}
+          />
+        </div>
       </div>
       <div className={stock}>
-        <img src={assets.active('shared/gold.png')} alt="" width={32} height={32} className={icon} />
-        <AmountInput
-          label="Gold"
-          powers={powers}
-          value={form.Counts['gold']?.['gold'] ?? 0}
-          onValue={(value) =>
-            updateForm((next) => {
-              next.Counts['gold'] = { ...next.Counts['gold'], gold: value };
-            })
-          }
-          className={input}
-        />
+        <div className={line}>
+          <img src={assets.active('shared/gold.png')} alt="" width={32} height={32} className={icon} />
+          <AmountInput
+            label="Gold"
+            powers={powers}
+            value={form.Counts['gold']?.['gold'] ?? 0}
+            onValue={(value) =>
+              updateForm((next) => {
+                next.Counts['gold'] = { ...next.Counts['gold'], gold: value };
+              })
+            }
+            className={input}
+          />
+        </div>
       </div>
     </section>
   );
@@ -179,7 +187,8 @@ function MissionCard({ mission }: { mission: BoardMission }) {
         <button
           type="button"
           onClick={() => clickMission(mission.Id)}
-          className="flex min-h-14 min-w-0 flex-1 items-center gap-2 rounded-lg px-2 py-2 text-left hover:bg-raised/60 active:bg-raised"
+          tabIndex={-1}
+          className="flex min-h-control min-w-0 flex-1 items-center gap-2 rounded-lg px-2 py-1 text-left hover:bg-raised/60 active:bg-raised"
         >
           {iconUrl && <img src={iconUrl} alt="" width={32} height={32} loading="lazy" className="size-8 shrink-0 object-contain" />}
           <span className="min-w-0 flex-1 text-sm leading-snug font-medium break-words">
@@ -191,11 +200,11 @@ function MissionCard({ mission }: { mission: BoardMission }) {
           mission={mission}
           name={description.text}
           reward={reward}
-          className="flex min-h-12 min-w-12 shrink-0 items-center justify-center rounded-lg hover:bg-raised"
+          className="flex min-h-control min-w-control shrink-0 items-center justify-center rounded-lg hover:bg-raised"
         />
       </div>
 
-      <div className="relative mx-2 mb-2 overflow-hidden rounded-lg bg-raised">
+      <div className="relative mx-1.5 mb-1.5 overflow-hidden rounded-lg bg-raised">
         <span aria-hidden className="absolute inset-y-0 left-0 bg-success/30" style={{ width: `${Math.min(progress / goal, 1) * 100}%` }} />
         <EditableAmount
           label={`progress of ${description.text}`}
@@ -218,7 +227,7 @@ function CurrentMissions() {
     return <p className={`p-3 text-sm text-muted ${box}`}>No current missions.</p>;
   }
   return (
-    <ul aria-label="Current missions" className="flex flex-wrap justify-center gap-2">
+    <ul aria-label="Current missions" className="flex flex-wrap justify-center gap-1.5">
       {missions.map((mission) => (
         <MissionCard key={mission.Id} mission={mission} />
       ))}
@@ -233,11 +242,11 @@ function Resources({ activeId }: { activeId: string }) {
   const active = getResourceByIndustry(ctx, activeId);
 
   return (
-    <section aria-labelledby="resources-heading" className="mt-6">
-      <h2 id="resources-heading" className="mb-2 text-sm font-semibold tracking-wide text-muted uppercase">
+    <section aria-labelledby="resources-heading" className="mt-3">
+      <h2 id="resources-heading" className="mb-1 text-sm font-semibold tracking-wide text-muted uppercase">
         Resources
       </h2>
-      <div className={`flex items-center gap-1 p-2 ${box}`}>
+      <div className={`flex items-center gap-1 p-1 ${box}`}>
         <ul aria-label="Industries" className="flex shrink-0 gap-1">
           {(ctx.balance.Industries ?? []).map((industry) => {
             const resource = getResourceByIndustry(ctx, industry.Id);
@@ -249,11 +258,12 @@ function Resources({ activeId }: { activeId: string }) {
               <li key={industry.Id}>
                 <button
                   type="button"
+                  tabIndex={-1}
                   aria-label={`Show ${name}`}
                   aria-current={industry.Id === activeId ? 'true' : undefined}
                   title={name}
                   onClick={() => setActiveIndustry(industry.Id)}
-                  className="flex size-9 items-center justify-center rounded-lg border border-transparent hover:bg-raised aria-[current=true]:border-line aria-[current=true]:bg-raised sm:size-control"
+                  className="flex h-control w-9 items-center justify-center rounded-lg border border-transparent hover:bg-raised aria-[current=true]:border-line aria-[current=true]:bg-raised sm:w-control"
                 >
                   <img src={assets.iconUrl(`${resource.Id}.png`)} alt="" width={28} height={28} className="size-7 object-contain" />
                 </button>
@@ -267,7 +277,7 @@ function Resources({ activeId }: { activeId: string }) {
             powers={title.powers}
             value={form.Counts[active.Id]?.[active.Id] ?? 0}
             onValue={(value) => updateForm((next) => applyCount(next, active.Id, RESOURCE_KEY, value, Date.now()))}
-            className="h-10 min-w-0 flex-1 px-1 text-left text-sm sm:px-2 sm:text-base"
+            className="h-control min-w-0 flex-1 px-1 text-left text-sm sm:px-2 sm:text-base"
           />
         )}
       </div>
@@ -283,19 +293,20 @@ function BoostRow() {
 
   return (
     <section aria-label="Boosts" className="flex items-stretch gap-2">
-      <p className="flex min-h-14 flex-1 items-center justify-center rounded-xl border border-dashed border-line px-3 text-center text-sm text-muted">
+      <p className="flex flex-1 items-center justify-center rounded-xl border border-dashed border-line px-3 text-center text-sm text-muted">
         RevRushes coming soon
       </p>
       {boost && (
         <button
           type="button"
+          tabIndex={-1}
           aria-pressed={on}
           aria-label={boost.name}
           onClick={() => setPropaganda(!on)}
-          className={`group flex w-20 shrink-0 flex-col overflow-hidden text-sm font-semibold aria-pressed:border-success sm:w-24 ${box}`}
+          className={`group flex w-12 shrink-0 flex-col overflow-hidden text-sm font-semibold aria-pressed:border-success ${box}`}
         >
           <img src={on ? boost.onIconUrl : boost.offIconUrl} alt="" className="aspect-square w-full rounded-t-xl object-cover" />
-          <span className="block w-full bg-raised py-1 text-center text-xs group-aria-pressed:bg-success-soft">
+          <span className="block w-full bg-raised py-0.5 text-center text-xs group-aria-pressed:bg-success-soft">
             {on ? `x${boost.power}` : 'Boost'}
           </span>
         </button>
@@ -333,7 +344,7 @@ function CycleBar({
   const crits = (tier?.critChance ?? 0) > 0;
 
   return (
-    <div className="relative flex h-9 items-center justify-between overflow-hidden rounded-lg bg-raised px-3 text-sm font-semibold">
+    <div className="relative flex h-8 items-center justify-between overflow-hidden rounded-lg bg-raised px-2 text-sm pointer-fine:h-6 font-semibold">
       {running && (
         <span
           aria-hidden
@@ -381,6 +392,7 @@ function CardPopover({ researcherId, name }: { researcherId: string; name: strin
       <Popover.Trigger asChild>
         <button
           type="button"
+          tabIndex={-1}
           aria-label={`${name}, level ${level}. Show card`}
           className={`flex min-h-control min-w-14 shrink-0 items-center justify-center gap-1 text-sm font-semibold hover:bg-raised aria-expanded:bg-raised ${box}`}
         >
@@ -393,9 +405,9 @@ function CardPopover({ researcherId, name }: { researcherId: string; name: strin
           sideOffset={6}
           collisionPadding={8}
           aria-label={`${name} card`}
-          className="z-50 flex w-56 max-w-[calc(100vw-1rem)] flex-col items-center gap-2 rounded-xl border border-line bg-surface p-3 text-center text-ink shadow-lg"
+          className="z-50 flex w-52 max-w-[calc(100vw-1rem)] flex-col items-center gap-1.5 rounded-xl border border-line bg-surface p-2 text-center text-ink shadow-lg"
         >
-          <img src={assets.iconUrl(`${researcherId}.png`)} alt="" width={96} height={96} className="size-24 rounded-lg object-contain" />
+          <img src={assets.iconUrl(`${researcherId}.png`)} alt="" width={80} height={80} className="size-20 rounded-lg object-contain" />
           <p className="text-sm font-semibold">
             {name}
             <br />
@@ -405,7 +417,7 @@ function CardPopover({ researcherId, name }: { researcherId: string; name: strin
             {effectIcon && <img src={assets.active(`shared/${effectIcon}`)} alt="" width={20} height={20} className="size-5 object-contain" />}
             {value || 'No effect yet'}
           </p>
-          <div className="flex gap-2">
+          <div className="flex gap-1.5">
             <button type="button" aria-label="Lower level" disabled={level <= 0} onClick={() => setLevel(researcher, Math.max(0, level - 1))} className={step}>
               <Minus aria-hidden size={18} />
             </button>
@@ -453,30 +465,31 @@ function GeneratorRow({
   };
 
   return (
-    <li className={`p-2 ${box}`}>
-      <div className="flex items-start gap-3">
-        <div className="flex w-20 shrink-0 flex-col items-center gap-1">
-          <button type="button" aria-label={`Run ${name} once`} onClick={runOnce} className="rounded-full">
-            <img src={details.iconUrl} alt="" width={56} height={56} className="size-14 rounded-full bg-raised object-contain p-1" />
+    <li className={`mb-1.5 break-inside-avoid p-1.5 ${box}`}>
+      <div className="flex items-center gap-2">
+        <div className="flex w-20 shrink-0 flex-col items-center gap-0.5 sm:w-32 sm:flex-row sm:gap-1.5">
+          <button type="button" tabIndex={-1} aria-label={`Run ${name} once`} onClick={runOnce} className="flex size-11 shrink-0 items-center justify-center rounded-full pointer-fine:size-10">
+            <img src={details.iconUrl} alt="" width={40} height={40} className="size-10 rounded-full bg-raised object-contain p-0.5" />
           </button>
           <AmountInput
             label={`number of ${name}`}
             powers={title.powers}
             value={count}
             onValue={(value) => updateForm((next) => applyCount(next, resourceId, generatorKey(generator.Id), value, Date.now()))}
-            className="h-9 w-full px-1 text-center text-sm"
+            className="h-control w-full px-1 text-center text-sm"
           />
         </div>
 
-        <div className="min-w-0 flex-1 space-y-2">
+        <div className="min-w-0 flex-1 space-y-1">
           <CycleBar tier={tier} details={details} count={count} manual={manual} />
-          <div className="flex items-stretch gap-2">
-            <p className="flex min-h-control min-w-0 flex-1 items-center justify-center rounded-lg border border-success/30 bg-success-soft px-2 text-center text-sm font-semibold break-words">
+          <div className="flex items-stretch gap-1.5">
+            <p className="flex min-h-control min-w-0 flex-1 items-center justify-center rounded-lg border border-success/30 bg-success-soft px-2 text-center text-sm leading-tight font-semibold break-words">
               {name} - Tier {tierNumber}
             </p>
             {automator && <CardPopover researcherId={automator.id} name={automator.name} />}
             <button
               type="button"
+              tabIndex={-1}
               aria-label={`${name} details`}
               aria-expanded={open}
               onClick={() => setOpen((value) => !value)}
@@ -488,7 +501,7 @@ function GeneratorRow({
         </div>
       </div>
       {open && (
-        <div className="mt-2 border-t border-line pt-2">
+        <div className="mt-1.5 border-t border-line pt-1.5">
           <GeneratorInfo generator={generator} />
         </div>
       )}
@@ -508,7 +521,7 @@ function Generators({ industryId }: { industryId: string }) {
   const anyCrits = tiers.some((tier) => tier.critChance > 0);
 
   return (
-    <div className="mt-6 space-y-2">
+    <div className="mt-3 space-y-1.5">
       {(researchersActive || anyCrits) && (
         <div className="space-y-1 text-xs text-muted">
           {researchersActive && <p>Generator progress bars do not update values; only manual updating is supported.</p>}
@@ -520,7 +533,7 @@ function Generators({ industryId }: { industryId: string }) {
           )}
         </div>
       )}
-      <ul aria-label="Generators" className="space-y-2">
+      <ul aria-label="Generators" className="lg:columns-2 lg:gap-2">
         {industryGenerators(ctx, industryId).map((generator, index) => (
           <GeneratorRow
             key={generator.Id}
@@ -542,7 +555,7 @@ export function GameViewPage() {
   const activeId = industries.find((industry) => industry.Id === session.activeIndustry)?.Id ?? industries[0]?.Id;
 
   return (
-    <div className="mx-auto max-w-3xl space-y-3">
+    <div className="mx-auto max-w-5xl space-y-2">
       <GameHeader />
       <Banners session={session} />
       <Stocks />
