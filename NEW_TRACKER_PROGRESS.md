@@ -1,16 +1,20 @@
 # New Tracker: Progress and Handoff
 
-**Status:** The 4 November brief (Leaderboard, Schedule, polish) is built and waiting for the owner's review. Phase 4 has not started.
-**Branch:** `new-tracker`. It has not been pushed.
-**Last updated:** 4 November 2026.
+**Status:** A beta is live from this branch. Beta feedback rounds 1–3 and the Leaderboard rework are built and committed locally. Phase 4 has not started.
+**Branch:** `new-tracker`. `origin/new-tracker` is at `632458a`, which is what the beta runs. Every commit after it, from the density pass on, is local only. The owner said "not yet" to pushing each time; ask before pushing.
+**Beta:** https://azimuth.idlegametools.com/adcom-mission-tracker/, run from a separate VPS folder (see Beta deployment). The live tracker on `master` is untouched.
+**Last updated:** 8 November 2026.
 
-Start here when picking the work up. Nothing on this branch is deployed, because `deploy.yml` only deploys `master`.
+Start here when picking the work up. The plan history is in `~/.claude/plans/rosy-plotting-flute.md`; the newest section is at the top. `deploy.yml` only deploys `master`.
 
 ## Next step
 
-1. The owner adds `API_URL_LEADERBOARD` and `API_GCLOUD_TOKEN` to the tracker's `.env` (same values as adcom-leaderboard). Then check one real PlayFab ID against the old leaderboard page, and confirm the per-player call returns the whole Shortboard (see Leaderboard notes).
-2. The owner reviews the 4 November work and the density pass on the beta.
-3. Wait for the owner's go-ahead before starting Phase 4.
+1. The owner checks the reworked Leaderboard tab locally with their real PlayFab ID against the old leaderboard page: place, marker bracket, Shortboard avatars, rank distribution totals. Locally it needs both `npm run api:local` and `npm run dev:leaderboard`.
+2. The owner decides when to push, then redeploys the beta.
+3. More owner feedback is expected. Plan each batch before coding.
+4. Phase 4 waits for the owner's go-ahead.
+
+**Waiting on the owner:** manual calculation test cases (see Calculation tests below), the in-game calendar icon, and restoring the removed help text by hand.
 
 ## Ground rules from the owner
 
@@ -163,6 +167,14 @@ The work:
 - Game View: larger stock titles, count box under each generator picture (fits "999.99 AAAAA"), ms/μs cycle times, and a manual cycle whose timer counts down and resets.
 - The calculation time search now reaches 1e300 seconds, so "cannot finish" only means nothing produces.
 
+**Leaderboard rework (7 November)**
+- The server adds `avatarId` and `lteRank` for the player and each Shortboard entry, from upstream `resolvedPlayers` `customData`.
+- A new `GET /api/leaderboard/:guid/stats?player=<id>` returns the rank distribution, average rank and trophy sum, built from the cached full board with no extra upstream calls. Its `players` count covers only players reporting an event rank.
+- Page order: PlayFab ID box; a card grid (avatar and name spanning three rows; Global Position and Shortboard; Trophies and Player Rank; Joined and Last updated across both); Global and Shortboard tables side by side on wide screens; then Rank Distribution with "Cumulative trophies" and a Chart.js 4.6.1 bar chart.
+- The marker sits in its own column beside the global table, positioned from measured row positions (`markerPlacement` in `leaderboardView.ts`). It doesn't use fixed pixel constants; the old site broke when commit `b8d7bed` restyled its rows. The global table never scrolls inside itself.
+- Shortboard rows highlight on hover and show avatars, via the `common` balance's `Avatars` `VisualKey` mapped to `shared/avatars/<key>.png`.
+- Not yet checked against a real PlayFab ID.
+
 **Auto-buy**
 - Fixed: auto-buy rounded up to the end of a 1-second or 1% step, so it read slower than plain online. It also never bought the mission's own generators, and spent them on deeper tiers.
 - Kept on purpose (owner, 4 November): for some Own missions, buying the deepest generators spends the shared resource and comrades the mission's generators cost, so auto-buy is genuinely slower (5 of 121 sampled missions, 1% to 2.6x). Auto-buy reports its own strategy's time, not the faster of the two.
@@ -180,6 +192,17 @@ The work:
 - **Save compatibility:** old saves are copied under the new prefix and the originals are kept, for rollback. The `IconConfig` and `ListStyleActiveConfig` settings are not carried over.
 - **Still open on `master`, outside this work:** the `/api/import` security issue and the unprotected admin page. The leaderboard crash and unauthenticated Discord account writes are also open, in its own repo.
 - **First load is still slow.** The API payload is unchanged, because this work is front-end only.
+- **Dates** follow each player's browser language and time zone. The owner declined a date-format setting.
+- **Saved ETAs** stop beyond about 273,900 years from now, the latest date a browser can represent. The calculator still shows longer durations.
+- **Comparison with the 2021 calculator:** its offline Newton method matches the new engine (Stone, all cards maxed, 1 T mammoths: 44 SS = 10d 17h 50m, 74 CCC = 1.06 M years) but fails to converge at 77.7 MMM. The new engine gives 75.1 T years online and 33.9 T years offline for that case.
+- **Local leaderboard:** the Docker app on 3001 is an old build without leaderboard routes. Run `npm run api:local` (port 3011) with `npm run dev:leaderboard`. The `.claude/launch.json` entries `new-tracker` and `tracker-api` do the same.
+
+## Calculation tests
+
+The owner will supply real in-game cases; each becomes a test with its own expected values.
+- **Case types:** a short online run with 1–2 tiers and nothing bought; a long offline run (an hour or more); a time warp of known length; and a deep chain of 4+ tiers.
+- **Each case needs:** game, event and industry; every generator count; researcher levels (a screenshot is fine); propaganda on or off; comrades and comrades per second; elapsed time; and the amounts before and after.
+- Nothing should be bought during a test, and each screenshot should show the time. Crits mean a result should land inside the calculator's range, not match exactly.
 
 ## Open questions
 
