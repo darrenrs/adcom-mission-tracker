@@ -49,7 +49,10 @@ export interface PlayerResult {
       isPlayer: boolean;
     }[];
   } | null;
-  cachedAt: string;
+  /** When the tracker server asked upstream for this result. Player results are never cached. */
+  fetchedAt: string;
+  /** When the full board behind the global positions was fetched (cached up to a minute), or null without one. */
+  boardFetchedAt: string | null;
 }
 
 /** From `GET /api/leaderboard/:guid/stats`. */
@@ -59,5 +62,6 @@ export interface EventStats {
   rankDistribution: number[];
   rankAverage: number | null;
   trophySum: number;
-  cachedAt: string;
+  /** When the full board these figures come from was fetched. */
+  boardFetchedAt: string;
 }

@@ -58,7 +58,8 @@ function result(globalPosition: number, count = 100_000): PlayerResult {
       ]
     },
     division: null,
-    cachedAt: ''
+    fetchedAt: '',
+    boardFetchedAt: null
   };
 }
 

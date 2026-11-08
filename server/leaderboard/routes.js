@@ -4,6 +4,10 @@
 //   GET /api/leaderboard/:guid/player/:playerId
 //   GET /api/leaderboard/:guid/stats?player=<playfabId>
 //
+// Caching: the event list for 10 minutes and each event's full board for 1 minute.
+// Player results are never cached. Player results carry fetchedAt and boardFetchedAt;
+// stats carry boardFetchedAt.
+//
 // Env: API_URL_LEADERBOARD, API_GCLOUD_TOKEN (both required),
 // API_APPLICATION_ID (default "adcom"), LEADERBOARD_PLAYER_TOP_COUNT
 // (default 25), LEADERBOARD_BOARD_TIMEOUT_MS (default 30000), plus the
@@ -14,8 +18,9 @@ import { LeaderboardClient, readNumber, UpstreamError } from './client.js';
 import { computeStats, parseBoard, parseEvents, PROJECT, shapePlayerResult } from './parse.js';
 
 const EVENTS_TTL_MS = 10 * 60 * 1000;
-const BOARD_TTL_MS = 5 * 60 * 1000;
-const PLAYER_TTL_MS = 60 * 1000;
+// The full board is the one expensive call, so it is shared for a minute. A player's own
+// result is never cached: every lookup asks upstream again.
+const BOARD_TTL_MS = 60 * 1000;
 const FULL_TOP_COUNT = 9_999_999;
 // Entries requested around the player (matches the old site's per-player calls).
 const PLAYER_OFFSET = 25;
@@ -72,7 +77,6 @@ export function registerLeaderboardRoutes(app, options = {}) {
 
   const eventsCache = new TtlCache({ ttlMs: EVENTS_TTL_MS, maxEntries: 1, now });
   const boardCache = new TtlCache({ ttlMs: BOARD_TTL_MS, maxEntries: 4, now });
-  const playerCache = new TtlCache({ ttlMs: PLAYER_TTL_MS, maxEntries: 500, now });
   const eventsInflight = new InflightMap();
   const boardInflight = new InflightMap();
   // Last player id that fetched each event's board, so /stats can refetch an
@@ -106,10 +110,11 @@ export function registerLeaderboardRoutes(app, options = {}) {
         `/leaderboards/${guid}/players/${anchorPlayerId}/results?offset=0&topCount=${FULL_TOP_COUNT}&resolvePlayers=true`,
         { operation: 'full-board', timeoutMs: Math.max(boardTimeoutMs, client.timeoutMs) }
       );
-      const board = parseBoard(body?.resultMap);
-      if (!board) {
+      const parsed = parseBoard(body?.resultMap);
+      if (!parsed) {
         throw new UpstreamError('Full board response had no global results', { code: 'NO_BOARD' });
       }
+      const board = { ...parsed, fetchedAt: new Date(now()).toISOString() };
       boardCache.set(guid, board);
       return board;
     });
@@ -153,7 +158,7 @@ export function registerLeaderboardRoutes(app, options = {}) {
       registration,
       resultMap,
       board,
-      cachedAt: new Date(now()).toISOString()
+      fetchedAt: new Date(now()).toISOString()
     });
   };
 
@@ -173,7 +178,7 @@ export function registerLeaderboardRoutes(app, options = {}) {
       throw new RouteError(400, 'bad-request');
     }
     const board = await getBoard(event.guid, anchor);
-    return { ...computeStats(board), cachedAt: new Date(now()).toISOString() };
+    return { ...computeStats(board), boardFetchedAt: board.fetchedAt };
   };
 
   const unavailable = (res) =>
@@ -226,15 +231,8 @@ export function registerLeaderboardRoutes(app, options = {}) {
     const key = `${normalizedGuid}:${normalizedPlayerId}`;
 
     try {
-      let result = playerCache.get(key);
-      if (!result) {
-        result = await playerInflight.run(key, async () => {
-          const built = await buildPlayerResult(normalizedGuid, normalizedPlayerId);
-          playerCache.set(key, built);
-          return built;
-        });
-      }
-      res.json(result);
+      // Identical requests that arrive together share one upstream lookup; nothing is kept afterwards.
+      res.json(await playerInflight.run(key, () => buildPlayerResult(normalizedGuid, normalizedPlayerId)));
     } catch (error) {
       fail(res, error, 'player');
     }

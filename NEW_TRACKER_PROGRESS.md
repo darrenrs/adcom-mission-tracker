@@ -110,7 +110,7 @@ The work:
 - Only plain Up and Down remain as keyboard input.
 
 **Leaderboard (AdCom only)**
-- The tracker's Express app proxies Hyper Hippo's leaderboard API (`server/leaderboard/`), with the archiver's rate limits. Events are cached 10 minutes, the full board 5 minutes per event, player results 60 seconds.
+- The tracker's Express app proxies Hyper Hippo's leaderboard API (`server/leaderboard/`), with the archiver's rate limits. Events are cached 10 minutes and the full board 1 minute per event. Player results are never cached (owner, 8 November).
 - `GET /api/leaderboard/events` always answers 200; without a token it returns no events, so pages load cleanly. `npm run dev` uses the Docker app's real routes. The browser tests set `LEADERBOARD_STUB=1`, so Vite answers the event list with "none" and live events never reach them.
 - The tab appears only for a started AdCom event the API knows. Rewards come from the schedule's `LteLeaderboards` and `LteShortLeaderboards`; events missing from the schedule show no rewards.
 - The PlayFab ID is saved as `PlayerId` and copied once from the old site's `playerId`.
@@ -164,6 +164,11 @@ The work:
 - The marker sits in its own column beside the global table, positioned from measured row positions (`markerPlacement` in `leaderboardView.ts`). It doesn't use fixed pixel constants; the old site broke when commit `b8d7bed` restyled its rows. The global table never scrolls inside itself.
 - Shortboard rows highlight on hover and show avatars, via the `common` balance's `Avatars` `VisualKey` mapped to `shared/avatars/<key>.png`.
 - Not yet checked against a real PlayFab ID.
+
+**Leaderboard freshness (8 November)**
+- Show results always asks again, even for the saved ID. The previous results stay on screen until the new ones arrive, and the button is disabled meanwhile.
+- The server sends `fetchedAt` and `boardFetchedAt` (stats send `boardFetchedAt`). The details card shows "Fetched at … · global positions as of …", with seconds.
+- "Last updated" is still the time the game last reported the player's score, which the tracker cannot speed up.
 
 **Auto-buy**
 - Fixed: auto-buy rounded up to the end of a 1-second or 1% step, so it read slower than plain online. It also never bought the mission's own generators, and spent them on deeper tiers.

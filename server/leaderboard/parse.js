@@ -230,7 +230,8 @@ function divisionEntries(resultMap, board, playerId, ordinals, profiles) {
 }
 
 // Build the PlayerResult. `board` is parseBoard() output (active events) or null.
-export function shapePlayerResult({ event, playerId, registration, resultMap, board, cachedAt }) {
+export function shapePlayerResult({ event, playerId, registration, resultMap, board, fetchedAt }) {
+  const boardFetchedAt = board?.fetchedAt ?? null;
   const ordinals = ordinalMap(resultMap);
   const profiles = profileMap(resultMap);
   const rootResults = resultMap?.results?.rootResults;
@@ -270,7 +271,7 @@ export function shapePlayerResult({ event, playerId, registration, resultMap, bo
     if (player.trophies === null) {
       player.trophies = num(archived?.score);
     }
-    return { event: eventOut, player, global: null, division: null, cachedAt };
+    return { event: eventOut, player, global: null, division: null, fetchedAt, boardFetchedAt: null };
   }
 
   // Global position: the full board first, then the entries around the player.
@@ -295,6 +296,7 @@ export function shapePlayerResult({ event, playerId, registration, resultMap, bo
     player,
     global: board ? { count: board.count, brackets: computeBrackets(board) } : null,
     division: division.entries.length > 0 ? division : null,
-    cachedAt
+    fetchedAt,
+    boardFetchedAt
   };
 }

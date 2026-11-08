@@ -182,17 +182,18 @@ describe('computeStats', () => {
 
 describe('shapePlayerResult', () => {
   const events = parseEvents(fixture('events.json'), { now: NOW });
-  const cachedAt = '2026-08-11T12:00:00.000Z';
+  const fetchedAt = '2026-08-11T12:00:00.000Z';
+  const boardFetchedAt = '2026-08-11T11:59:30.000Z';
 
   it('shapes an active event', () => {
-    const board = parseBoard(fixture('board-active.json').resultMap);
+    const board = { ...parseBoard(fixture('board-active.json').resultMap), fetchedAt: boardFetchedAt };
     const result = shapePlayerResult({
       event: events[1],
       playerId: PLAYER,
       registration: fixture('registration-active.json').data,
       resultMap: fixture('player-results-active.json').resultMap,
       board,
-      cachedAt
+      fetchedAt
     });
     expect(result.event).toEqual({
       guid: ACTIVE, theme: 'atlantis', start: '2026-08-10T16:00:00.000Z', end: '2026-08-13T15:59:00.000Z', status: 'active'
@@ -233,7 +234,8 @@ describe('shapePlayerResult', () => {
         { ordinal: 104, avatarId: 'x', lteRank: 3, position: 4, globalPosition: 150, trophies: 550, isPlayer: false }
       ]
     });
-    expect(result.cachedAt).toBe(cachedAt);
+    expect(result.fetchedAt).toBe(fetchedAt);
+    expect(result.boardFetchedAt).toBe(boardFetchedAt);
   });
 
   it('reads avatarId and lteRank from resolved players, null when absent', () => {
@@ -248,7 +250,7 @@ describe('shapePlayerResult', () => {
       registration: fixture('registration-active.json').data,
       resultMap,
       board: null,
-      cachedAt
+      fetchedAt
     });
     expect(result.player).toMatchObject({ avatarId: 'x', lteRank: 3 });
     const byOrdinal = (n: number) => result.division.entries.find((e) => e.ordinal === n);
@@ -264,7 +266,7 @@ describe('shapePlayerResult', () => {
       registration: fixture('registration-active.json').data,
       resultMap: fixture('player-results-active.json').resultMap,
       board: null,
-      cachedAt
+      fetchedAt
     });
     expect(result.player.globalPosition).toBe(41);
     expect(result.player.globalCount).toBe(200);
@@ -279,10 +281,11 @@ describe('shapePlayerResult', () => {
       registration: fixture('registration-archived.json').data,
       resultMap: fixture('player-results-archived.json').resultMap,
       board: null,
-      cachedAt
+      fetchedAt
     });
     expect(result.global).toBeNull();
     expect(result.division).toBeNull();
+    expect(result.boardFetchedAt).toBeNull();
     expect(result.event.status).toBe('archived');
     expect(result.player).toEqual({
       playerId: PLAYER,
@@ -472,7 +475,8 @@ describe('routes', () => {
     const body = await res.json();
     expect(body.player).toMatchObject({ playerId: PLAYER, globalPosition: 41, globalCount: 200, divisionPosition: 2 });
     expect(body.global.brackets).toHaveLength(5);
-    expect(body.cachedAt).toBe('2026-08-11T12:00:00.000Z');
+    expect(body.fetchedAt).toBe('2026-08-11T12:00:00.000Z');
+    expect(body.boardFetchedAt).toBe('2026-08-11T12:00:00.000Z');
     expect(calls.some((c) => c.includes(`/players/${PLAYER}/results?offset=0&topCount=9999999&resolvePlayers=true`))).toBe(true);
     expect(calls.some((c) => c.includes('offset=25&topCount=25&resolvePlayers=true'))).toBe(true);
     expect(JSON.stringify(body)).not.toMatch(/test-token-value|upstream\.invalid/);
@@ -526,22 +530,29 @@ describe('routes', () => {
     expect(await res.json()).toEqual({ error: 'upstream-failed' });
   });
 
-  it('caches player responses for 60 seconds', async () => {
+  it('never caches player responses, and caches the full board for 1 minute', async () => {
     let clock = NOW;
-    const { fetchImpl } = makeUpstream();
+    const { fetchImpl, calls } = makeUpstream();
     const get = await start(CONFIGURED, fetchImpl, () => clock);
     const url = `/api/leaderboard/${ACTIVE}/player/${PLAYER}`;
+    const boards = () => calls.filter((c) => c.includes('topCount=9999999')).length;
     await get(url);
     const callsAfterFirst = fetchImpl.mock.calls.length;
+    expect(boards()).toBe(1);
+
     clock += 59_000;
     const second = await get(url);
     expect(second.status).toBe(200);
-    expect(fetchImpl.mock.calls.length).toBe(callsAfterFirst);
+    // Player data re-fetched at once (registration + results); the board is still cached.
+    expect(fetchImpl.mock.calls.length).toBe(callsAfterFirst + 2);
+    const body = await second.json();
+    expect(body.fetchedAt).toBe(new Date(NOW + 59_000).toISOString());
+    expect(body.boardFetchedAt).toBe(new Date(NOW).toISOString());
 
     clock += 2_000;
-    await get(url);
-    // Player data re-fetched (registration + results); the board is still cached (5 min).
-    expect(fetchImpl.mock.calls.length).toBe(callsAfterFirst + 2);
+    const third = await (await get(url)).json();
+    expect(boards()).toBe(2);
+    expect(third.boardFetchedAt).toBe(new Date(NOW + 61_000).toISOString());
   });
 
   it('shares one in-flight full-board fetch across concurrent players', async () => {
@@ -573,7 +584,7 @@ describe('routes', () => {
         rankDistribution: [2, 2, 2, 0, 2],
         rankAverage: 2.75,
         trophySum: 140300,
-        cachedAt: '2026-08-11T12:00:00.000Z'
+        boardFetchedAt: '2026-08-11T12:00:00.000Z'
       });
       expect(calls.filter((c) => c.includes('topCount=9999999'))).toHaveLength(1);
       expect(calls.some((c) => c.includes(`/players/${PLAYER}/results?offset=0&topCount=9999999`))).toBe(true);
@@ -605,7 +616,7 @@ describe('routes', () => {
       const { fetchImpl, calls } = makeUpstream();
       const get = await start(CONFIGURED, fetchImpl, () => clock);
       await get(`${url}?player=${PLAYER}`);
-      clock += 5 * 60 * 1000 + 1;
+      clock += 60 * 1000 + 1;
       expect((await get(url)).status).toBe(200);
       const boards = calls.filter((c) => c.includes('topCount=9999999'));
       expect(boards).toHaveLength(2);

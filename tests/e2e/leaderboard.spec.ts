@@ -6,7 +6,7 @@ import type { LteScheduleData } from '../../client/src/domain/types';
 
 const GUID = '44444444-4444-4444-4444-444444444444';
 const AVATAR = 'AV0001';
-const STATS = { players: 100_000, rankDistribution: [50_000, 30_000, 15_000, 4000, 900, 100], rankAverage: 2.1, trophySum: 2_500_000_000, cachedAt: '2026-11-04T10:00:00Z' };
+const STATS = { players: 100_000, rankDistribution: [50_000, 30_000, 15_000, 4000, 900, 100], rankAverage: 2.1, trophySum: 2_500_000_000, boardFetchedAt: '2026-11-04T10:00:00Z' };
 
 async function setUp(page: Page, player: (id: string) => { status: number; json?: object }) {
   const response = await page.request.get('/api/data/6bf5');
@@ -77,7 +77,8 @@ function result(theme: string, globalPosition = 2000, globalCount = 100_000) {
         { ordinal: 2, avatarId: null, lteRank: null, position: 2, globalPosition: 9000, trophies: 1000, isPlayer: false }
       ]
     },
-    cachedAt: '2026-11-04T10:00:00Z'
+    fetchedAt: '2026-11-04T10:00:30Z',
+    boardFetchedAt: '2026-11-04T10:00:00Z'
   };
 }
 
@@ -113,6 +114,28 @@ test('looks up a PlayFab ID, remembers it, and shows the results', async ({ page
   await page.reload();
   await expect(page.getByLabel('PlayFab ID')).toHaveValue('ABC123');
   await expect(page.getByText('2,001 / 100,000')).toBeVisible();
+});
+
+test('Show results asks again for the same ID and shows when the results were fetched', async ({ page }) => {
+  let lookups = 0;
+  const { live } = await setUp(page, () => {
+    lookups += 1;
+    const json = result(live.ThemeId);
+    json.fetchedAt = new Date(Date.UTC(2026, 10, 4, 10, 0, 30 + lookups)).toISOString();
+    return { status: 200, json };
+  });
+  await page.addInitScript(() => localStorage.setItem('adcom-mission-tracker:PlayerId', 'ABC123'));
+  await page.goto('?title=adcom&mode=lte&view=leaderboard');
+
+  const time = (seconds: number) => new Intl.DateTimeFormat(undefined, { timeStyle: 'medium' }).format(new Date(Date.UTC(2026, 10, 4, 10, 0, seconds)));
+  await expect(page.getByText(`Fetched at ${time(31)} · global positions as of ${time(0)}`)).toBeVisible();
+  expect(lookups).toBe(1);
+
+  await page.getByRole('button', { name: 'Show results' }).click();
+  await expect(page.getByText(`Fetched at ${time(32)}`, { exact: false })).toBeVisible();
+  expect(lookups).toBe(2);
+  // The results stay on screen while they are fetched again.
+  await expect(page.getByText('45,000', { exact: true }).first()).toBeVisible();
 });
 
 test('copies the old leaderboard site\'s saved ID', async ({ page }) => {

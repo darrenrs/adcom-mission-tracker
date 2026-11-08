@@ -50,37 +50,56 @@ function Avatar({ url, className }: { url: string | null; className: string }) {
   return url ? <img src={url} alt="" loading="lazy" className={`${className} shrink-0 object-contain`} /> : <span className={`${className} block shrink-0`} />;
 }
 
-function usePlayerResult(guid: string, playerId: string): Lookup {
+/**
+ * Looks up a player's result. Every change of `request` asks again, even for the same player.
+ * While the same player is asked again, the previous result stays on screen and `refreshing` is true.
+ */
+function usePlayerResult(guid: string, playerId: string, request: number): { lookup: Lookup; refreshing: boolean } {
   const [lookup, setLookup] = useState<Lookup>({ state: 'idle' });
+  const [refreshing, setRefreshing] = useState(false);
+  const shownKey = useRef('');
 
   useEffect(() => {
     if (!playerId) {
+      shownKey.current = '';
       setLookup({ state: 'idle' });
+      setRefreshing(false);
       return;
     }
+    const key = `${guid}:${playerId}`;
     const controller = new AbortController();
-    setLookup({ state: 'loading' });
-    fetch(`api/leaderboard/${encodeURIComponent(guid)}/player/${encodeURIComponent(playerId)}`, { signal: controller.signal })
+    if (shownKey.current === key) {
+      setRefreshing(true);
+    } else {
+      setLookup({ state: 'loading' });
+    }
+    const settle = (next: Lookup) => {
+      shownKey.current = next.state === 'found' ? key : '';
+      setLookup(next);
+      setRefreshing(false);
+    };
+    fetch(`api/leaderboard/${encodeURIComponent(guid)}/player/${encodeURIComponent(playerId)}`, { signal: controller.signal, cache: 'no-store' })
       .then(async (response) => {
         if (response.ok) {
-          setLookup({ state: 'found', result: (await response.json()) as PlayerResult });
+          settle({ state: 'found', result: (await response.json()) as PlayerResult });
         } else {
-          setLookup({ state: response.status === 404 ? 'missing' : response.status === 503 ? 'unavailable' : 'failed' });
+          settle({ state: response.status === 404 ? 'missing' : response.status === 503 ? 'unavailable' : 'failed' });
         }
       })
       .catch((error: unknown) => {
         if (!controller.signal.aborted) {
           console.warn('Leaderboard lookup failed', error);
-          setLookup({ state: 'failed' });
+          settle({ state: 'failed' });
         }
       });
     return () => controller.abort();
-  }, [guid, playerId]);
+  }, [guid, playerId, request]);
 
-  return lookup;
+  return { lookup, refreshing };
 }
 
-function PlayerIdForm() {
+/** The PlayFab ID box. Show results saves the ID and always asks for fresh results. */
+function PlayerIdForm({ busy, onShow }: { busy: boolean; onShow: () => void }) {
   const saved = useTracker((state) => state.settings.playerId);
   const setPlayerId = useTracker((state) => state.setPlayerId);
   const [text, setText] = useState(saved);
@@ -89,8 +108,9 @@ function PlayerIdForm() {
 
   const submit = (event: FormEvent) => {
     event.preventDefault();
-    if (valid) {
+    if (valid && !busy) {
       setPlayerId(text);
+      onShow();
     }
   };
 
@@ -117,7 +137,7 @@ function PlayerIdForm() {
           Found in the game&apos;s settings. It is saved in this browser and used for every event.
         </p>
       </div>
-      <button type="submit" disabled={!valid} className="mb-5 h-control rounded-lg bg-accent px-4 text-sm font-medium text-white disabled:opacity-50 dark:text-black">
+      <button type="submit" disabled={!valid || busy} className="mb-5 h-control rounded-lg bg-accent px-4 text-sm font-medium text-white disabled:opacity-50 dark:text-black">
         Show results
       </button>
     </form>
@@ -344,6 +364,8 @@ function ShortboardTable({ result, shortLeaderboardId }: { result: PlayerResult;
 
 const DATE = new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' });
 const when = (iso: string | null) => (iso ? DATE.format(new Date(iso)) : '—');
+const TIME = new Intl.DateTimeFormat(undefined, { timeStyle: 'medium' });
+const at = (iso: string) => TIME.format(new Date(iso));
 
 function Results({
   result,
@@ -405,13 +427,17 @@ function Results({
         <div className={`p-3 sm:col-span-2 ${box}`}>
           <p className="text-sm">Joined: {when(player.joined)}</p>
           <p className="text-sm">Last updated: {when(player.updated)}</p>
+          <p className="mt-1 text-xs text-muted">
+            Fetched at {at(result.fetchedAt)}
+            {result.boardFetchedAt && <> · global positions as of {at(result.boardFetchedAt)}</>}
+          </p>
         </div>
       </div>
       <div className="grid items-start gap-4 lg:grid-cols-2">
         {rows.length > 0 && <GlobalTable result={result} rows={rows} />}
         <ShortboardTable result={result} shortLeaderboardId={shortLeaderboardId} />
       </div>
-      <RankDistribution guid={guid} playerId={player.playerId} />
+      <RankDistribution guid={guid} playerId={player.playerId} refreshKey={result.fetchedAt} />
     </div>
   );
 }
@@ -420,7 +446,8 @@ function Results({
 export function LeaderboardPage() {
   const entry = useLeaderboardEntry();
   const playerId = useTracker((state) => state.settings.playerId);
-  const lookup = usePlayerResult(entry?.api?.guid ?? '', entry ? playerId : '');
+  const [request, setRequest] = useState(0);
+  const { lookup, refreshing } = usePlayerResult(entry?.api?.guid ?? '', entry ? playerId : '', request);
 
   if (!entry?.api) {
     return <p className={`p-4 text-sm text-muted ${box}`}>There is no leaderboard for this event yet. Leaderboards open once an event has started.</p>;
@@ -429,8 +456,8 @@ export function LeaderboardPage() {
   return (
     <div className="mx-auto max-w-7xl space-y-4">
       <h1 className="text-lg font-semibold">Leaderboard</h1>
-      <PlayerIdForm />
-      {lookup.state === 'loading' && <p role="status" className="text-sm text-muted">Loading results…</p>}
+      <PlayerIdForm busy={lookup.state === 'loading' || refreshing} onShow={() => setRequest((n) => n + 1)} />
+      {(lookup.state === 'loading' || refreshing) && <p role="status" className="text-sm text-muted">Loading results…</p>}
       {lookup.state === 'missing' && <p role="status" className="text-sm">No results for this PlayFab ID in this event. Check the ID, or join the event in the game first.</p>}
       {lookup.state === 'unavailable' && <p role="status" className="text-sm">The leaderboard is not available right now.</p>}
       {lookup.state === 'failed' && <p role="alert" className="text-sm text-danger">The results could not be loaded. Try again in a moment.</p>}

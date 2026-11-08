@@ -6,23 +6,26 @@ import { useSession } from '@/state/store';
 
 Chart.register(BarController, BarElement, CategoryScale, LinearScale, Tooltip);
 
-function useStats(guid: string, playerId: string): EventStats | null {
-  const [stats, setStats] = useState<EventStats | null>(null);
+/**
+ * The event's rank distribution. Asks again whenever `refreshKey` changes, keeping the previous
+ * figures on screen until the new ones arrive; they are dropped only when the event changes.
+ */
+function useStats(guid: string, playerId: string, refreshKey: string): EventStats | null {
+  const [loaded, setLoaded] = useState<{ guid: string; stats: EventStats } | null>(null);
 
   useEffect(() => {
     const controller = new AbortController();
-    setStats(null);
-    fetch(`api/leaderboard/${encodeURIComponent(guid)}/stats?player=${encodeURIComponent(playerId)}`, { signal: controller.signal })
+    fetch(`api/leaderboard/${encodeURIComponent(guid)}/stats?player=${encodeURIComponent(playerId)}`, { signal: controller.signal, cache: 'no-store' })
       .then(async (response) => {
         if (response.ok) {
-          setStats((await response.json()) as EventStats);
+          setLoaded({ guid, stats: (await response.json()) as EventStats });
         }
       })
       .catch(() => undefined);
     return () => controller.abort();
-  }, [guid, playerId]);
+  }, [guid, playerId, refreshKey]);
 
-  return stats;
+  return loaded?.guid === guid ? loaded.stats : null;
 }
 
 /** Bumps when the page's colours change, so the chart can be drawn again with the new ones. */
@@ -96,9 +99,9 @@ function Bars({ distribution, ranks, themeTick }: { distribution: number[]; rank
 }
 
 /** How many players reached each rank in the event, with the cumulative trophies of everyone on the board. */
-export function RankDistribution({ guid, playerId }: { guid: string; playerId: string }) {
+export function RankDistribution({ guid, playerId, refreshKey }: { guid: string; playerId: string; refreshKey: string }) {
   const { balance, title } = useSession();
-  const stats = useStats(guid, playerId);
+  const stats = useStats(guid, playerId, refreshKey);
   const themeTick = useThemeTick();
   if (!stats) {
     return null;
