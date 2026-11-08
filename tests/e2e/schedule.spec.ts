@@ -62,6 +62,38 @@ test('Today returns the calendar to the current month and selects today', async 
   await expect(grid.getByRole('gridcell', { selected: true })).toHaveText(new RegExp(`^${new Date().getDate()}`));
 });
 
+test('Today sits between the month arrows, and is the only Today button', async ({ page }) => {
+  await page.goto('?title=adcom&mode=evergreen&view=schedule');
+  const today = page.getByRole('button', { name: 'Today', exact: true });
+  await expect(today).toHaveCount(1);
+  const previous = (await page.getByRole('button', { name: /Previous Month/ }).boundingBox())!;
+  const next = (await page.getByRole('button', { name: /Next Month/ }).boundingBox())!;
+  const box = (await today.boundingBox())!;
+  expect(box.x).toBeGreaterThanOrEqual(previous.x + previous.width);
+  expect(box.x + box.width).toBeLessThanOrEqual(next.x);
+  expect(Math.abs(box.y + box.height / 2 - (previous.y + previous.height / 2))).toBeLessThanOrEqual(2);
+});
+
+test('the event list shows the year', async ({ page }) => {
+  await page.goto('?title=adcom&mode=evergreen&view=schedule');
+  const rows = page.getByRole('list', { name: 'Events' }).getByRole('listitem');
+  await expect(rows.first()).toBeVisible();
+  await expect(rows.first()).toContainText(/\b20\d\d\b/);
+});
+
+test.describe('desktop schedule', () => {
+  test.skip(({ isMobile }) => isMobile, 'desktop sizes');
+  test.use({ viewport: { width: 1280, height: 800 } });
+
+  test('the calendar takes half the width, with room before the month name', async ({ page }) => {
+    await page.goto('?title=adcom&mode=evergreen&view=schedule');
+    const calendar = (await page.getByRole('grid').locator('xpath=ancestor::div[contains(@class,"rounded-xl")][1]').boundingBox())!;
+    const list = (await page.getByRole('list', { name: 'Events' }).boundingBox())!;
+    expect(Math.abs(calendar.width - list.width)).toBeLessThanOrEqual(1);
+    expect(await page.locator('.rdp-month_caption').evaluate((node) => parseFloat(getComputedStyle(node).paddingLeft))).toBeGreaterThanOrEqual(12);
+  });
+});
+
 test('rows carry two dots for the schedule file and the leaderboard API', async ({ page }) => {
   const live = await liveEvent(page);
   await mockEvents(page, [

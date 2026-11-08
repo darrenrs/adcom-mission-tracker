@@ -29,27 +29,27 @@ export function PageBanner() {
             alt=""
             data-testid="banner-image"
             onError={() => setBroken(url)}
-            className="col-start-1 row-start-1 block h-auto max-h-80 min-h-44 w-full object-cover object-top sm:max-h-88"
+            className="col-start-1 row-start-1 block h-auto max-h-80 min-h-44 w-full object-cover object-top sm:max-h-88 lg:max-h-70"
           />
           <span aria-hidden className="col-start-1 row-start-1 bg-linear-to-r from-canvas/80 via-canvas/40 to-transparent" />
           <span aria-hidden className="col-start-1 row-start-1 bg-linear-to-b from-transparent via-transparent to-canvas" />
         </>
       )}
-      <div className="col-start-1 row-start-1 mx-auto flex w-full max-w-360 items-end justify-between gap-3 self-end px-3 pt-16 pb-9 sm:px-4">
-        <div className="min-w-0 [text-shadow:0_1px_10px_var(--canvas),0_0_3px_var(--canvas)]">
+      <div className="col-start-1 row-start-1 mx-auto w-full max-w-360 self-end px-3 pt-16 pb-9 [text-shadow:0_1px_10px_var(--canvas),0_0_3px_var(--canvas)] sm:px-4">
+        <div className="flex items-start justify-between gap-3">
           <h1
             data-testid="banner-title"
-            className="font-display text-4xl leading-none font-semibold tracking-wide break-words uppercase scale-y-110 origin-bottom-left sm:text-5xl"
+            className="min-w-0 font-display text-4xl leading-none font-semibold tracking-wide break-words uppercase scale-y-110 origin-bottom-left sm:text-5xl"
           >
             {name}
           </h1>
-          {description && <p className="mt-2 max-w-prose text-sm font-medium break-words sm:text-base">{description}</p>}
+          {dates && (
+            <p data-testid="banner-dates" className="shrink-0 text-right text-xs font-semibold sm:text-sm">
+              {dates}
+            </p>
+          )}
         </div>
-        {dates && (
-          <p data-testid="banner-dates" className="shrink-0 text-right text-xs font-semibold [text-shadow:0_1px_10px_var(--canvas)] sm:text-sm">
-            {dates}
-          </p>
-        )}
+        {description && <p className="mt-2 text-sm font-medium break-words sm:text-base">{description}</p>}
       </div>
     </header>
   );

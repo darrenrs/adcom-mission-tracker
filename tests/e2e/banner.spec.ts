@@ -48,3 +48,26 @@ test('never scrolls sideways at 320px', async ({ page }) => {
     expect(await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)).toBeLessThanOrEqual(0);
   }
 });
+
+test.describe('desktop banner', () => {
+  test.skip(({ isMobile }) => isMobile, 'desktop sizes');
+  test.use({ viewport: { width: 1280, height: 800 } });
+
+  test('is 20% shorter than before (280px instead of 352px)', async ({ page }) => {
+    await page.goto('?title=adcom&mode=lte');
+    const box = await bannerBox(page);
+    expect(box.height).toBeLessThanOrEqual(282);
+    expect(box.height).toBeGreaterThanOrEqual(270);
+  });
+
+  test('puts the dates level with the top of the title, and the description across the full width', async ({ page }) => {
+    await page.goto('?title=adcom&mode=lte');
+    const title = (await page.getByTestId('banner-title').boundingBox())!;
+    const dates = (await page.getByTestId('banner-dates').boundingBox())!;
+    // The title is stretched 10% upward from its baseline, so its box starts a few pixels higher.
+    expect(Math.abs(dates.y - title.y)).toBeLessThanOrEqual(8);
+    const description = page.getByTestId('page-banner').locator('p').last();
+    expect(await description.evaluate((node) => getComputedStyle(node).maxWidth)).toBe('none');
+    expect((await description.boundingBox())!.y).toBeGreaterThan(title.y + title.height);
+  });
+});

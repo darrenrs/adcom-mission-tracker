@@ -4,7 +4,7 @@ const OPEN = '?title=adcom&mode=evergreen&rank=2';
 
 const generators = (page: Page) => page.getByRole('list', { name: 'Generators' });
 const stocks = (page: Page) => page.getByRole('region', { name: 'Stocks' });
-const resourcesBox = (page: Page) => page.locator('section[aria-labelledby="resources-heading"] > div');
+const resourcesBox = (page: Page) => page.getByRole('list', { name: 'Industries' });
 const PROGRESS_NOTE = 'Generator progress bars do not update values; only manual updating is supported.';
 
 /** Raises Ringo Ringlet's card, the Farmers automator, through the card popover. */
@@ -134,15 +134,23 @@ test('has propaganda on by default and shares it with the calculator', async ({ 
   await expect(boost).toHaveAttribute('aria-pressed', 'false');
 });
 
-test('generators have a label, a card popover and details', async ({ page }) => {
+test('the generator name box, with an (i) after the name, opens and closes the details', async ({ page }) => {
   await openGame(page);
   const farmers = generators(page).getByRole('listitem').filter({ hasText: 'Farmers' });
-  await expect(farmers.getByRole('button', { name: /^Farmers - Tier/ })).toHaveCount(0);
   await expect(farmers.getByText('BUY')).toHaveCount(0);
+  // No separate details button: the name box is the toggle.
+  await expect(farmers.getByRole('button', { name: 'Farmers details' })).toHaveCount(0);
+  const toggle = farmers.getByRole('button', { name: 'Farmers - Tier 1 details' });
+  await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+  await expect(toggle.locator('svg')).toHaveCount(1);
+  const text = (await toggle.getByText('Farmers - Tier 1').boundingBox())!;
+  const icon = (await toggle.locator('svg').boundingBox())!;
+  expect(icon.x).toBeGreaterThanOrEqual(text.x + text.width - 1);
 
-  await farmers.getByRole('button', { name: 'Farmers details' }).click();
+  await toggle.click();
+  await expect(toggle).toHaveAttribute('aria-expanded', 'true');
   await expect(farmers.getByRole('heading', { name: 'Costs' })).toBeVisible();
-  await farmers.getByRole('button', { name: 'Farmers details' }).click();
+  await toggle.click();
   await expect(farmers.getByRole('heading', { name: 'Costs' })).toHaveCount(0);
 });
 
@@ -220,7 +228,7 @@ test('an automated generator ignores a tap on its picture', async ({ page }) => 
 test('the info panel lists costs, outputs, generates, modifiers and the automator', async ({ page }) => {
   await openGame(page);
   const farmers = generators(page).getByRole('listitem').filter({ hasText: 'Farmers' });
-  await farmers.getByRole('button', { name: 'Farmers details' }).click();
+  await farmers.getByRole('button', { name: 'Farmers - Tier 1 details' }).click();
   for (const name of ['Costs', 'Outputs', 'Generates', 'Modifiers', 'Automator']) {
     await expect(farmers.getByRole('heading', { name })).toBeVisible();
   }
@@ -250,7 +258,8 @@ test('shows the generator notes only when they apply', async ({ page }) => {
 
 test('titles each stock, with comrades per second in the comrade title, and the comrade icon opens Trades', async ({ page }) => {
   await openGame(page);
-  const titles = stocks(page).getByTestId('stock-title');
+  // Comrades has a second title for the phone layout; only one of the two is displayed.
+  const titles = stocks(page).getByTestId('stock-title').filter({ visible: true });
   await expect(titles).toHaveCount(3);
   await expect(titles.nth(0)).toHaveText(/^Comrades • \S+\/sec$/);
   await expect(titles.nth(1)).toHaveText('Science');
@@ -339,24 +348,49 @@ test('has an Active Missions heading with space above the missions', async ({ pa
   expect(headingBox.y + headingBox.height).toBeLessThanOrEqual(list.y);
 });
 
-test('groups the active resource icon with its amount, apart from the other resources', async ({ page }) => {
+test('keeps the resources in game order, with the amount field beside the active one', async ({ page }) => {
   await openGame(page);
+  const list = resourcesBox(page);
+  const buttons = list.getByRole('button', { name: /^Show / });
+  const order = await buttons.evaluateAll((nodes) => nodes.map((node) => node.getAttribute('aria-label')));
+  expect(order).toHaveLength(5);
   const group = page.getByTestId('active-resource');
-  await expect(group.getByRole('button', { name: /^Show / })).toHaveCount(1);
+  await expect(list.getByRole('textbox')).toHaveCount(1);
   await expect(group.getByRole('textbox', { name: /amount$/ })).toBeVisible();
-  const others = page.getByRole('list', { name: 'Industries' });
-  await expect(others.getByRole('button', { name: /^Show / })).toHaveCount(4);
-  await expect(others.getByRole('textbox')).toHaveCount(0);
-
   const icon = (await group.getByRole('button').boundingBox())!;
   const input = (await group.getByRole('textbox').boundingBox())!;
-  const next = (await others.getByRole('button').first().boundingBox())!;
   expect(input.x - (icon.x + icon.width)).toBeLessThan(8);
-  expect(next.x - (input.x + input.width)).toBeGreaterThanOrEqual(12);
 
-  await others.getByRole('button', { name: 'Show Land' }).click();
-  await expect(group.getByRole('button', { name: 'Show Land' })).toHaveCount(1);
-  await expect(others.getByRole('button', { name: 'Show Land' })).toHaveCount(0);
+  // Picking another resource keeps the order; the field moves to sit after that resource.
+  const third = order[2]!;
+  await list.getByRole('button', { name: third }).click();
+  expect(await buttons.evaluateAll((nodes) => nodes.map((node) => node.getAttribute('aria-label')))).toEqual(order);
+  await expect(group.getByRole('button', { name: third })).toHaveCount(1);
+  const field = (await group.getByRole('textbox').boundingBox())!;
+  const second = (await list.getByRole('button', { name: order[1]! }).boundingBox())!;
+  const fourth = (await list.getByRole('button', { name: order[3]! }).boundingBox())!;
+  expect(field.x).toBeGreaterThan(second.x + second.width);
+  expect(field.x + field.width).toBeLessThan(fourth.x);
+});
+
+test('Ages calls its gold Gems, from the game text', async ({ page }) => {
+  await page.goto('?title=ages&mode=evergreen');
+  const titles = stocks(page).getByTestId('stock-title').filter({ visible: true });
+  await expect(titles.nth(2)).toHaveText('Gems');
+  await expect(stocks(page).getByRole('textbox', { name: 'Gems' })).toBeVisible();
+});
+
+test('stock titles use the mission label style, centred', async ({ page }) => {
+  await openGame(page);
+  const title = stocks(page).getByTestId('stock-title').filter({ visible: true }).nth(1);
+  const label = page.getByRole('list', { name: 'Current missions' }).getByRole('button', { name: /^Complete mission/ }).first().locator('span[aria-hidden]');
+  const style = (locator: typeof title) =>
+    locator.evaluate((node) => {
+      const css = getComputedStyle(node);
+      return [css.fontSize, css.fontWeight, css.lineHeight, css.color];
+    });
+  expect(await style(title)).toEqual(await style(label));
+  expect(await title.evaluate((node) => getComputedStyle(node).textAlign)).toBe('center');
 });
 
 test('uses the one shared field look in every Game View input', async ({ page }) => {

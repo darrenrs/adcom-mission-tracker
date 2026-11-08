@@ -1,6 +1,6 @@
 import * as Popover from '@radix-ui/react-popover';
 import { Info, Minus, Plus } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { bigNum, shortBigNum } from '@/domain/format';
 import { formatCycleTime, hasActiveResearcher } from '@/domain/generatorInfo';
 import { describeMission, getResourceByIndustry, resourceName } from '@/domain/gameText';
@@ -46,83 +46,113 @@ const box = 'rounded-xl border border-line bg-surface';
 const SCIENCE = 'science';
 const HEADING = 'mb-1 text-sm font-semibold tracking-wide text-muted uppercase';
 
+/**
+ * One stock: its title, icon and amount. On phones the icon sits in the title row so the field gets the
+ * whole box width; from 640px up it sits beside the field. With `open`, the icon is a shortcut: on phones
+ * the whole title row is the button, so it keeps a 44px tap target.
+ */
+function Stock({
+  title,
+  iconSrc,
+  open,
+  children
+}: {
+  title: string;
+  iconSrc: string;
+  open?: { label: string; action: () => void };
+  children: ReactNode;
+}) {
+  const text = (
+    <span data-testid="stock-title" className="min-w-0 text-center text-sm leading-snug font-medium break-words tabular-nums sm:truncate">
+      {title}
+    </span>
+  );
+  const image = (size: string) => <img src={iconSrc} alt="" width={32} height={32} className={`${size} shrink-0 object-contain`} />;
+  const shortcut = { type: 'button' as const, tabIndex: -1, 'aria-label': open?.label, title: open?.label, onClick: open?.action };
+
+  return (
+    <div className={`flex min-w-0 flex-col justify-center gap-0.5 p-1.5 ${box}`}>
+      {open ? (
+        <>
+          <button {...shortcut} className="flex min-h-control items-center justify-center gap-1 rounded-lg hover:bg-raised sm:hidden">
+            {image('size-5')}
+            {text}
+          </button>
+          <p className="hidden justify-center sm:flex">{text}</p>
+        </>
+      ) : (
+        <p className="flex items-center justify-center gap-1">
+          <span className="flex shrink-0 sm:hidden">{image('size-5')}</span>
+          {text}
+        </p>
+      )}
+      <div className="flex items-center gap-1">
+        {open ? (
+          <button {...shortcut} className="hidden min-h-control shrink-0 items-center rounded-lg hover:bg-raised sm:flex">
+            {image('size-8')}
+          </button>
+        ) : (
+          <span className="hidden shrink-0 sm:flex">{image('size-8')}</span>
+        )}
+        {children}
+      </div>
+    </div>
+  );
+}
+
 function Stocks() {
   const { text: ctx, assets, form, title, mode } = useSession();
   const updateForm = useTracker((state) => state.updateForm);
   const { powers } = title;
   const comrades = String(resourceName(ctx, 'comrade'));
   const science = String(resourceName(ctx, mode === 'evergreen' ? 'scientist' : 'darkscience'));
+  // AdCom calls it Gold, Ages calls it Gems; both use the `gold` resource.
+  const gold = resourceName(ctx, 'gold') ?? 'Gold';
   const scienceIcon = assets.active(mode === 'evergreen' ? 'main/darkscience.png' : 'event/darkscience.png');
-  const stock = `flex min-w-0 flex-col justify-center gap-0.5 p-1.5 ${box}`;
-  const heading = 'truncate text-center text-base leading-5 font-semibold text-muted tabular-nums';
-  const line = 'flex items-center gap-1';
-  const icon = 'size-6 shrink-0 object-contain sm:size-8';
-  const input = 'flex-1 px-1 text-center';
+  // Condensed on phones, so the longest amount ("999.99 AAAAA") fits the narrow box.
+  const input = 'w-full min-w-0 flex-1 text-center [font-stretch:75%] sm:[font-stretch:normal]';
 
   return (
     <section aria-label="Stocks" className="grid grid-cols-3 gap-2">
-      <div className={stock}>
-        <p data-testid="stock-title" className={heading}>
-          {comrades} • {shortBigNum(form.Trades.TotalComrades, powers)}/sec
-        </p>
-        <div className={line}>
-          <button
-            type="button"
-            tabIndex={-1}
-            aria-label="Open Trades"
-            title="Open Trades"
-            onClick={() => navigate({ view: 'production', tab: 'trades' })}
-            className="flex min-h-control shrink-0 items-center rounded-lg hover:bg-raised"
-          >
-            <img src={assets.iconUrl('comrade.png')} alt="" width={32} height={32} className={icon} />
-          </button>
-          <AmountInput
-            label={comrades}
-            powers={powers}
-            value={form.Counts['comrade']?.['comrade'] ?? 0}
-            onValue={(value) => updateForm((next) => applyCount(next, 'comrade', COMRADES_KEY, value, Date.now()))}
-            className={input}
-          />
-        </div>
-      </div>
-      <div className={stock}>
-        <p data-testid="stock-title" className={heading}>
-          {science}
-        </p>
-        <div className={line}>
-          <img src={scienceIcon} alt="" width={32} height={32} className={icon} />
-          <AmountInput
-            label={science}
-            powers={powers}
-            value={form.Counts[SCIENCE]?.[SCIENCE] ?? 0}
-            onValue={(value) =>
-              updateForm((next) => {
-                next.Counts[SCIENCE] = { ...next.Counts[SCIENCE], [SCIENCE]: value };
-              })
-            }
-            className={input}
-          />
-        </div>
-      </div>
-      <div className={stock}>
-        <p data-testid="stock-title" className={heading}>
-          Gold
-        </p>
-        <div className={line}>
-          <img src={assets.active('shared/gold.png')} alt="" width={32} height={32} className={icon} />
-          <AmountInput
-            label="Gold"
-            powers={powers}
-            value={form.Counts['gold']?.['gold'] ?? 0}
-            onValue={(value) =>
-              updateForm((next) => {
-                next.Counts['gold'] = { ...next.Counts['gold'], gold: value };
-              })
-            }
-            className={input}
-          />
-        </div>
-      </div>
+      <Stock
+        title={`${comrades} • ${shortBigNum(form.Trades.TotalComrades, powers)}/sec`}
+        iconSrc={assets.iconUrl('comrade.png')}
+        open={{ label: 'Open Trades', action: () => navigate({ view: 'production', tab: 'trades' }) }}
+      >
+        <AmountInput
+          label={comrades}
+          powers={powers}
+          value={form.Counts['comrade']?.['comrade'] ?? 0}
+          onValue={(value) => updateForm((next) => applyCount(next, 'comrade', COMRADES_KEY, value, Date.now()))}
+          className={input}
+        />
+      </Stock>
+      <Stock title={science} iconSrc={scienceIcon}>
+        <AmountInput
+          label={science}
+          powers={powers}
+          value={form.Counts[SCIENCE]?.[SCIENCE] ?? 0}
+          onValue={(value) =>
+            updateForm((next) => {
+              next.Counts[SCIENCE] = { ...next.Counts[SCIENCE], [SCIENCE]: value };
+            })
+          }
+          className={input}
+        />
+      </Stock>
+      <Stock title={gold} iconSrc={assets.active('shared/gold.png')}>
+        <AmountInput
+          label={gold}
+          powers={powers}
+          value={form.Counts['gold']?.['gold'] ?? 0}
+          onValue={(value) =>
+            updateForm((next) => {
+              next.Counts['gold'] = { ...next.Counts['gold'], gold: value };
+            })
+          }
+          className={input}
+        />
+      </Stock>
     </section>
   );
 }
@@ -247,27 +277,29 @@ function Resources({ activeId }: { activeId: string }) {
       <h2 id="resources-heading" className={HEADING}>
         Resources
       </h2>
-      <div className={`flex items-center gap-4 p-1 ${box}`}>
-        <div data-testid="active-resource" className="flex min-w-0 flex-1 items-center gap-1">
-          {iconButton(activeId, true)}
-          {active && (
-            <AmountInput
-              label={`${String(resourceName(ctx, active.Id))} amount`}
-              powers={title.powers}
-              value={form.Counts[active.Id]?.[active.Id] ?? 0}
-              onValue={(value) => updateForm((next) => applyCount(next, active.Id, RESOURCE_KEY, value, Date.now()))}
-              className="flex-1 px-1 text-left sm:px-2"
-            />
-          )}
-        </div>
-        <ul aria-label="Industries" className="flex shrink-0 gap-0.5">
-          {industries
-            .filter((industry) => industry.Id !== activeId)
-            .map((industry) => (
-              <li key={industry.Id}>{iconButton(industry.Id, false)}</li>
-            ))}
-        </ul>
-      </div>
+      {/* Industries stay in the game's order; the active one widens to hold its amount, so the field moves with it. */}
+      <ul aria-label="Industries" className={`flex items-center gap-0.5 p-1 ${box}`}>
+        {industries.map((industry) =>
+          industry.Id === activeId ? (
+            <li key={industry.Id} data-testid="active-resource" className="mx-1 flex min-w-0 flex-1 items-center gap-1 first:ml-0 last:mr-0">
+              {iconButton(industry.Id, true)}
+              {active && (
+                <AmountInput
+                  label={`${String(resourceName(ctx, active.Id))} amount`}
+                  powers={title.powers}
+                  value={form.Counts[active.Id]?.[active.Id] ?? 0}
+                  onValue={(value) => updateForm((next) => applyCount(next, active.Id, RESOURCE_KEY, value, Date.now()))}
+                  className="w-full min-w-0 flex-1 px-1 text-left sm:px-2"
+                />
+              )}
+            </li>
+          ) : (
+            <li key={industry.Id} className="shrink-0">
+              {iconButton(industry.Id, false)}
+            </li>
+          )
+        )}
+      </ul>
     </section>
   );
 }
@@ -499,20 +531,21 @@ function GeneratorRow({
         <div className="min-w-0 flex-1 space-y-1">
           <CycleBar tier={tier} details={details} count={count} manual={manual} onManualDone={() => setManual(null)} />
           <div className="flex items-stretch gap-1.5">
-            <p className="flex min-h-control min-w-0 flex-1 items-center justify-center rounded-lg border border-success/30 bg-success-soft px-2 text-center text-sm leading-tight font-semibold break-words">
-              {name} - Tier {tierNumber}
-            </p>
-            {automator && <CardPopover researcherId={automator.id} name={automator.name} />}
+            {/* The name box opens the details panel below; the (i) after the name says so. */}
             <button
               type="button"
               tabIndex={-1}
-              aria-label={`${name} details`}
               aria-expanded={open}
               onClick={() => setOpen((value) => !value)}
-              className={`flex size-control shrink-0 items-center justify-center text-muted hover:bg-raised hover:text-ink aria-expanded:bg-raised ${box}`}
+              className="flex min-h-control min-w-0 flex-1 items-center justify-center gap-1.5 rounded-lg border border-success/30 bg-success-soft px-2 text-center text-sm leading-tight font-semibold break-words hover:border-success/60 aria-expanded:border-success/60"
             >
-              <Info aria-hidden size={20} />
+              <span className="min-w-0">
+                {name} - Tier {tierNumber}
+                <span className="sr-only"> details</span>
+              </span>
+              <Info aria-hidden size={16} className="shrink-0 text-muted" />
             </button>
+            {automator && <CardPopover researcherId={automator.id} name={automator.name} />}
           </div>
         </div>
       </div>

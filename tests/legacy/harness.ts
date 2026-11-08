@@ -12,6 +12,18 @@ export const ROOT = path.resolve(import.meta.dirname, '../..');
 export const ASSETS = process.env.ADCOM_ASSETS_DATA ?? path.resolve(ROOT, '../adcom-assets/data');
 export const TITLE_IDS: Record<TitleKey, string> = { adcom: '6bf5', ages: 'dc4bb' };
 export const TITLE_KEYS: TitleKey[] = ['adcom', 'ages'];
+
+/** Short event names the owner changed on purpose (8 November 2026), by theme id. Legacy keeps its old ones. */
+export const SHORT_NAME_CHANGES: Record<TitleKey, Record<string, string>> = {
+  adcom: {
+    fuspet: 'Pet Show',
+    minisports: 'Mini MLG',
+    minipotatofactory: 'Mini Potato Factory',
+    fusscience: 'State Science',
+    fusvehicle: 'Vehicle Show'
+  },
+  ages: { aliens: 'First Contact', halloween: 'Monster Hunt' }
+};
 const LEGACY_REF = 'master';
 
 export const assetsAvailable = TITLE_KEYS.every((key) =>

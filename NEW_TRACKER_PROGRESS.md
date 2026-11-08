@@ -97,7 +97,7 @@ The work:
 
 **Game View**
 - It is the default tab. Only the generator bars move. Numbers change only when typed.
-- The green generator box is a label and does nothing when tapped.
+- The green generator box opens the generator's details panel, with an (i) after the name (8 November; it was a plain label before, and had a separate (i) button).
 - Own missions link to the entered amounts, in both directions. Other missions save typed progress per mission, under `MissionProgress`, and the calculator's Mission Progress field shares it.
 - Mission cards stack on phones and sit three across from 640px, because the capsule beside the requirement leaves too little width on a phone.
 - Beta placeholders until the owner decides: generators show base output for all owned per cycle, or per second under a 0.5s cycle. Unlock missions use a typed 0/1.
@@ -146,7 +146,7 @@ The work:
 - Settings shows the leaderboard connection status and "© 2026 Idle Game Tools". An MIT LICENSE now exists, keeping the original 2019-2022 authors' notice.
 
 **Fields (7 November)**
-- Body text is Barlow; every typed field is Geist Mono. Invalid fields turn red with no visible warning text.
+- Body text is Barlow; every typed field is Inconsolata (Geist Mono until 8 November). Invalid fields turn red with no visible warning text.
 - Negative numbers are invalid everywhere except typed mission progress (the calculator's Mission Progress field and Game View's progress for non-Own missions). Players use negative progress to stand in for another goal; remove this exception once custom objectives exist.
 
 **Round 3 (7 November)**
@@ -169,6 +169,13 @@ The work:
 - Show results always asks again, even for the saved ID. The previous results stay on screen until the new ones arrive, and the button is disabled meanwhile.
 - The server sends `fetchedAt` and `boardFetchedAt` (stats send `boardFetchedAt`). The details card shows "Fetched at … · global positions as of …", with seconds.
 - "Last updated" is still the time the game last reported the player's score, which the tracker cannot speed up.
+
+**Round 4 (8 November)**
+- Short event names (top-left button and mode menu) come from `getBasicLteName` in `domain/schedule.ts`: strip `-bal-N`, apply `themeIdOverrides` (Ages), then the hard-coded `themeIdTitleOverrides` in `domain/titles.ts`, else capitalise the theme id. They do not come from the game's text; full names do (`lte.<theme>.name`). A new event with no entry shows its capitalised theme id. The owner renamed Pet Show, Mini MLG, Mini Potato Factory, State Science, Vehicle Show, First Contact and Monster Hunt; `client/src/domain/eventNames.test.ts` holds the whole approved table, and `tests/legacy/harness.ts` lists the deliberate differences from legacy.
+- Schedule: the calendar and the list each take half the width from 1024px. Today sits between the month arrows (a custom day-picker `Nav`). The month name has 12px more left padding. List dates show the year; banner dates don't.
+- Banner: 280px tall on desktop (was 352px, from 1024px; phones and tablets unchanged). Title and dates share a top-aligned row; the description spans the full width underneath. It is the shared banner, so every page changed.
+- Game View stocks: titles use the mission label style (`text-sm`, medium, normal colour), centred. On phones the icon moves into the title row so each field gets the whole box (98px instead of 70px), and the fields condense Inconsolata to 75% width so "999.99 AAAAA" fits; that needs the font's width axis (`inconsolata/wdth.css`, about 46KB more). On phones the whole comrade title row is the Trades shortcut, to keep a 44px tap target. The third stock uses the game's name for `gold`, so Ages shows "Gems".
+- Game View resources keep the game's industry order; the active one widens to hold its amount field.
 
 **Auto-buy**
 - Fixed: auto-buy rounded up to the end of a 1-second or 1% step, so it read slower than plain online. It also never bought the mission's own generators, and spent them on deeper tiers.
@@ -243,7 +250,7 @@ npm run build
 
 `npm run golden` recaptures mission traces from `master`. Run it only when balance data changes. If the data has changed, the mission tests fail and tell you to run it. This command goes away in Phase 6.
 
-On 8 November, after the one-command dev change, all 1,346 unit tests and 225 browser tests passed (13 more skip by design at one width), and `npm run build` succeeded. `density.spec.ts`'s phone rank-popover test failed once and passed on a rerun.
+On 8 November, after round 4, all unit tests and 240 browser tests passed (18 more skip by design at one width), and `npm run build` succeeded. `density.spec.ts`'s rank-popover test is occasionally flaky: it failed once on each of two earlier runs and passed on rerun.
 
 ## Where things are
 

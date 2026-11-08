@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useMemo, useRef, useState, type ButtonHTMLAttributes, type CSSProperties } from 'react';
-import { DayPicker, type CalendarDay, type Modifiers } from 'react-day-picker';
+import { DayPicker, UI, useDayPicker, type CalendarDay, type Modifiers, type NavProps } from 'react-day-picker';
 import 'react-day-picker/style.css';
 import type { AssetResolver } from '@/domain/assets';
 import type { EventEntry } from '@/domain/eventList';
@@ -19,6 +19,7 @@ function startOfDay(time: number): number {
 interface DayEvents {
   byDay: ReadonlyMap<number, readonly EventEntry[]>;
   assets: AssetResolver;
+  onToday: () => void;
 }
 
 const DayEventsContext = createContext<DayEvents | null>(null);
@@ -49,6 +50,44 @@ function DayButton({ day, modifiers, children, ...props }: { day: CalendarDay; m
         ))}
       </span>
     </button>
+  );
+}
+
+/** The month arrows with Today between them. Mirrors the day picker's own Nav, plus the Today button. */
+function Nav({ onPreviousClick, onNextClick, previousMonth, nextMonth, ...navProps }: NavProps) {
+  const { components, classNames, labels } = useDayPicker();
+  const events = useContext(DayEventsContext);
+
+  return (
+    <nav {...navProps} className={`${navProps.className ?? ''} gap-1`}>
+      <components.PreviousMonthButton
+        type="button"
+        className={classNames[UI.PreviousMonthButton]}
+        tabIndex={previousMonth ? undefined : -1}
+        aria-disabled={previousMonth ? undefined : true}
+        aria-label={labels.labelPrevious(previousMonth)}
+        onClick={(event) => previousMonth && onPreviousClick?.(event)}
+      >
+        <components.Chevron disabled={previousMonth ? undefined : true} className={classNames[UI.Chevron]} orientation="left" />
+      </components.PreviousMonthButton>
+      <button
+        type="button"
+        onClick={events?.onToday}
+        className="h-control rounded-lg border border-line bg-surface px-4 text-sm font-medium hover:bg-raised"
+      >
+        Today
+      </button>
+      <components.NextMonthButton
+        type="button"
+        className={classNames[UI.NextMonthButton]}
+        tabIndex={nextMonth ? undefined : -1}
+        aria-disabled={nextMonth ? undefined : true}
+        aria-label={labels.labelNext(nextMonth)}
+        onClick={(event) => nextMonth && onNextClick?.(event)}
+      >
+        <components.Chevron disabled={nextMonth ? undefined : true} className={classNames[UI.Chevron]} orientation="right" />
+      </components.NextMonthButton>
+    </nav>
   );
 }
 
@@ -107,19 +146,10 @@ export function SchedulePage() {
 
   return (
     <div className="space-y-3">
-      <div className="flex items-center justify-between gap-2">
-        <h1 className="text-lg font-semibold">Schedule</h1>
-        <button
-          type="button"
-          onClick={() => pickDay(new Date())}
-          className="h-control rounded-lg border border-line bg-surface px-4 text-sm font-medium hover:bg-raised"
-        >
-          Today
-        </button>
-      </div>
-      <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_minmax(0,22rem)]">
+      <h1 className="text-lg font-semibold">Schedule</h1>
+      <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_minmax(0,22rem)] lg:grid-cols-2">
         <div className="rounded-xl border border-line bg-surface p-2">
-          <DayEventsContext.Provider value={{ byDay, assets }}>
+          <DayEventsContext.Provider value={{ byDay, assets, onToday: () => pickDay(new Date()) }}>
             <DayPicker
               mode="single"
               required
@@ -129,9 +159,9 @@ export function SchedulePage() {
               onMonthChange={setMonth}
               modifiers={{ chosen: range ?? [] }}
               modifiersClassNames={{ chosen: 'bg-accent-soft' }}
-              components={{ DayButton }}
+              components={{ DayButton, Nav }}
               className="w-full"
-              classNames={{ months: 'w-full', month: 'w-full', month_grid: 'w-full table-fixed', today: 'font-bold text-accent' }}
+              classNames={{ months: 'w-full', month: 'w-full', month_caption: 'rdp-month_caption pl-3', month_grid: 'w-full table-fixed', today: 'font-bold text-accent' }}
               style={
                 {
                   '--rdp-accent-color': 'var(--accent)',
@@ -163,7 +193,7 @@ export function SchedulePage() {
                 <img src={assets.active(`shared/themeicons/${entry.themeId}.png`)} alt="" width={40} height={40} loading="lazy" className="size-10 shrink-0 object-contain" />
                 <span className="min-w-0">
                   <span className="block text-base font-semibold">{lteFullName(entry.themeId, localization, title)}</span>
-                  <span className="block text-sm text-muted">{dateRange(entry.start, entry.end)}</span>
+                  <span className="block text-sm text-muted">{dateRange(entry.start, entry.end, { year: true })}</span>
                 </span>
               </button>
               <span className="flex shrink-0 items-center gap-1.5 px-1">

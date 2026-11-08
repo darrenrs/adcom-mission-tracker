@@ -7,7 +7,9 @@ export function lteFullName(themeId: string, localization: Readonly<Record<strin
 }
 
 const RANGE = new Intl.DateTimeFormat(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+const RANGE_WITH_YEAR = new Intl.DateTimeFormat(undefined, { year: 'numeric', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
 
-export function dateRange(start: number, end: number): string {
-  return RANGE.formatRange(new Date(start), new Date(end));
+/** An event's dates in the browser's language. The schedule list adds the year; the banner leaves it out. */
+export function dateRange(start: number, end: number, { year = false }: { year?: boolean } = {}): string {
+  return (year ? RANGE_WITH_YEAR : RANGE).formatRange(new Date(start), new Date(end));
 }

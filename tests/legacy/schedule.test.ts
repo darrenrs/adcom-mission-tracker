@@ -11,7 +11,7 @@ import {
 } from '@/domain/schedule';
 import { TITLES } from '@/domain/titles';
 import type { LteInfo, LteScheduleData } from '@/domain/types';
-import { assetsAvailable, createLegacy, loadSchedule, TITLE_KEYS, type Legacy } from './harness';
+import { assetsAvailable, createLegacy, loadSchedule, SHORT_NAME_CHANGES, TITLE_KEYS, type Legacy } from './harness';
 
 const counts = { current: 0, soonest: 0, basicName: 0, other: 0, queue: 0 };
 
@@ -175,8 +175,13 @@ describe.skipIf(!assetsAvailable).each(TITLE_KEYS)('schedule matches legacy (%s)
     for (const key of [...Object.keys(title.themeIdTitleOverrides), ...Object.keys(title.themeIdOverrides)]) names.add(key);
     for (const value of [...Object.values(title.themeIdOverrides), ...Object.values(title.themeDuplicateOverrides)]) names.add(value);
 
+    const renamed = new Set(Object.values(SHORT_NAME_CHANGES[titleKey]));
     for (const name of names) {
-      expect(getBasicLteName(name, title), name).toBe(legacy.call<string>('getBasicEventName', name));
+      const ours = getBasicLteName(name, title);
+      // The owner's renames differ from legacy on purpose; client/src/domain/eventNames.test.ts checks them.
+      if (!renamed.has(ours)) {
+        expect(ours, name).toBe(legacy.call<string>('getBasicEventName', name));
+      }
       counts.basicName++;
     }
     expect(names.size).toBeGreaterThan(30);

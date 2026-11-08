@@ -46,6 +46,28 @@ test.describe('desktop', () => {
 test.describe('phone', () => {
   test.skip(({ isMobile }) => !isMobile, 'Phone layout only.');
 
+  test('gives the stock fields the whole box width, and fits the longest amount', async ({ page }) => {
+    await page.goto(OPEN);
+    const fields = page.getByRole('region', { name: 'Stocks' }).getByRole('textbox');
+    await expect(fields).toHaveCount(3);
+    for (const width of await fields.evaluateAll((nodes) => nodes.map((node) => node.getBoundingClientRect().width))) {
+      expect(width).toBeGreaterThanOrEqual(95);
+    }
+    await fields.first().fill('999.99 AAAAA');
+    await fields.first().blur();
+    await expect(fields.first()).toHaveValue('999.99 AAAAA');
+    expect(await fields.first().evaluate((node) => node.scrollWidth <= node.clientWidth)).toBe(true);
+  });
+
+  test('the comrade title row is the Trades shortcut on phones', async ({ page }) => {
+    await page.goto(OPEN);
+    const shortcut = page.getByRole('region', { name: 'Stocks' }).getByRole('button', { name: 'Open Trades' });
+    await expect(shortcut).toHaveCount(1);
+    await expect(shortcut).toContainText('/sec');
+    await shortcut.click();
+    await expect(page).toHaveURL(/tab=trades/);
+  });
+
   test('keeps 44px buttons and inputs, and does not scroll sideways at 320px', async ({ page }) => {
     await page.setViewportSize({ width: 320, height: 640 });
     await page.goto(OPEN);

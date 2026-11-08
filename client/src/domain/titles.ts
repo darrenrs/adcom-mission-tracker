@@ -8,7 +8,10 @@ export interface TitleConfig {
   isAges: boolean;
   /** Suffixes for large numbers: `powers[0]` is thousands. */
   powers: readonly string[];
-  /** Event names in the nav menu for themes whose id reads poorly. */
+  /**
+   * Short event names (top-left button and mode menu) for themes whose id reads poorly. Started from
+   * legacy's config files; the owner renamed some on 8 November 2026 (see tests/legacy/harness.ts).
+   */
   themeIdTitleOverrides: Record<string, string>;
   /** Themes that share another theme's image folder. */
   themeDuplicateOverrides: Record<string, string>;
@@ -46,14 +49,14 @@ export const TITLES: Record<TitleKey, TitleConfig> = {
       potatofactory: 'Potato Factory',
       bamboo: 'Vacation',
       fusfarm: 'Farm to Table',
-      fusscience: 'Science',
-      fuspet: 'Pet',
-      fusvehicle: 'Vehicle',
+      fusscience: 'State Science',
+      fuspet: 'Pet Show',
+      fusvehicle: 'Vehicle Show',
       hexathlon: 'Motherland Games',
       minicockatrice: 'Mini Cockatrice',
-      minipotatofactory: 'Mini Potatofactory',
+      minipotatofactory: 'Mini Potato Factory',
       minisanta: 'Mini Santa',
-      minisports: 'Mini Games',
+      minisports: 'Mini MLG',
       minivacation: 'Mini Vacation',
       minivillain: 'Mini Villains'
     },
@@ -126,11 +129,12 @@ export const TITLES: Record<TitleKey, TitleConfig> = {
     ],
     themeIdTitleOverrides: {
       main: 'Ages',
-      aliens: 'Contact',
+      aliens: 'First Contact',
       fusionarchitecture: 'Architecture',
       fusioncareers: 'Careers',
       fusioninfrastructure: 'Infrastructure',
       fusioninnovation: 'Innovation',
+      halloween: 'Monster Hunt',
       timetravel: 'Anniversary',
       mexico: 'Aztec',
       minidino: 'Mini Dino',

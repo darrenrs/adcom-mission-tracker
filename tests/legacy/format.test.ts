@@ -13,7 +13,7 @@ import {
   upperCaseFirstLetter
 } from '@/domain/format';
 import { TITLES } from '@/domain/titles';
-import { createLegacy, TITLE_KEYS, type Legacy } from './harness';
+import { createLegacy, SHORT_NAME_CHANGES, TITLE_KEYS, type Legacy } from './harness';
 
 let comparisons = 0;
 
@@ -85,7 +85,6 @@ describe('title config', () => {
       const title = TITLES[key];
       const pairs: [string, unknown, string][] = [
         ['powers', title.powers, 'POWERS'],
-        ['themeIdTitleOverrides', title.themeIdTitleOverrides, 'THEME_ID_TITLE_OVERRIDES'],
         ['themeDuplicateOverrides', title.themeDuplicateOverrides, 'THEME_DUPLICATE_OVERRIDES'],
         ['themeIdOverrides', title.themeIdOverrides, 'THEME_ID_OVERRIDES'],
         ['balanceUpdateVersion', title.balanceUpdateVersion, 'BALANCE_UPDATE_VERSION'],
@@ -98,6 +97,11 @@ describe('title config', () => {
         comparisons++;
         expect(plain(ours), field).toEqual(plain(legacy.read(name)));
       }
+      comparisons++;
+      expect(title.themeIdTitleOverrides, 'themeIdTitleOverrides').toEqual({
+        ...(plain(legacy.read('THEME_ID_TITLE_OVERRIDES')) as Record<string, string>),
+        ...SHORT_NAME_CHANGES[key]
+      });
       comparisons++;
       expect(title.titleId).toBe(legacy.read('TITLE_ID_' + key.toUpperCase()));
       expect(title.key).toBe(key);
