@@ -5,6 +5,7 @@ import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';
+import { formatAmount } from '@/domain/inputSteps';
 import type { TitleKey } from '@/domain/titles';
 import type { GameBalance, LteScheduleData } from '@/domain/types';
 
@@ -12,6 +13,15 @@ export const ROOT = path.resolve(import.meta.dirname, '../..');
 export const ASSETS = process.env.ADCOM_ASSETS_DATA ?? path.resolve(ROOT, '../adcom-assets/data');
 export const TITLE_IDS: Record<TitleKey, string> = { adcom: '6bf5', ages: 'dc4bb' };
 export const TITLE_KEYS: TitleKey[] = ['adcom', 'ages'];
+
+/**
+ * Mission amounts the tracker now writes in its one number format (9 November 2026): legacy printed Spend, Trade,
+ * Researchers upgraded and Collect Cards amounts raw ("(1200)"), where the tracker writes "(1,200)". Puts every bracketed
+ * whole number in legacy's text through the same format, so the comparisons see only real differences.
+ */
+export function missionAmountsInFormat(text: string, powers: readonly string[]): string {
+  return text.replace(/\((\d+)\)/g, (_, digits: string) => `(${formatAmount(Number(digits), powers)})`);
+}
 
 /** Short event names the owner changed on purpose (8 November 2026), by theme id. Legacy keeps its old ones. */
 export const SHORT_NAME_CHANGES: Record<TitleKey, Record<string, string>> = {

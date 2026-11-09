@@ -24,6 +24,7 @@ import {
   createLegacy,
   loadBalances,
   loadLocalizationBase64,
+  missionAmountsInFormat,
   stripHtml,
   TITLE_KEYS,
   type Legacy
@@ -90,7 +91,7 @@ function checkMission(legacy: Legacy, ctx: GameTextContext, mission: Mission) {
   const plain = legacyValue(`describeMission ${mission.Condition.ConditionType}`, () => legacy.call<string>('describeMission', mission, 'none'));
   if (plain !== null) {
     comparisons++;
-    expect(stripHtml(plain), label).toBe(unknown ? ours.text : ` ${ours.text}`);
+    expect(missionAmountsInFormat(stripHtml(plain), ctx.title.powers), label).toBe(unknown ? ours.text : ` ${ours.text}`);
   }
 
   // With icons on, the span names the icon file and folder.
@@ -101,7 +102,7 @@ function checkMission(legacy: Legacy, ctx: GameTextContext, mission: Mission) {
     expect(match, label).not.toBeNull();
     expect(match?.[2], label).toBe(ours.iconResourceId);
     expect(iconSourceOfUrl(match?.[1] ?? '', ctx.mode), label).toBe(ours.iconSource);
-    expect(stripHtml(withIcon), label).toBe(`  ${ours.text}`);
+    expect(missionAmountsInFormat(stripHtml(withIcon), ctx.title.powers), label).toBe(`  ${ours.text}`);
   }
 
   for (const includeCapType of [true, false]) {

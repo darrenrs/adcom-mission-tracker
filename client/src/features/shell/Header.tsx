@@ -44,7 +44,7 @@ export function Header() {
 
   return (
     <header className="mx-auto w-full max-w-360">
-      <div className="grid h-14 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-1 px-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,20rem)_minmax(0,1fr)] sm:gap-2 sm:px-4 lg:grid-cols-[auto_minmax(0,1fr)_minmax(0,18rem)_auto]">
+      <div className="grid h-14 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-1 px-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,20rem)_minmax(0,1fr)] sm:gap-2 sm:px-4 xl:grid-cols-[auto_minmax(0,1fr)_minmax(0,18rem)_auto]">
         <DropdownMenu.Root>
           <DropdownMenu.Trigger aria-label={`Mode: ${displayName}`} className="flex min-h-control max-w-full min-w-0 items-center gap-2 justify-self-start rounded-lg px-1 font-semibold hover:bg-raised sm:px-2">
             <img src={displayIcon} alt="" className="size-7 shrink-0 object-contain" />
@@ -86,7 +86,7 @@ export function Header() {
           </DropdownMenu.Portal>
         </DropdownMenu.Root>
 
-        <Tabs className="hidden h-full min-w-0 items-stretch gap-1 overflow-x-auto lg:flex" />
+        <Tabs className="hidden h-full min-w-0 items-stretch gap-1 xl:flex" />
 
         <RankBar />
 

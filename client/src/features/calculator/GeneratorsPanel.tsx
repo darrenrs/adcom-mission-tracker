@@ -105,6 +105,7 @@ export function GeneratorsPanel({ mission, industryId, fields, disabled }: Props
             })}
             {mission.Condition.ConditionType === 'ResourcesEarnedSinceSubscription' &&
               field(PROGRESS_KEY, 'Mission Progress', assets.iconUrl(`${resource?.Id ?? ''}.png`), {
+                allowNegative: true,
                 attributes: { 'data-field': 'count', 'data-field-key': PROGRESS_KEY }
               })}
           </div>

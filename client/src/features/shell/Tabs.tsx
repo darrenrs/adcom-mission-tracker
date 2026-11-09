@@ -10,7 +10,7 @@ const TABS: { view: ViewName; label: string; icon: LucideIcon }[] = [
   { view: 'reference', label: 'Reference', icon: LibraryBig }
 ];
 
-/** The main tabs: a bottom bar on phones, a row under the header on tablets, and part of the header on wide screens. */
+/** The main tabs: a bottom bar on phones, a row under the header up to 1279px (the tabs share its width), and part of the header from 1280px, where they always fit. Never scrolls. */
 export function Tabs({ className }: { className: string }) {
   const active = useView();
   const showLeaderboard = useLeaderboardAvailable();
@@ -29,7 +29,7 @@ export function Tabs({ className }: { className: string }) {
               tab: null
             })
           }
-          className="flex min-h-14 min-w-0 flex-1 flex-col items-center justify-center gap-0.5 text-[11px] font-medium whitespace-nowrap text-muted transition-colors hover:text-ink aria-[current=page]:text-accent sm:min-h-control sm:flex-none sm:flex-row sm:gap-2 sm:border-b-2 sm:border-transparent sm:px-3 sm:text-sm sm:aria-[current=page]:border-accent"
+          className="flex min-h-14 min-w-0 flex-1 flex-col items-center justify-center gap-0.5 text-[11px] font-medium whitespace-nowrap text-muted transition-colors hover:text-ink aria-[current=page]:text-accent sm:min-h-control sm:flex-row sm:gap-2 sm:border-b-2 sm:border-transparent sm:px-2 xl:flex-none xl:px-3 sm:text-sm sm:aria-[current=page]:border-accent"
         >
           <Icon aria-hidden size={20} />
           {label}

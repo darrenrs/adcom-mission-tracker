@@ -4,6 +4,7 @@
 
 import type { AssetResolver } from './assets';
 import { bigNum } from './format';
+import { amountValue } from './inputSteps';
 import {
   getResearcherBasicDetails,
   resourceName,
@@ -349,12 +350,10 @@ export function groupByRank(missions: readonly BoardMission[]): RankGroup[] {
   return [...groups].sort(([a], [b]) => a - b).map(([rank, group]) => ({ rank, missions: group }));
 }
 
-export function parseRankInput(text: string, max: number): number | null {
-  if (!/^\s*\d+\s*$/.test(text)) {
-    return null;
-  }
-  const rank = parseInt(text, 10);
-  return rank >= 1 && rank <= max ? rank : null;
+export function parseRankInput(text: string, max: number, powers: readonly string[]): number | null {
+  // The same rules as every amount field: game or plain notation, and fractions round.
+  const rank = text.trim() === '' ? NaN : amountValue(text, powers);
+  return Number.isInteger(rank) && rank >= 1 && rank <= max ? rank : null;
 }
 
 const abGroupTables = new WeakMap<GameBalance, Record<string, string[]>>();

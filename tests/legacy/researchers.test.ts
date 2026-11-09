@@ -21,7 +21,7 @@ import {
 import { TITLES, type TitleKey } from '@/domain/titles';
 import type { GameBalance, Researcher, TrackerMode } from '@/domain/types';
 import { emptyFormValues, type FormValues } from '@/engine/model';
-import { assetsAvailable, createLegacy, loadBalances, loadLocalizationBase64, stripHtml, TITLE_IDS, TITLE_KEYS } from './harness';
+import { assetsAvailable, createLegacy, loadBalances, loadLocalizationBase64, missionAmountsInFormat, stripHtml, TITLE_IDS, TITLE_KEYS } from './harness';
 
 const tally = { sorts: 0, lists: 0, maxLevels: 0, icons: 0, labels: 0, details: 0, propaganda: 0, generators: 0 };
 const anomalies = new Map<string, number>();
@@ -208,7 +208,7 @@ describe.skipIf(!assetsAvailable).each(TITLE_KEYS)('researchers match legacy (%s
 
           const legacyDetails = legacy.run<string>('getResearcherFullDetailsHtml(__r)', { __r: researcher });
           tally.details++;
-          expect(detailsText(researcherDetails(ctx, researcher, abGroups)), label).toBe(compact(legacyDetails));
+          expect(detailsText(researcherDetails(ctx, researcher, abGroups)), label).toBe(missionAmountsInFormat(compact(legacyDetails), ctx.title.powers));
         }
       });
 
@@ -288,7 +288,7 @@ describe.skipIf(!assetsAvailable).each(TITLE_KEYS)('researchers match legacy (%s
             ]
               .join('')
               .replace(/\s+/g, '');
-            expect(text.replace(`EachOutputs:${perSecond}/sec`, 'EachOutputs:/sec'), label).toBe(expected);
+            expect(missionAmountsInFormat(text, powers).replace(`EachOutputs:${perSecond}/sec`, 'EachOutputs:/sec'), label).toBe(expected);
 
             // The values themselves, not only their text.
             expect(details.costs.map((cost) => cost.resourceId), label).toEqual(

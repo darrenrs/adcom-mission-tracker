@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { bigNum } from '@/domain/format';
+import { formatAmount } from '@/domain/inputSteps';
 import { AmountInput } from './AmountInput';
 
 interface Props {
@@ -38,9 +38,9 @@ export function EditableAmount({ label, value, onValue, powers, className = '', 
       type="button"
       aria-label={`Edit ${label}`}
       onClick={() => setEditing(true)}
-      className={`min-h-control w-full min-w-0 cursor-text rounded-lg px-1 text-center text-base pointer-fine:text-sm font-semibold tabular-nums hover:bg-raised ${className}`}
+      className={`min-h-control w-full min-w-0 cursor-text rounded-lg px-1 text-center text-sm font-semibold tabular-nums hover:bg-raised ${className}`}
     >
-      <span className="block truncate">{shown ?? (value > 0 ? bigNum(value, powers) : '0')}</span>
+      <span className="block truncate">{shown ?? formatAmount(value, powers)}</span>
     </button>
   );
 }

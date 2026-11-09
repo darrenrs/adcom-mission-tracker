@@ -3,6 +3,7 @@
 // tests/legacy/gameText.test.ts compares the visible text with the legacy functions.
 
 import { bigNum, upperCaseFirstLetter } from './format';
+import { formatAmount } from './inputSteps';
 import type { TitleConfig } from './titles';
 import type {
   Experiment,
@@ -223,6 +224,8 @@ export function getResearcherBasicDetails(ctx: GameTextContext, researcher: Rese
 export function describeMission(ctx: GameTextContext, mission: Mission): MissionDescription {
   const { ConditionType: conditionType, ConditionId: id, Threshold: threshold } = mission.Condition;
   const inLte = ctx.mode === 'lte';
+  // Every amount in mission text uses the one number format ("Spend Dark Science (1,200)"). Legacy printed some raw.
+  const amount = formatAmount(threshold, ctx.title.powers);
   const describe = (
     body: string,
     iconResourceId: string,
@@ -232,19 +235,19 @@ export function describeMission(ctx: GameTextContext, mission: Mission): Mission
   switch (conditionType) {
     case 'TradesSinceSubscription':
       return describe(
-        `${upperCaseFirstLetter(ctx.localization['conditionmodel.trade.singular'])} ${show(resourceName(ctx, id))} (${threshold})`,
+        `${upperCaseFirstLetter(ctx.localization['conditionmodel.trade.singular'])} ${show(resourceName(ctx, id))} (${amount})`,
         id
       );
 
     case 'ResearchersUpgradedSinceSubscription':
       return describe(
-        `${show(ctx.localization['mission.researchersupgradedsincesubscription.any.simplename'])} (${threshold})`,
+        `${show(ctx.localization['mission.researchersupgradedsincesubscription.any.simplename'])} (${amount})`,
         'upgrade',
         inLte ? 'event' : 'balance'
       );
 
     case 'ResourceQuantity':
-      return describe(`Own ${show(resourceName(ctx, id))} (${bigNum(threshold, ctx.title.powers)})`, id);
+      return describe(`Own ${show(resourceName(ctx, id))} (${amount})`, id);
 
     case 'IndustryUnlocked': {
       // Legacy throws when no resource matches the industry; this falls back to the industry id.
@@ -253,13 +256,13 @@ export function describeMission(ctx: GameTextContext, mission: Mission): Mission
     }
 
     case 'ResourcesEarnedSinceSubscription':
-      return describe(`Collect ${show(resourceName(ctx, id))} (${bigNum(threshold, ctx.title.powers)})`, id);
+      return describe(`Collect ${show(resourceName(ctx, id))} (${amount})`, id);
 
     case 'ResearcherCardsEarnedSinceSubscription':
-      return describe(`Collect Cards (${threshold})`, 'card', 'shared');
+      return describe(`Collect Cards (${amount})`, 'card', 'shared');
 
     case 'ResourcesSpentSinceSubscription':
-      return describe(`Spend ${show(resourceName(ctx, id))} (${threshold})`, id, inLte ? 'event' : 'balance');
+      return describe(`Spend ${show(resourceName(ctx, id))} (${amount})`, id, inLte ? 'event' : 'balance');
 
     default:
       return { text: `Unknown mission condition: ${conditionType}`, iconResourceId: null, conditionType, iconSource: 'balance' };

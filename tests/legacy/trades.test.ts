@@ -3,7 +3,7 @@
 // next-trade cost strings: exact costs, almost exact ones, other amounts and text that is not a number.
 import { afterAll, describe, expect, it } from 'vitest';
 import { bigNum } from '@/domain/format';
-import { parseAmount } from '@/domain/inputSteps';
+import { formatAmount, parseAmount } from '@/domain/inputSteps';
 import { parseLocalization } from '@/domain/localization';
 import type { GameTextContext } from '@/domain/gameText';
 import { researcherMaxLevel } from '@/domain/researchers';
@@ -22,6 +22,22 @@ import { TITLES, type TitleKey } from '@/domain/titles';
 import type { GameBalance, TrackerMode } from '@/domain/types';
 import { emptyFormValues, type FormValues } from '@/engine/model';
 import { assetsAvailable, createLegacy, loadBalances, loadLocalizationBase64, stripHtml, TITLE_KEYS } from './harness';
+
+/**
+ * Deliberate change: the tracker writes every cost in its one number format (whole numbers under 1 M), where legacy
+ * used plain bigNum, which kept up to three decimals ("500.005"). Legacy's costs are put through the same format
+ * before comparing; invalid entries keep what was typed, in both.
+ */
+const inFormat = (text: string, powers: readonly string[]) => {
+  const value = parseAmount(text, powers);
+  return Number.isFinite(value) && value >= 0 ? formatAmount(value, powers) : text;
+};
+const tradesInFormat = (trades: FormValues['Trades'], powers: readonly string[]): FormValues['Trades'] => ({
+  ...trades,
+  Resource: Object.fromEntries(
+    Object.entries(trades.Resource).map(([id, trade]) => [id, trade && !trade.IsInvalid ? { ...trade, NextCost: inFormat(trade.NextCost, powers) } : trade])
+  )
+});
 
 const tally = { values: 0, counts: 0, updates: 0, totals: 0, breakdowns: 0, deltas: 0 };
 const seen = { movedButtons: 0, summed: 0 };
@@ -133,7 +149,7 @@ describe.skipIf(!assetsAvailable).each(TITLE_KEYS)('trades match legacy (%s)', (
             updateTradesForResource(balance, resourceId, text, mine, powers);
             legacy.call('updateTradesForResource', resourceId, text, theirs);
             tally.updates++;
-            expect(mine.Trades.Resource[resourceId], `${resourceId} "${text}" update`).toEqual(theirs.Trades.Resource[resourceId]);
+            expect(mine.Trades.Resource[resourceId], `${resourceId} "${text}" update`).toEqual(tradesInFormat(theirs.Trades, powers).Resource[resourceId]);
           }
         }
       }
@@ -159,7 +175,7 @@ describe.skipIf(!assetsAvailable).each(TITLE_KEYS)('trades match legacy (%s)', (
         legacy.call('updateTradeTabTotals');
         tally.totals++;
         if (!Object.values(mine.Trades.Resource).some((trade) => trade?.IsInvalid)) seen.summed++;
-        expect(mine.Trades, `round ${round} totals ${JSON.stringify(typed)}`).toEqual(theirs.Trades);
+        expect(mine.Trades, `round ${round} totals ${JSON.stringify(typed)}`).toEqual(tradesInFormat(theirs.Trades, powers));
 
         const legacyBreakdown = legacy.run<{ ResourceId: string; IsInvalid: boolean; NextCost: string; FormulaHtml: string; TotalHtml: string }[]>(
           'getIndustryTradeBreakdown(__FORM)'
@@ -172,7 +188,7 @@ describe.skipIf(!assetsAvailable).each(TITLE_KEYS)('trades match legacy (%s)', (
           expect([row.resourceId, row.isInvalid, row.nextCost, row.formula, row.total]).toEqual([
             other.ResourceId,
             other.IsInvalid,
-            other.NextCost,
+            other.IsInvalid ? other.NextCost : inFormat(other.NextCost, powers),
             stripHtml(other.FormulaHtml),
             stripHtml(other.TotalHtml)
           ]);
@@ -205,7 +221,7 @@ describe.skipIf(!assetsAvailable).each(TITLE_KEYS)('trades match legacy (%s)', (
             expect(result === null, `${resourceId} "${text}" ${delta}`).toBe(mineText === null);
             if (mineText !== null) {
               seen.movedButtons++;
-              expect(written?.[1], `${resourceId} "${text}" ${delta}`).toBe(mineText);
+              expect(inFormat(written?.[1] ?? '', powers), `${resourceId} "${text}" ${delta}`).toBe(mineText);
             }
           }
         }

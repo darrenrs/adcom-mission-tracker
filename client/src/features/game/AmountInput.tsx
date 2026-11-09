@@ -1,5 +1,5 @@
 import { useEffect, useState, type InputHTMLAttributes } from 'react';
-import { formatAmountText, parseAmount, stepAmount, stepDirection } from '@/domain/inputSteps';
+import { amountValue, settleAmount, stepAmount, stepDirection } from '@/domain/inputSteps';
 import { inputClass } from '@/ui/inputStyles';
 import { amountText, isInvalidAmount } from '@/features/calculator/fields';
 
@@ -8,26 +8,34 @@ interface Props extends Omit<InputHTMLAttributes<HTMLInputElement>, 'value' | 'o
   value: number;
   onValue(value: number): void;
   powers: readonly string[];
-  /** Generator counts: only whole numbers are valid. */
-  whole?: boolean;
   /** Mission progress only: players use negative values to stand in for other goals. */
   allowNegative?: boolean;
 }
 
-/** A number field that saves each valid change. Takes plain numbers or the game's notation, and plain Up and Down. */
-export function AmountInput({ label, value, onValue, powers, whole = false, className = '', onBlur, allowNegative = false, ...rest }: Props) {
+/**
+ * A number field that saves each valid change, rounded to the one number format. Takes plain numbers or the game's
+ * notation, and plain Up and Down. Leaving it or Enter settles the text into the format, so `12.5` becomes `13`.
+ */
+export function AmountInput({ label, value, onValue, powers, className = '', onBlur, onKeyDown, allowNegative = false, ...rest }: Props) {
   const [text, setText] = useState(() => amountText(value, powers));
-  const invalid = isInvalidAmount(text, powers, allowNegative, whole);
+  const invalid = isInvalidAmount(text, powers, allowNegative);
 
   // Another field may change the same number, such as an Own mission and its generator.
   useEffect(() => {
-    setText((shown) => (parseAmount(shown, powers) === value ? shown : amountText(value, powers)));
+    setText((shown) => (amountValue(shown, powers) === value ? shown : amountText(value, powers)));
   }, [value, powers]);
 
   const change = (next: string) => {
     setText(next);
-    if (!isInvalidAmount(next, powers, allowNegative, whole)) {
-      onValue(parseAmount(next, powers));
+    if (!isInvalidAmount(next, powers, allowNegative)) {
+      onValue(amountValue(next, powers));
+    }
+  };
+
+  const settle = () => {
+    const settled = settleAmount(text, powers, allowNegative);
+    if (settled && settled.text !== text) {
+      setText(settled.text);
     }
   };
 
@@ -44,13 +52,13 @@ export function AmountInput({ label, value, onValue, powers, whole = false, clas
       placeholder="0"
       onChange={(event) => change(event.target.value)}
       onBlur={(event) => {
-        const formatted = formatAmountText(text, powers);
-        if (formatted !== null && formatted !== text) {
-          setText(formatted);
-        }
+        settle();
         onBlur?.(event);
       }}
       onKeyDown={(event) => {
+        if (event.key === 'Enter') {
+          settle();
+        }
         const direction = stepDirection(event);
         if (direction !== 0) {
           event.preventDefault();
@@ -59,6 +67,7 @@ export function AmountInput({ label, value, onValue, powers, whole = false, clas
             change(next);
           }
         }
+        onKeyDown?.(event);
       }}
       className={`${inputClass} ${className}`}
       {...rest}

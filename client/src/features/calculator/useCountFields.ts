@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { parseAmount } from '@/domain/inputSteps';
+import { amountValue } from '@/domain/inputSteps';
 import { useSession, useTracker } from '@/state/store';
 import { amountText, applyCount, CPS_KEY, isInvalidAmount, PROGRESS_KEY, savedTexts } from './fields';
 
@@ -29,8 +29,9 @@ export function useCountFields({ resourceId, generatorIds, missionId }: Options)
 
   const save = useCallback(
     (key: string, text: string) => {
-      const value = parseAmount(text, powers);
-      if (!isInvalidAmount(text, powers, key === PROGRESS_KEY, key.startsWith('gen:'))) {
+      // Saved rounded to the number format, so the form always holds what the field will show.
+      const value = amountValue(text, powers);
+      if (!isInvalidAmount(text, powers, key === PROGRESS_KEY)) {
         updateForm((form) => applyCount(form, resourceId, key, value, Date.now()));
         if (key === PROGRESS_KEY) {
           setMissionProgress(missionId, value);
@@ -62,12 +63,12 @@ export function useCountFields({ resourceId, generatorIds, missionId }: Options)
   // The Trades tab works out comrades per second and writes it over this field, as it did in legacy.
   const total = session.form.Trades.TotalComrades;
   useEffect(() => {
-    if (parseAmount(latest.current[CPS_KEY] ?? '', powers) !== total) {
+    if (amountValue(latest.current[CPS_KEY] ?? '', powers) !== total) {
       setTexts((previous) => ({ ...previous, [CPS_KEY]: amountText(total, powers) }));
     }
   }, [total, powers]);
 
-  const invalid = useCallback((key: string) => isInvalidAmount(texts[key] ?? '', powers, key === PROGRESS_KEY, key.startsWith('gen:')), [texts, powers]);
+  const invalid = useCallback((key: string) => isInvalidAmount(texts[key] ?? '', powers, key === PROGRESS_KEY), [texts, powers]);
 
   return { texts, latest, setText, setMany, invalid };
 }

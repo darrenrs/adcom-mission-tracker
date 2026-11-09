@@ -11,7 +11,7 @@ const iconButton =
 
 /** Motherland moves freely between ranks. An event only moves forward, which completes what comes before. */
 export function RankControls({ progress, onClose }: { progress: RankProgress; onClose(): void }) {
-  const { mode, balance } = useSession();
+  const { mode, balance, title } = useSession();
   const advanceLte = useTracker((state) => state.advanceLte);
   const [value, setValue] = useState('');
   const [invalid, setInvalid] = useState(false);
@@ -35,7 +35,7 @@ export function RankControls({ progress, onClose }: { progress: RankProgress; on
 
   const submit = (event: FormEvent) => {
     event.preventDefault();
-    const target = parseRankInput(value, max);
+    const target = parseRankInput(value, max, title.powers);
     if (target === null) {
       setInvalid(true);
       return;

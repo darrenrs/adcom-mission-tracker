@@ -86,6 +86,14 @@ body {
 }
 
 @layer base {
+  /*
+   * The default side padding of every field (ui/inputStyles.ts). It sits in the base layer so that a px-* utility on a
+   * field always wins; as a utility itself, px-2 beat any smaller padding whatever the class order.
+   */
+  .field {
+    padding-inline: calc(var(--spacing) * 2);
+  }
+
   /* Anything that can be clicked shows the pointer, and anything that can be typed into shows the text cursor. */
   button:not(:disabled),
   [role="button"],

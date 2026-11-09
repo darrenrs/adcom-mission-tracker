@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { formatAmountText, parseAmount, stepAmount } from './inputSteps';
+import { amountValue, formatAmount, parseAmount, roundAmount, settleAmount, stepAmount } from './inputSteps';
 import { TITLES } from './titles';
 import { isInvalidAmount } from '@/features/calculator/fields';
 
@@ -23,9 +23,9 @@ describe('parseAmount', () => {
     }
   });
 
-  it('accepts 1.1 AA in a whole-number field', () => {
-    expect(isInvalidAmount('1.1 AA', powers, false, true)).toBe(false);
-    expect(isInvalidAmount('1.5', powers, false, true)).toBe(true);
+  it('accepts 1.1 AA, and reads it as a whole number', () => {
+    expect(isInvalidAmount('1.1 AA', powers)).toBe(false);
+    expect(Number.isInteger(amountValue('1.1 AA', powers))).toBe(true);
   });
 
   it('reads game notation, scientific notation and plain digits', () => {
@@ -44,18 +44,46 @@ describe('parseAmount', () => {
   });
 });
 
-describe('formatAmountText', () => {
-  it('rewrites a valid amount in the game format', () => {
-    expect(formatAmountText('1.6e+18', powers)).toBe('1.6 BB');
-    expect(formatAmountText('1600000000000000000', powers)).toBe('1.6 BB');
-    expect(formatAmountText('2 KKK', powers)).toBe('2 KFC');
-    expect(formatAmountText('28139', powers)).toBe('28,139');
+describe('the one number format', () => {
+  it('shows whole numbers with separators under 1 M, then two decimals and the power', () => {
+    expect(formatAmount(28139, powers)).toBe('28,139');
+    expect(formatAmount(999_999, powers)).toBe('999,999');
+    expect(formatAmount(1_234_567, powers)).toBe('1.23 M');
+    expect(formatAmount(1.6e18, powers)).toBe('1.6 BB');
+    expect(formatAmount(0, powers)).toBe('0');
+    expect(formatAmount(-1200, powers)).toBe('-1,200');
   });
 
-  it('leaves empty, invalid and negative text alone', () => {
-    expect(formatAmountText('', powers)).toBeNull();
-    expect(formatAmountText('abc', powers)).toBeNull();
-    expect(formatAmountText('-5', powers)).toBeNull();
+  it('rounds fractions under 1 M to whole numbers', () => {
+    expect(formatAmount(12.5, powers)).toBe('13');
+    expect(formatAmount(500.005, powers)).toBe('500');
+    expect(formatAmount(999_999.6, powers)).toBe('1 M');
+  });
+
+  it('saves the value it shows', () => {
+    expect(roundAmount(12.5, powers)).toBe(13);
+    expect(roundAmount(1_234_567, powers)).toBe(1_230_000);
+    expect(amountValue('1.234 M', powers)).toBe(1_230_000);
+    expect(amountValue('', powers)).toBe(0);
+    expect(amountValue('junk', powers)).toBeNaN();
+  });
+});
+
+describe('settleAmount', () => {
+  it('settles any valid amount into the format, even when the format rounds it', () => {
+    expect(settleAmount('1.6e+18', powers)).toEqual({ text: '1.6 BB', value: 1.6e18 });
+    expect(settleAmount('1600000000000000000', powers)).toEqual({ text: '1.6 BB', value: 1.6e18 });
+    expect(settleAmount('2 KKK', powers)?.text).toBe('2 KFC');
+    expect(settleAmount('28139', powers)).toEqual({ text: '28,139', value: 28139 });
+    expect(settleAmount('1234567', powers)).toEqual({ text: '1.23 M', value: 1_230_000 });
+    expect(settleAmount('12.5', powers)).toEqual({ text: '13', value: 13 });
+  });
+
+  it('leaves empty, invalid and (unless allowed) negative text alone', () => {
+    expect(settleAmount('', powers)).toBeNull();
+    expect(settleAmount('abc', powers)).toBeNull();
+    expect(settleAmount('-5', powers)).toBeNull();
+    expect(settleAmount('-5.4', powers, true)).toEqual({ text: '-5', value: -5 });
   });
 });
 
@@ -129,11 +157,9 @@ describe('validation', () => {
     expect(isInvalidAmount('NaN', powers)).toBe(true);
   });
 
-  it('requires whole generator counts below 2^53', async () => {
+  it('accepts fractions in every field, since they round to the format', async () => {
     const { isInvalidAmount } = await import('@/features/calculator/fields');
-    expect(isInvalidAmount('2.5', powers, false, true)).toBe(true);
-    expect(isInvalidAmount('3', powers, false, true)).toBe(false);
-    expect(isInvalidAmount('1.25 AAAA', powers, false, true)).toBe(false);
     expect(isInvalidAmount('2.5', powers)).toBe(false);
+    expect(isInvalidAmount('1.25 AAAA', powers)).toBe(false);
   });
 });

@@ -29,15 +29,43 @@ export function parseAmount(text: string, powers: readonly string[]): number {
   return Number.isFinite(value) ? value : NaN;
 }
 
-/** What a field should show once the player leaves it: a valid amount in the game's format, or null to leave it alone. */
-export function formatAmountText(text: string, powers: readonly string[]): string | null {
+/** Where `bigNum` switches from whole numbers to a power with up to two decimals. */
+const POWERS_FROM = 1e6;
+
+/**
+ * An amount in the tracker's one number format, used by every field and every amount in mission text: whole numbers
+ * with separators under 1 M (`1,234`), then up to two decimals and the power (`1.23 M`). Negatives keep their sign.
+ */
+export function formatAmount(value: number, powers: readonly string[]): string {
+  const size = Math.abs(value);
+  const shown = bigNum(size < POWERS_FROM ? Math.round(size) : size, powers);
+  return value < 0 && shown !== '0' ? `-${shown}` : shown;
+}
+
+/** The value `formatAmount` shows, so what a field saves is what it shows: `12.5` gives 13, `1,234,567` gives 1,230,000. */
+export function roundAmount(value: number, powers: readonly string[]): number {
+  const rounded = parseAmount(formatAmount(value, powers), powers);
+  return Number.isNaN(rounded) ? value : rounded;
+}
+
+/** A field's value: its text read and rounded to the format. Empty text is 0, junk is NaN. */
+export function amountValue(text: string, powers: readonly string[]): number {
   const value = parseAmount(text, powers);
-  if (text.trim() === '' || !Number.isFinite(value) || value < 0) {
+  return Number.isFinite(value) ? roundAmount(value, powers) : value;
+}
+
+/**
+ * What a field settles to when the player leaves it or presses Enter: the text in the one format and the value it
+ * saves. Null for empty text (left alone), junk, and negatives where they are not allowed (left red).
+ */
+export function settleAmount(text: string, powers: readonly string[], allowNegative = false): { text: string; value: number } | null {
+  const value = parseAmount(text, powers);
+  if (text.trim() === '' || !Number.isFinite(value) || (!allowNegative && value < 0)) {
     return null;
   }
-  const shown = bigNum(value, powers);
-  // Keep the exact digits when the game's rounding would change the number.
-  return Math.abs(parseAmount(shown, powers) - value) <= value * 1e-9 ? shown : String(value);
+  const shown = formatAmount(value, powers);
+  const saved = parseAmount(shown, powers);
+  return Number.isNaN(saved) ? null : { text: shown, value: saved };
 }
 
 /** 1 for plain Up, -1 for plain Down, and 0 for anything else, including either key with a modifier held. */

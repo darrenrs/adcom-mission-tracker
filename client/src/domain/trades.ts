@@ -1,9 +1,9 @@
 // Comrade trades: how many comrades each industry's trades give, from the next trade's cost and the trade
 // researchers. Ported from getTradesTab and the functions around it; tests/legacy/trades.test.ts compares them.
 
-import { bigNum, shortBigNum } from './format';
+import { shortBigNum } from './format';
 import { getResourceByIndustry, getValueForResearcherLevel, type GameTextContext } from './gameText';
-import { parseAmount } from './inputSteps';
+import { formatAmount, parseAmount } from './inputSteps';
 import type { GameBalance, Researcher } from './types';
 import type { FormValues, TradeValues } from '@/engine/model';
 
@@ -72,7 +72,7 @@ export function tradeLevelDelta(
   if (count < 0 || next === Infinity || Number.isNaN(next)) {
     return null;
   }
-  return bigNum(next, powers);
+  return formatAmount(next, powers);
 }
 
 /** Reads a typed cost into the form, as the next-trade cost fields do when they change. */
@@ -90,8 +90,8 @@ export function updateTradesForResource(
   form.Trades.Resource[resourceId] = Number.isNaN(count)
     ? { NextCost: costText, Count: 0, ComradesPerTrade: comradesPerTrade, TotalComrades: 0, IsInvalid: true }
     : {
-        // Normalised, as legacy did.
-        NextCost: bigNum(cost, powers),
+        // Normalised into the one number format. Legacy used plain bigNum, which kept up to three decimals under 1 M.
+        NextCost: formatAmount(cost, powers),
         Count: count,
         ComradesPerTrade: comradesPerTrade,
         TotalComrades: count * comradesPerTrade,

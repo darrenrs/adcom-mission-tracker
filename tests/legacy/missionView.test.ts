@@ -315,11 +315,15 @@ describe('rankProgress', () => {
 });
 
 describe('parseRankInput', () => {
-  it('accepts whole numbers in range only', () => {
-    expect(parseRankInput('5', 10)).toBe(5);
-    expect(parseRankInput(' 10 ', 10)).toBe(10);
-    for (const bad of ['', '0', '11', '-1', '2.5', 'abc', '1e1']) {
-      expect(parseRankInput(bad, 10), bad).toBeNull();
+  const powers = TITLES.adcom.powers;
+  it('accepts ranks in range, read with the same rules as every amount field', () => {
+    expect(parseRankInput('5', 10, powers)).toBe(5);
+    expect(parseRankInput(' 10 ', 10, powers)).toBe(10);
+    // Fractions round, as in every field.
+    expect(parseRankInput('2.5', 10, powers)).toBe(3);
+    expect(parseRankInput('1e1', 10, powers)).toBe(10);
+    for (const bad of ['', '0', '11', '-1', '0.4', 'abc']) {
+      expect(parseRankInput(bad, 10, powers), bad).toBeNull();
     }
   });
 });

@@ -114,16 +114,20 @@ test('Enter in a calculator field calculates', async ({ page }) => {
   await expect(calc.getByRole('status')).not.toBeEmpty();
 });
 
-test('Infinity and fractional generator counts are invalid', async ({ page }) => {
+test('Infinity is invalid, and fractions round to the number format on leaving the field', async ({ page }) => {
   await page.goto(OWN_FARMERS);
   const calc = calculator(page);
   const farmers = calc.getByLabel('# of Farmers');
   await farmers.fill('Infinity');
   await expect(farmers).toHaveAttribute('aria-invalid', 'true');
   await farmers.fill('2.5');
-  await expect(farmers).toHaveAttribute('aria-invalid', 'true');
-  await farmers.fill('2');
   await expect(farmers).not.toHaveAttribute('aria-invalid', 'true');
+  await farmers.press('Tab');
+  await expect(farmers).toHaveValue('3');
+  // Every field settles into the format, even when it rounds: 1234567 is shown, and saved, as 1.23 M.
+  await farmers.fill('1234567');
+  await farmers.press('Enter');
+  await expect(farmers).toHaveValue('1.23 M');
   const resource = calc.locator('input[data-field-key="resource"]');
   await resource.fill('Infinity');
   await expect(resource).toHaveAttribute('aria-invalid', 'true');

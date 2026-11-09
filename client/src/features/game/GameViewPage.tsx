@@ -109,8 +109,7 @@ function Stocks() {
   // AdCom calls it Gold, Ages calls it Gems; both use the `gold` resource.
   const gold = resourceName(ctx, 'gold') ?? 'Gold';
   const scienceIcon = assets.active(mode === 'evergreen' ? 'main/darkscience.png' : 'event/darkscience.png');
-  // Condensed on phones, so the longest amount ("999.99 AAAAA") fits the narrow box.
-  const input = 'w-full min-w-0 flex-1 text-center [font-stretch:75%] sm:[font-stretch:normal]';
+  const input = 'w-full min-w-0 flex-1 text-center';
 
   return (
     <section aria-label="Stocks" className="grid grid-cols-3 gap-2">
@@ -519,7 +518,6 @@ function GeneratorRow({
             <img src={details.iconUrl} alt="" width={40} height={40} className="size-10 rounded-full bg-raised object-contain p-0.5" />
           </button>
           <AmountInput
-            whole
             label={`number of ${name}`}
             powers={title.powers}
             value={count}

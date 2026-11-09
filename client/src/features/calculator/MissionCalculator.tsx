@@ -3,7 +3,7 @@ import { Calculator, Download } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { getEta, getTimeStampLocaleString, upperCaseFirstLetter } from '@/domain/format';
 import { getResourceByIndustry, resourceName } from '@/domain/gameText';
-import { parseAmount } from '@/domain/inputSteps';
+import { amountValue } from '@/domain/inputSteps';
 import { hasCalculator } from '@/domain/missionView';
 import { getResearchersByIndustry, industryGenerators, sortResearchers } from '@/domain/researchers';
 import type { Mission } from '@/domain/types';
@@ -102,7 +102,7 @@ function CalculatorBody({ mission, industryId, resourceId }: BodyProps) {
 
   const researchers = useMemo(() => sortResearchers(ctx, getResearchersByIndustry(ctx, industryId)), [ctx, industryId]);
   const tiers = useMemo(() => industryTiers(ctx.balance, industryId, form), [ctx.balance, industryId, form]);
-  const owned = (index: number) => parseAmount(counts.texts[generatorKey((tiers[index] as { id: string }).id)] ?? '', powers) > 0;
+  const owned = (index: number) => amountValue(counts.texts[generatorKey((tiers[index] as { id: string }).id)] ?? '', powers) > 0;
   const candidates = timeLeftCandidates(tiers, owned);
 
   // Anything the result was worked out from has changed, so a calculation still running is out of date.
@@ -126,14 +126,14 @@ function CalculatorBody({ mission, industryId, resourceId }: BodyProps) {
   }, [comradesOnly, generators, mission.Condition.ConditionId]);
 
   function calculate(texts: Readonly<Record<string, string>> = counts.latest.current) {
-    const read = (key: string) => parseAmount(texts[key] ?? '', powers);
+    const read = (key: string) => amountValue(texts[key] ?? '', powers);
     const keys = [...generators.map((generator) => generatorKey(generator.Id)), RESOURCE_KEY, COMRADES_KEY, CPS_KEY, ...(isCollect ? [PROGRESS_KEY] : [])];
     const progress = tiers.map((tier, index) => {
       const text = candidates.includes(index) ? (timeLeft[tier.id] ?? '') : '';
       return cycleProgress(text, tier.cycleSeconds);
     });
     const issues =
-      keys.filter((key) => isInvalidAmount(texts[key] ?? '', powers, key === PROGRESS_KEY, key.startsWith('gen:')) && !disabledKeys.has(key)).length +
+      keys.filter((key) => isInvalidAmount(texts[key] ?? '', powers, key === PROGRESS_KEY) && !disabledKeys.has(key)).length +
       progress.filter((entry) => entry.error !== null).length +
       Object.values(form.Trades.Resource).filter((trade) => trade?.IsInvalid).length;
     if (issues > 0) {

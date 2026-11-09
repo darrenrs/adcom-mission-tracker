@@ -2,8 +2,7 @@
 // Counts[resourceId] holds the generators, the resource, `resourceProgress` and a TimeStamp, Counts.comrade holds
 // the comrades and their own TimeStamp, and the comrades per second live in Trades.TotalComrades.
 
-import { bigNum } from '@/domain/format';
-import { parseAmount } from '@/domain/inputSteps';
+import { formatAmount, parseAmount } from '@/domain/inputSteps';
 import type { FormValues } from '@/engine/model';
 
 export const RESOURCE_KEY = 'resource';
@@ -13,18 +12,14 @@ export const CPS_KEY = 'cps';
 
 export const generatorKey = (generatorId: string) => `gen:${generatorId}`;
 
-/** Text for a saved amount that reads back as the same number: `35.33 EE` when that is exact, plain digits when not. */
+/** Text for a saved amount, in the one number format. Zero and missing amounts leave the field empty. */
 export function amountText(value: number | undefined, powers: readonly string[]): string {
-  if (value === undefined || !(value > 0)) {
-    return '';
-  }
-  const short = bigNum(value, powers);
-  return Math.abs(parseAmount(short, powers) - value) <= value * 1e-9 ? short : String(value);
+  return value === undefined || !Number.isFinite(value) || value === 0 ? '' : formatAmount(value, powers);
 }
 
-/** Import writes whole numbers, as legacy did, and leaves a field empty for zero. */
+/** Import writes amounts in the one number format and leaves a field empty for zero. */
 export function importedText(value: number, powers: readonly string[]): string {
-  return value > 0 ? bigNum(Math.round(value), powers) : '';
+  return value > 0 ? formatAmount(value, powers) : '';
 }
 
 /** The text each count field starts with: what was saved last time. */
@@ -75,11 +70,10 @@ export function countsTimeStamp(form: FormValues, resourceId: string): number | 
 
 /**
  * Game amounts are never negative, so a minus sign makes a field invalid rather than saving it. Mission progress is the
- * exception: players type a negative progress to stand in for a different goal, until custom goals exist.
+ * exception: players type a negative progress to stand in for a different goal, until custom goals exist. Fractions are
+ * valid in every field; they round to the number format.
  */
-export function isInvalidAmount(text: string, powers: readonly string[], allowNegative = false, whole = false): boolean {
+export function isInvalidAmount(text: string, powers: readonly string[], allowNegative = false): boolean {
   const value = parseAmount(text, powers);
-  // Generator counts are whole. Above 2^53 every number a computer stores is whole anyway.
-  const fraction = whole && value < Number.MAX_SAFE_INTEGER && !Number.isInteger(value);
-  return Number.isNaN(value) || (!allowNegative && value < 0) || fraction;
+  return Number.isNaN(value) || (!allowNegative && value < 0);
 }
