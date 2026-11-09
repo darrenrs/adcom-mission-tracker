@@ -52,7 +52,8 @@ function Segmented<T extends string>({ legend, value, options, onChange }: Segme
 const THEMES: { value: ThemeSetting; label: string }[] = [
   { value: 'system', label: 'System' },
   { value: 'light', label: 'Light' },
-  { value: 'dark', label: 'Dark' }
+  { value: 'dark', label: 'Dark' },
+  { value: 'ingame', label: 'In-Game' }
 ];
 
 interface ResetRowProps {

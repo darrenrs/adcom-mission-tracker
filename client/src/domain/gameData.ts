@@ -1,6 +1,7 @@
 // Loading the game data and the runtime config the server injects. Replaces loadDataFromAPI and the
 // RUNTIME_CONFIG constants of the legacy script.
 
+import { readPalettes, type Palette } from './palette';
 import type { Balance, LteScheduleData } from './types';
 
 export interface GameData {
@@ -9,6 +10,8 @@ export interface GameData {
   schedule: LteScheduleData;
   /** The English localization file, base64 encoded. */
   localizationBase64: string;
+  /** Each balance's theme colours, by balance id. Older asset data has none. */
+  palettes?: Record<string, Palette>;
 }
 
 export interface RuntimeConfig {
@@ -42,7 +45,7 @@ export async function loadGameData(titleId: string, fetchImpl: typeof fetch = fe
     throw new Error(`Could not load game data for title ${titleId}: ${endpoint} did not return an object`);
   }
 
-  const { Balance, LTESchedule, Localization } = body;
+  const { Balance, LTESchedule, Localization, Palette: palettes } = body;
   const missing: string[] = [];
   if (!isRecord(Balance)) missing.push('Balance');
   if (!isRecord(LTESchedule)) missing.push('LTESchedule');
@@ -61,7 +64,8 @@ export async function loadGameData(titleId: string, fetchImpl: typeof fetch = fe
   return {
     balances: Balance as Record<string, Balance>,
     schedule: LTESchedule as LteScheduleData,
-    localizationBase64: Localization as string
+    localizationBase64: Localization as string,
+    palettes: readPalettes(palettes)
   };
 }
 

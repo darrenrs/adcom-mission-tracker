@@ -1,0 +1,1706 @@
+{
+ "adcom:atlantis": {
+  "primary": {
+   "from": "atlantis",
+   "highlight": "#A6FA7C",
+   "main": "#59D734",
+   "shadow": "#182A10"
+  },
+  "rarity": {
+   "LteCommon": {
+    "highlight": "#1AA19A",
+    "main": "#136F6A",
+    "shadow": "#092622",
+    "text": "#18DBD0"
+   },
+   "LteRare": {
+    "highlight": "#FFFD53",
+    "main": "#F1E81B",
+    "shadow": "#2A2B00",
+    "text": "#F4FF25"
+   }
+  },
+  "root": {
+   "from": "atlantis",
+   "highlight": "#1AA19A",
+   "main": "#136F6A",
+   "shadow": "#092622"
+  },
+  "secondary": {
+   "from": "atlantis",
+   "highlight": "#FFFD53",
+   "main": "#F1E81B",
+   "shadow": "#2A2B00"
+  }
+ },
+ "adcom:attack": {
+  "primary": {
+   "from": "attack",
+   "highlight": "#A6FA7C",
+   "main": "#59D734",
+   "shadow": "#182A10"
+  },
+  "rarity": {
+   "LteCommon": {
+    "highlight": "#FFFAF8",
+    "main": "#ECE0DF",
+    "shadow": "#222222",
+    "text": "#ECE0DF"
+   },
+   "LteRare": {
+    "highlight": "#FFED7A",
+    "main": "#FFB91B",
+    "shadow": "#302706",
+    "text": "#FFB91B"
+   }
+  },
+  "root": {
+   "from": "attack",
+   "highlight": "#C0E969",
+   "main": "#7C9C37",
+   "shadow": "#232E0C"
+  },
+  "secondary": {
+   "from": "attack",
+   "highlight": "#A6FA7C",
+   "main": "#59D734",
+   "shadow": "#182A10"
+  }
+ },
+ "adcom:bamboo": {
+  "primary": {
+   "from": "bamboo",
+   "highlight": "#A6FA7C",
+   "main": "#59D734",
+   "shadow": "#182A10"
+  },
+  "rarity": {
+   "LteCommon": {
+    "highlight": "#C4F2F9",
+    "main": "#0DA0B7",
+    "shadow": "#0F4850",
+    "text": "#66E0F3"
+   },
+   "LteRare": {
+    "highlight": "#F6B0BF",
+    "main": "#F7507F",
+    "shadow": "#60212D",
+    "text": "#FA83A5"
+   }
+  },
+  "root": {
+   "from": "bamboo",
+   "highlight": "#FFEDD5",
+   "main": "#DFB596",
+   "shadow": "#6A483D"
+  },
+  "secondary": {
+   "from": "bamboo",
+   "highlight": "#F6B0BF",
+   "main": "#F7507F",
+   "shadow": "#60212D"
+  }
+ },
+ "adcom:cockatrice": {
+  "primary": {
+   "from": "cockatrice",
+   "highlight": "#A6FA7C",
+   "main": "#59D734",
+   "shadow": "#182A10"
+  },
+  "rarity": {
+   "LteCommon": {
+    "highlight": "#AFECE1",
+    "main": "#007ACE",
+    "shadow": "#00366D",
+    "text": "#007ACE"
+   },
+   "LteRare": {
+    "highlight": "#FFBFD8",
+    "main": "#E34E58",
+    "shadow": "#67030F",
+    "text": "#E34E58"
+   }
+  },
+  "root": {
+   "from": "cockatrice",
+   "highlight": "#FBF6E0",
+   "main": "#CEBCAC",
+   "shadow": "#766353"
+  },
+  "secondary": {
+   "from": "cockatrice",
+   "highlight": "#FFBFD8",
+   "main": "#E34E58",
+   "shadow": "#67030F"
+  }
+ },
+ "adcom:cowboy": {
+  "primary": {
+   "from": "cowboy",
+   "highlight": "#A6FA7C",
+   "main": "#59D734",
+   "shadow": "#182A10"
+  },
+  "rarity": {
+   "LteCommon": {
+    "highlight": "#DD8427",
+    "main": "#A15D21",
+    "shadow": "#261B09",
+    "text": "#BC7327"
+   },
+   "LteRare": {
+    "highlight": "#FFF0CB",
+    "main": "#CFBB8A",
+    "shadow": "#2E1F00",
+    "text": "#D4BF89"
+   }
+  },
+  "root": {
+   "from": "cowboy",
+   "highlight": "#B96F22",
+   "main": "#7E491A",
+   "shadow": "#261B09"
+  },
+  "secondary": {
+   "from": "cowboy",
+   "highlight": "#FFF0CB",
+   "main": "#CFBB8A",
+   "shadow": "#2E1F00"
+  }
+ },
+ "adcom:crusade": {
+  "primary": {
+   "from": "crusade",
+   "highlight": "#A6FA7C",
+   "main": "#59D734",
+   "shadow": "#182A10"
+  },
+  "rarity": {
+   "LteCommon": {
+    "highlight": "#2B5EB2",
+    "main": "#1C3C70",
+    "shadow": "#0B172B",
+    "text": "#2579FF"
+   },
+   "LteRare": {
+    "highlight": "#FE4857",
+    "main": "#E00E1C",
+    "shadow": "#300910",
+    "text": "#FF2535"
+   }
+  },
+  "root": {
+   "from": "crusade",
+   "highlight": "#2B5EB2",
+   "main": "#1C3C70",
+   "shadow": "#0B172B"
+  },
+  "secondary": {
+   "from": "crusade",
+   "highlight": "#FE4857",
+   "main": "#E00E1C",
+   "shadow": "#300910"
+  }
+ },
+ "adcom:defense": {
+  "primary": {
+   "from": "defense",
+   "highlight": "#A6FA7C",
+   "main": "#59D734",
+   "shadow": "#182A10"
+  },
+  "rarity": {
+   "LteCommon": {
+    "highlight": "#FFFAF8",
+    "main": "#ECE0DF",
+    "shadow": "#222222",
+    "text": "#ECE0DF"
+   },
+   "LteRare": {
+    "highlight": "#FFED7A",
+    "main": "#FFB91B",
+    "shadow": "#302706",
+    "text": "#FFB91B"
+   }
+  },
+  "root": {
+   "from": "defense",
+   "highlight": "#C0E969",
+   "main": "#7C9C37",
+   "shadow": "#232E0C"
+  },
+  "secondary": {
+   "from": "defense",
+   "highlight": "#A6FA7C",
+   "main": "#59D734",
+   "shadow": "#182A10"
+  }
+ },
+ "adcom:evergreen": {
+  "primary": {
+   "from": "evergreen",
+   "highlight": "#A6FA7C",
+   "main": "#59D734",
+   "shadow": "#182A10"
+  },
+  "rarity": {
+   "Common": {
+    "highlight": "#FFFAF8",
+    "main": "#ECE0DF",
+    "shadow": "#222222",
+    "text": "#FFFFFF"
+   },
+   "Epic": {
+    "highlight": "#ED77FF",
+    "main": "#C53DF2",
+    "shadow": "#220630",
+    "text": "#D447FF"
+   },
+   "Event": {
+    "highlight": "#FBA404",
+    "main": "#FF6900",
+    "shadow": "#2E1300",
+    "text": "#FF7710"
+   },
+   "LteCommon": {
+    "highlight": "#7C41B8",
+    "main": "#46314D",
+    "shadow": "#180922",
+    "text": "#D447FF"
+   },
+   "LteRare": {
+    "highlight": "#2EFAE0",
+    "main": "#16B49D",
+    "shadow": "#052626",
+    "text": "#1FF8DC"
+   },
+   "None": {
+    "highlight": "#A6FA7C",
+    "main": "#59D734",
+    "shadow": "#182A10",
+    "text": "#3CFF00"
+   },
+   "Rare": {
+    "highlight": "#FFED7A",
+    "main": "#FFB91B",
+    "shadow": "#302706",
+    "text": "#FFC700"
+   },
+   "Supreme": {
+    "highlight": "#FE4857",
+    "main": "#E00E1C",
+    "shadow": "#300910",
+    "text": "#FF2535"
+   }
+  },
+  "root": {
+   "from": "evergreen",
+   "highlight": "#FE4857",
+   "main": "#C4222D",
+   "shadow": "#300910"
+  },
+  "secondary": {
+   "from": "evergreen",
+   "highlight": "#A6FA7C",
+   "main": "#59D734",
+   "shadow": "#182A10"
+  }
+ },
+ "adcom:export": {
+  "primary": {
+   "from": "export",
+   "highlight": "#A6FA7C",
+   "main": "#59D734",
+   "shadow": "#182A10"
+  },
+  "rarity": {
+   "LteCommon": {
+    "highlight": "#FFFAF8",
+    "main": "#ECE0DF",
+    "shadow": "#222222",
+    "text": "#ECE0DF"
+   },
+   "LteRare": {
+    "highlight": "#FFED7A",
+    "main": "#FFB91B",
+    "shadow": "#302706",
+    "text": "#FFB91B"
+   }
+  },
+  "root": {
+   "from": "export",
+   "highlight": "#C0E969",
+   "main": "#7C9C37",
+   "shadow": "#232E0C"
+  },
+  "secondary": {
+   "from": "export",
+   "highlight": "#A6FA7C",
+   "main": "#59D734",
+   "shadow": "#182A10"
+  }
+ },
+ "adcom:fusfarm": {
+  "primary": {
+   "from": "fusion",
+   "highlight": "#A6FA7C",
+   "main": "#59D734",
+   "shadow": "#182A10"
+  },
+  "rarity": {
+   "LteCommon": {
+    "highlight": "#D9F6FF",
+    "main": "#009CD6",
+    "shadow": "#0F578F",
+    "text": "#009CD6"
+   },
+   "LteRare": {
+    "highlight": "#F5989E",
+    "main": "#C83442",
+    "shadow": "#67030F",
+    "text": "#E34E58"
+   }
+  },
+  "root": {
+   "from": "fusion",
+   "highlight": "#FFF2D5",
+   "main": "#FFE4A6",
+   "shadow": "#400F44"
+  },
+  "secondary": {
+   "from": "fusfarm",
+   "highlight": "#F5989E",
+   "main": "#C83442",
+   "shadow": "#67030F"
+  }
+ },
+ "adcom:fuspet": {
+  "primary": {
+   "from": "fusion",
+   "highlight": "#A6FA7C",
+   "main": "#59D734",
+   "shadow": "#182A10"
+  },
+  "rarity": {
+   "LteCommon": {
+    "highlight": "#F6B0BF",
+    "main": "#F7507F",
+    "shadow": "#60212D",
+    "text": "#F7507F"
+   },
+   "LteRare": {
+    "highlight": "#C4F2F9",
+    "main": "#0DA0B7",
+    "shadow": "#0F4850",
+    "text": "#0DA0B7"
+   }
+  },
+  "root": {
+   "from": "fusion",
+   "highlight": "#FFF2D5",
+   "main": "#FFE4A6",
+   "shadow": "#400F44"
+  },
+  "secondary": {
+   "from": "fuspet",
+   "highlight": "#C4F2F9",
+   "main": "#0DA0B7",
+   "shadow": "#0F4850"
+  }
+ },
+ "adcom:fusscience": {
+  "primary": {
+   "from": "fusion",
+   "highlight": "#A6FA7C",
+   "main": "#59D734",
+   "shadow": "#182A10"
+  },
+  "rarity": {
+   "LteCommon": {
+    "highlight": "#FBE9D2",
+    "main": "#E3A24E",
+    "shadow": "#934805",
+    "text": "#E3A24E"
+   },
+   "LteRare": {
+    "highlight": "#C1F2F0",
+    "main": "#48E0B7",
+    "shadow": "#106A6B",
+    "text": "#48E0B7"
+   }
+  },
+  "root": {
+   "from": "fusion",
+   "highlight": "#FFF2D5",
+   "main": "#FFE4A6",
+   "shadow": "#400F44"
+  },
+  "secondary": {
+   "from": "fusscience",
+   "highlight": "#C1F2F0",
+   "main": "#48E0B7",
+   "shadow": "#106A6B"
+  }
+ },
+ "adcom:fusvehicle": {
+  "primary": {
+   "from": "fusion",
+   "highlight": "#A6FA7C",
+   "main": "#59D734",
+   "shadow": "#182A10"
+  },
+  "rarity": {
+   "LteCommon": {
+    "highlight": "#D7FFCB",
+    "main": "#5FB850",
+    "shadow": "#005D46",
+    "text": "#5FB850"
+   },
+   "LteRare": {
+    "highlight": "#FFE8FB",
+    "main": "#9258B7",
+    "shadow": "#4F1E6F",
+    "text": "#9258B7"
+   }
+  },
+  "root": {
+   "from": "fusion",
+   "highlight": "#FFF2D5",
+   "main": "#FFE4A6",
+   "shadow": "#400F44"
+  },
+  "secondary": {
+   "from": "fusvehicle",
+   "highlight": "#FFE8FB",
+   "main": "#9258B7",
+   "shadow": "#4F1E6F"
+  }
+ },
+ "adcom:hexathlon": {
+  "primary": {
+   "from": "hexathlon",
+   "highlight": "#A6FA7C",
+   "main": "#59D734",
+   "shadow": "#182A10"
+  },
+  "rarity": {
+   "LteCommon": {
+    "highlight": "#F1C3A0",
+    "main": "#F24B59",
+    "shadow": "#872330",
+    "text": "#EE868E"
+   },
+   "LteRare": {
+    "highlight": "#A7F1E6",
+    "main": "#00A1D2",
+    "shadow": "#102F65",
+    "text": "#00A1D2"
+   }
+  },
+  "root": {
+   "from": "hexathlon",
+   "highlight": "#F2E7B5",
+   "main": "#34E3CC",
+   "shadow": "#146976"
+  },
+  "secondary": {
+   "from": "hexathlon",
+   "highlight": "#A7F1E6",
+   "main": "#00A1D2",
+   "shadow": "#102F65"
+  }
+ },
+ "adcom:minicockatrice": {
+  "primary": {
+   "from": "minicockatrice",
+   "highlight": "#A6FA7C",
+   "main": "#59D734",
+   "shadow": "#182A10"
+  },
+  "rarity": {
+   "LteCommon": {
+    "highlight": "#AFECE1",
+    "main": "#007ACE",
+    "shadow": "#00366D",
+    "text": "#007ACE"
+   },
+   "LteRare": {
+    "highlight": "#FFBFD8",
+    "main": "#E34E58",
+    "shadow": "#67030F",
+    "text": "#E34E58"
+   }
+  },
+  "root": {
+   "from": "minicockatrice",
+   "highlight": "#FBF6E0",
+   "main": "#CEBCAC",
+   "shadow": "#766353"
+  },
+  "secondary": {
+   "from": "minicockatrice",
+   "highlight": "#FFBFD8",
+   "main": "#E34E58",
+   "shadow": "#67030F"
+  }
+ },
+ "adcom:minipotatofactory": {
+  "primary": {
+   "from": "minipotatofactory",
+   "highlight": "#A6FA7C",
+   "main": "#59D734",
+   "shadow": "#182A10"
+  },
+  "rarity": {
+   "LteCommon": {
+    "highlight": "#D26383",
+    "main": "#C33C68",
+    "shadow": "#310F17",
+    "text": "#D26383"
+   },
+   "LteRare": {
+    "highlight": "#FFD27E",
+    "main": "#FD9D42",
+    "shadow": "#392912",
+    "text": "#FFD27E"
+   }
+  },
+  "root": {
+   "from": "minipotatofactory",
+   "highlight": "#D26383",
+   "main": "#C33C68",
+   "shadow": "#310F17"
+  },
+  "secondary": {
+   "from": "minipotatofactory",
+   "highlight": "#FFD27E",
+   "main": "#FD9D42",
+   "shadow": "#392912"
+  }
+ },
+ "adcom:minisanta": {
+  "primary": {
+   "from": "minisanta",
+   "highlight": "#A6FA7C",
+   "main": "#59D734",
+   "shadow": "#182A10"
+  },
+  "rarity": {
+   "LteCommon": {
+    "highlight": "#29BE76",
+    "main": "#1CB357",
+    "shadow": "#0B2418",
+    "text": "#3CFF00"
+   },
+   "LteRare": {
+    "highlight": "#FE4857",
+    "main": "#E00E1C",
+    "shadow": "#300910",
+    "text": "#FF2535"
+   }
+  },
+  "root": {
+   "from": "minisanta",
+   "highlight": "#29BE76",
+   "main": "#076B3E",
+   "shadow": "#0B2418"
+  },
+  "secondary": {
+   "from": "minisanta",
+   "highlight": "#FE4857",
+   "main": "#E00E1C",
+   "shadow": "#300910"
+  }
+ },
+ "adcom:minisports": {
+  "primary": {
+   "from": "minisports",
+   "highlight": "#A6FA7C",
+   "main": "#59D734",
+   "shadow": "#182A10"
+  },
+  "rarity": {
+   "LteCommon": {
+    "highlight": "#F1C3A0",
+    "main": "#F24B59",
+    "shadow": "#872330",
+    "text": "#EE868E"
+   },
+   "LteRare": {
+    "highlight": "#A7F1E6",
+    "main": "#00A1D2",
+    "shadow": "#102F65",
+    "text": "#00A1D2"
+   }
+  },
+  "root": {
+   "from": "minisports",
+   "highlight": "#F2E7B5",
+   "main": "#34E3CC",
+   "shadow": "#146976"
+  },
+  "secondary": {
+   "from": "minisports",
+   "highlight": "#A7F1E6",
+   "main": "#00A1D2",
+   "shadow": "#102F65"
+  }
+ },
+ "adcom:minivacation": {
+  "primary": {
+   "from": "minivacation",
+   "highlight": "#A6FA7C",
+   "main": "#59D734",
+   "shadow": "#182A10"
+  },
+  "rarity": {
+   "LteCommon": {
+    "highlight": "#C4F2F9",
+    "main": "#0DA0B7",
+    "shadow": "#0F4850",
+    "text": "#66E0F3"
+   },
+   "LteRare": {
+    "highlight": "#F6B0BF",
+    "main": "#F7507F",
+    "shadow": "#60212D",
+    "text": "#FA83A5"
+   }
+  },
+  "root": {
+   "from": "minivacation",
+   "highlight": "#FFEDD5",
+   "main": "#DFB596",
+   "shadow": "#6A483D"
+  },
+  "secondary": {
+   "from": "minivacation",
+   "highlight": "#F6B0BF",
+   "main": "#F7507F",
+   "shadow": "#60212D"
+  }
+ },
+ "adcom:minivillain": {
+  "primary": {
+   "from": "minivillain",
+   "highlight": "#A6FA7C",
+   "main": "#59D734",
+   "shadow": "#182A10"
+  },
+  "rarity": {
+   "LteCommon": {
+    "highlight": "#F1CC8C",
+    "main": "#E7AF40",
+    "shadow": "#54330A",
+    "text": "#E7AF40"
+   },
+   "LteRare": {
+    "highlight": "#FEACA0",
+    "main": "#D3000D",
+    "shadow": "#43020A",
+    "text": "#D3000D"
+   }
+  },
+  "root": {
+   "from": "minivillain",
+   "highlight": "#79A6AE",
+   "main": "#566C79",
+   "shadow": "#271C2E"
+  },
+  "secondary": {
+   "from": "minivillain",
+   "highlight": "#FEACA0",
+   "main": "#D3000D",
+   "shadow": "#43020A"
+  }
+ },
+ "adcom:ninja": {
+  "primary": {
+   "from": "ninja",
+   "highlight": "#A6FA7C",
+   "main": "#59D734",
+   "shadow": "#182A10"
+  },
+  "rarity": {
+   "LteCommon": {
+    "highlight": "#636363",
+    "main": "#4F3F3F",
+    "shadow": "#181818",
+    "text": "#E0E0E0"
+   },
+   "LteRare": {
+    "highlight": "#FF4574",
+    "main": "#C3245C",
+    "shadow": "#310011",
+    "text": "#FF367A"
+   }
+  },
+  "root": {
+   "from": "ninja",
+   "highlight": "#636363",
+   "main": "#282828",
+   "shadow": "#181818"
+  },
+  "secondary": {
+   "from": "ninja",
+   "highlight": "#FF4574",
+   "main": "#C3245C",
+   "shadow": "#310011"
+  }
+ },
+ "adcom:potatofactory": {
+  "primary": {
+   "from": "potatofactory",
+   "highlight": "#A6FA7C",
+   "main": "#59D734",
+   "shadow": "#182A10"
+  },
+  "rarity": {
+   "LteCommon": {
+    "highlight": "#D26383",
+    "main": "#C33C68",
+    "shadow": "#310F17",
+    "text": "#D26383"
+   },
+   "LteRare": {
+    "highlight": "#FFD27E",
+    "main": "#FD9D42",
+    "shadow": "#392912",
+    "text": "#FFD27E"
+   }
+  },
+  "root": {
+   "from": "potatofactory",
+   "highlight": "#D26383",
+   "main": "#C33C68",
+   "shadow": "#310F17"
+  },
+  "secondary": {
+   "from": "potatofactory",
+   "highlight": "#FFD27E",
+   "main": "#FD9D42",
+   "shadow": "#392912"
+  }
+ },
+ "adcom:power": {
+  "primary": {
+   "from": "power",
+   "highlight": "#A6FA7C",
+   "main": "#59D734",
+   "shadow": "#182A10"
+  },
+  "rarity": {
+   "LteCommon": {
+    "highlight": "#FFFAF8",
+    "main": "#ECE0DF",
+    "shadow": "#222222",
+    "text": "#ECE0DF"
+   },
+   "LteRare": {
+    "highlight": "#FFED7A",
+    "main": "#FFB91B",
+    "shadow": "#302706",
+    "text": "#FFB91B"
+   }
+  },
+  "root": {
+   "from": "power",
+   "highlight": "#C0E969",
+   "main": "#7C9C37",
+   "shadow": "#232E0C"
+  },
+  "secondary": {
+   "from": "power",
+   "highlight": "#A6FA7C",
+   "main": "#59D734",
+   "shadow": "#182A10"
+  }
+ },
+ "adcom:santa": {
+  "primary": {
+   "from": "santa",
+   "highlight": "#A6FA7C",
+   "main": "#59D734",
+   "shadow": "#182A10"
+  },
+  "rarity": {
+   "LteCommon": {
+    "highlight": "#29BE76",
+    "main": "#1CB357",
+    "shadow": "#0B2418",
+    "text": "#3CFF00"
+   },
+   "LteRare": {
+    "highlight": "#FE4857",
+    "main": "#E00E1C",
+    "shadow": "#300910",
+    "text": "#FF2535"
+   }
+  },
+  "root": {
+   "from": "santa",
+   "highlight": "#29BE76",
+   "main": "#076B3E",
+   "shadow": "#0B2418"
+  },
+  "secondary": {
+   "from": "santa",
+   "highlight": "#FE4857",
+   "main": "#E00E1C",
+   "shadow": "#300910"
+  }
+ },
+ "adcom:space": {
+  "primary": {
+   "from": "space",
+   "highlight": "#A6FA7C",
+   "main": "#59D734",
+   "shadow": "#182A10"
+  },
+  "rarity": {
+   "LteCommon": {
+    "highlight": "#7C41B8",
+    "main": "#80518E",
+    "shadow": "#180922",
+    "text": "#D447FF"
+   },
+   "LteRare": {
+    "highlight": "#2EFAE0",
+    "main": "#16B49D",
+    "shadow": "#052626",
+    "text": "#1FF8DC"
+   }
+  },
+  "root": {
+   "from": "space",
+   "highlight": "#7C41B8",
+   "main": "#46314D",
+   "shadow": "#180922"
+  },
+  "secondary": {
+   "from": "space",
+   "highlight": "#2EFAE0",
+   "main": "#16B49D",
+   "shadow": "#052626"
+  }
+ },
+ "adcom:spooky": {
+  "primary": {
+   "from": "spooky",
+   "highlight": "#A6FA7C",
+   "main": "#59D734",
+   "shadow": "#182A10"
+  },
+  "rarity": {
+   "LteCommon": {
+    "highlight": "#40458C",
+    "main": "#504665",
+    "shadow": "#101118",
+    "text": "#E0E0E0"
+   },
+   "LteRare": {
+    "highlight": "#FB8B04",
+    "main": "#FF5100",
+    "shadow": "#2E0600",
+    "text": "#FF5100"
+   }
+  },
+  "root": {
+   "from": "spooky",
+   "highlight": "#40458C",
+   "main": "#322C42",
+   "shadow": "#101118"
+  },
+  "secondary": {
+   "from": "spooky",
+   "highlight": "#FB8B04",
+   "main": "#FF5100",
+   "shadow": "#2E0600"
+  }
+ },
+ "adcom:stone": {
+  "primary": {
+   "from": "stone",
+   "highlight": "#A6FA7C",
+   "main": "#59D734",
+   "shadow": "#182A10"
+  },
+  "rarity": {
+   "LteCommon": {
+    "highlight": "#FFCE22",
+    "main": "#E97E16",
+    "shadow": "#3D1F01",
+    "text": "#C46100"
+   },
+   "LteRare": {
+    "highlight": "#F1FF00",
+    "main": "#A5CF00",
+    "shadow": "#212300",
+    "text": "#CCFF00"
+   }
+  },
+  "root": {
+   "from": "stone",
+   "highlight": "#FFCE22",
+   "main": "#E97E16",
+   "shadow": "#3D1F01"
+  },
+  "secondary": {
+   "from": "stone",
+   "highlight": "#F1FF00",
+   "main": "#A5CF00",
+   "shadow": "#212300"
+  }
+ },
+ "adcom:supervillain": {
+  "primary": {
+   "from": "supervillain",
+   "highlight": "#A6FA7C",
+   "main": "#59D734",
+   "shadow": "#182A10"
+  },
+  "rarity": {
+   "LteCommon": {
+    "highlight": "#F1CC8C",
+    "main": "#E7AF40",
+    "shadow": "#54330A",
+    "text": "#E7AF40"
+   },
+   "LteRare": {
+    "highlight": "#FEACA0",
+    "main": "#D3000D",
+    "shadow": "#43020A",
+    "text": "#D3000D"
+   }
+  },
+  "root": {
+   "from": "supervillain",
+   "highlight": "#79A6AE",
+   "main": "#566C79",
+   "shadow": "#271C2E"
+  },
+  "secondary": {
+   "from": "supervillain",
+   "highlight": "#FEACA0",
+   "main": "#D3000D",
+   "shadow": "#43020A"
+  }
+ },
+ "adcom:winter": {
+  "primary": {
+   "from": "winter",
+   "highlight": "#A6FA7C",
+   "main": "#59D734",
+   "shadow": "#182A10"
+  },
+  "rarity": {
+   "LteCommon": {
+    "highlight": "#03C4F1",
+    "main": "#0080B0",
+    "shadow": "#002735",
+    "text": "#00C2FF"
+   },
+   "LteRare": {
+    "highlight": "#FFFFE6",
+    "main": "#FFFFCE",
+    "shadow": "#29271F",
+    "text": "#FFFFCE"
+   }
+  },
+  "root": {
+   "from": "winter",
+   "highlight": "#03C4F1",
+   "main": "#0080B0",
+   "shadow": "#002735"
+  },
+  "secondary": {
+   "from": "winter",
+   "highlight": "#FFFFE3",
+   "main": "#FFFAE6",
+   "shadow": "#403531"
+  }
+ },
+ "adcom:zombie": {
+  "primary": {
+   "from": "zombie",
+   "highlight": "#A6FA7C",
+   "main": "#59D734",
+   "shadow": "#182A10"
+  },
+  "rarity": {
+   "LteCommon": {
+    "highlight": "#AEA878",
+    "main": "#8D875C",
+    "shadow": "#2E2C1E",
+    "text": "#A29D72"
+   },
+   "LteRare": {
+    "highlight": "#CF5753",
+    "main": "#9E3834",
+    "shadow": "#2E100E",
+    "text": "#F9635D"
+   }
+  },
+  "root": {
+   "from": "zombie",
+   "highlight": "#AEA778",
+   "main": "#8D875C",
+   "shadow": "#2E2B1E"
+  },
+  "secondary": {
+   "from": "zombie",
+   "highlight": "#CF5753",
+   "main": "#9E3834",
+   "shadow": "#2E100E"
+  }
+ },
+ "ages:aliens": {
+  "primary": {
+   "from": "aliens",
+   "highlight": "#ADF03C",
+   "main": "#6BCD18",
+   "shadow": "#00590B"
+  },
+  "rarity": {
+   "LteCommon": {
+    "highlight": "#9F3166",
+    "main": "#6A0F3C",
+    "shadow": "#3C0520",
+    "text": "#7E0C29"
+   },
+   "LteRare": {
+    "highlight": "#A0F4F8",
+    "main": "#62D1F4",
+    "shadow": "#216074",
+    "text": "#62D1F4"
+   }
+  },
+  "root": {
+   "from": "aliens",
+   "highlight": "#8578AD",
+   "main": "#2B266F",
+   "shadow": "#181632"
+  },
+  "secondary": {
+   "from": "aliens",
+   "highlight": "#ADF03C",
+   "main": "#6BCD18",
+   "shadow": "#005A0C"
+  }
+ },
+ "ages:architecture": {
+  "primary": {
+   "from": "fusionarchitecture",
+   "highlight": "#ADF03C",
+   "main": "#6BCD18",
+   "shadow": "#00590B"
+  },
+  "rarity": {
+   "LteCommon": {
+    "highlight": "#F0FDD2",
+    "main": "#31B594",
+    "shadow": "#126450",
+    "text": "#18DBD0"
+   },
+   "LteRare": {
+    "highlight": "#F5C9A6",
+    "main": "#F27367",
+    "shadow": "#74343F",
+    "text": "#F4FF25"
+   }
+  },
+  "root": {
+   "from": "fusionarchitecture",
+   "highlight": "#C7F6EF",
+   "main": "#67828A",
+   "shadow": "#37475A"
+  },
+  "secondary": {
+   "from": "fusionarchitecture",
+   "highlight": "#ADF03C",
+   "main": "#6BCD18",
+   "shadow": "#00660D"
+  }
+ },
+ "ages:careers": {
+  "primary": {
+   "from": "fusioncareers",
+   "highlight": "#ADF03C",
+   "main": "#6BCD18",
+   "shadow": "#00590B"
+  },
+  "rarity": {
+   "LteCommon": {
+    "highlight": "#EFD1BD",
+    "main": "#DD7352",
+    "shadow": "#A6393E",
+    "text": "#18DBD0"
+   },
+   "LteRare": {
+    "highlight": "#FAE5B1",
+    "main": "#F2C556",
+    "shadow": "#B9511E",
+    "text": "#F4FF25"
+   }
+  },
+  "root": {
+   "from": "fusioncareers",
+   "highlight": "#C7F6EF",
+   "main": "#67828A",
+   "shadow": "#37475A"
+  },
+  "secondary": {
+   "from": "fusioncareers",
+   "highlight": "#ADF03C",
+   "main": "#6BCD18",
+   "shadow": "#00660D"
+  }
+ },
+ "ages:christmas": {
+  "primary": {
+   "from": "christmas",
+   "highlight": "#ADF03C",
+   "main": "#6BCD18",
+   "shadow": "#00660D"
+  },
+  "rarity": {
+   "LteCommon": {
+    "highlight": "#D9F6DA",
+    "main": "#00B668",
+    "shadow": "#002C17",
+    "text": "#18DBD0"
+   },
+   "LteRare": {
+    "highlight": "#F8D8E4",
+    "main": "#E7004C",
+    "shadow": "#8B0021",
+    "text": "#F4FF25"
+   }
+  },
+  "root": {
+   "from": "christmas",
+   "highlight": "#DFF5FA",
+   "main": "#5274D1",
+   "shadow": "#1A2A56"
+  },
+  "secondary": {
+   "from": "christmas",
+   "highlight": "#ADF03C",
+   "main": "#6BCD18",
+   "shadow": "#00660F"
+  }
+ },
+ "ages:dino": {
+  "primary": {
+   "from": "dino",
+   "highlight": "#ADF03C",
+   "main": "#6BCD18",
+   "shadow": "#00660D"
+  },
+  "rarity": {
+   "LteCommon": {
+    "highlight": "#FFFFFF",
+    "main": "#FFEF47",
+    "shadow": "#330705",
+    "text": "#00B7A0"
+   },
+   "LteRare": {
+    "highlight": "#FFE3C2",
+    "main": "#FF4C00",
+    "shadow": "#080226",
+    "text": "#FF328B"
+   }
+  },
+  "root": {
+   "from": "dino",
+   "highlight": "#DDDBE2",
+   "main": "#85584A",
+   "shadow": "#331406"
+  },
+  "secondary": {
+   "from": "dino",
+   "highlight": "#ADF03C",
+   "main": "#6BCD18",
+   "shadow": "#00660F"
+  }
+ },
+ "ages:egypt": {
+  "primary": {
+   "from": "egypt",
+   "highlight": "#ADF03C",
+   "main": "#6BCD18",
+   "shadow": "#00660D"
+  },
+  "rarity": {
+   "LteCommon": {
+    "highlight": "#99ECF0",
+    "main": "#41C6D2",
+    "shadow": "#185B63",
+    "text": "#18DBD0"
+   },
+   "LteRare": {
+    "highlight": "#F1DDBC",
+    "main": "#CA505A",
+    "shadow": "#6E3247",
+    "text": "#F4FF25"
+   }
+  },
+  "root": {
+   "from": "egypt",
+   "highlight": "#FBF6DC",
+   "main": "#C9A77C",
+   "shadow": "#82653F"
+  },
+  "secondary": {
+   "from": "egypt",
+   "highlight": "#ADF03C",
+   "main": "#6BCD18",
+   "shadow": "#00660F"
+  }
+ },
+ "ages:evergreen": {
+  "primary": {
+   "from": "evergreen",
+   "highlight": "#ADF03C",
+   "main": "#6BCD18",
+   "shadow": "#00590B"
+  },
+  "rarity": {
+   "Common": {
+    "highlight": "#1DC6FF",
+    "main": "#1D9AF5",
+    "shadow": "#0049C0",
+    "text": "#0056F6"
+   },
+   "Epic": {
+    "highlight": "#FBA404",
+    "main": "#F9B600",
+    "shadow": "#D46900",
+    "text": "#F9B600"
+   },
+   "Historic": {
+    "highlight": "#FB6B6A",
+    "main": "#FF0808",
+    "shadow": "#760000",
+    "text": "#FF2535"
+   },
+   "Legendary": {
+    "highlight": "#E197FE",
+    "main": "#CA45FF",
+    "shadow": "#681E90",
+    "text": "#D447FF"
+   },
+   "LteCommon": {
+    "highlight": "#ABA1F0",
+    "main": "#7C6FE2",
+    "shadow": "#4925A2",
+    "text": "#D447FF"
+   },
+   "LteRare": {
+    "highlight": "#99ECF0",
+    "main": "#41C6D2",
+    "shadow": "#1A616A",
+    "text": "#1FF8DC"
+   },
+   "None": {
+    "highlight": "#FFFFFF",
+    "main": "#EBFAFF",
+    "shadow": "#377CBD",
+    "text": "#3CFF00"
+   },
+   "Rare": {
+    "highlight": "#ADF03C",
+    "main": "#6BCD18",
+    "shadow": "#00660F",
+    "text": "#6BCD18"
+   }
+  },
+  "root": {
+   "from": "evergreen",
+   "highlight": "#1DC6FF",
+   "main": "#1D9AF5",
+   "shadow": "#0049C0"
+  },
+  "secondary": {
+   "from": "evergreen",
+   "highlight": "#ADF03C",
+   "main": "#6BCD18",
+   "shadow": "#005A0C"
+  }
+ },
+ "ages:infrastructure": {
+  "primary": {
+   "from": "fusioninfrastructure",
+   "highlight": "#ADF03C",
+   "main": "#6BCD18",
+   "shadow": "#00590B"
+  },
+  "rarity": {
+   "LteCommon": {
+    "highlight": "#FAE5B1",
+    "main": "#F2C556",
+    "shadow": "#C15A27",
+    "text": "#18DBD0"
+   },
+   "LteRare": {
+    "highlight": "#F5D8CB",
+    "main": "#C18557",
+    "shadow": "#784926",
+    "text": "#F4FF25"
+   }
+  },
+  "root": {
+   "from": "fusioninfrastructure",
+   "highlight": "#C7F6EF",
+   "main": "#67828A",
+   "shadow": "#37475A"
+  },
+  "secondary": {
+   "from": "fusioninfrastructure",
+   "highlight": "#ADF03C",
+   "main": "#6BCD18",
+   "shadow": "#00660D"
+  }
+ },
+ "ages:innovation": {
+  "primary": {
+   "from": "fusioninnovation",
+   "highlight": "#ADF03C",
+   "main": "#6BCD18",
+   "shadow": "#00590B"
+  },
+  "rarity": {
+   "LteCommon": {
+    "highlight": "#FBD6D2",
+    "main": "#FE988B",
+    "shadow": "#BF4D61",
+    "text": "#18DBD0"
+   },
+   "LteRare": {
+    "highlight": "#82DEEC",
+    "main": "#267CA9",
+    "shadow": "#054170",
+    "text": "#F4FF25"
+   }
+  },
+  "root": {
+   "from": "fusioninnovation",
+   "highlight": "#C7F6EF",
+   "main": "#67828A",
+   "shadow": "#37475A"
+  },
+  "secondary": {
+   "from": "fusioninnovation",
+   "highlight": "#ADF03C",
+   "main": "#6BCD18",
+   "shadow": "#00660D"
+  }
+ },
+ "ages:japan": {
+  "primary": {
+   "from": "japan",
+   "highlight": "#ADF03C",
+   "main": "#6BCD18",
+   "shadow": "#00660D"
+  },
+  "rarity": {
+   "LteCommon": {
+    "highlight": "#FED7DD",
+    "main": "#E57485",
+    "shadow": "#80222F",
+    "text": "#18DBD0"
+   },
+   "LteRare": {
+    "highlight": "#FFE5B9",
+    "main": "#E79914",
+    "shadow": "#AC4B1C",
+    "text": "#F4FF25"
+   }
+  },
+  "root": {
+   "from": "japan",
+   "highlight": "#C4E2F5",
+   "main": "#3E6A8C",
+   "shadow": "#272E6F"
+  },
+  "secondary": {
+   "from": "japan",
+   "highlight": "#ADF03C",
+   "main": "#6BCD18",
+   "shadow": "#00660F"
+  }
+ },
+ "ages:mexico": {
+  "primary": {
+   "from": "mexico",
+   "highlight": "#ADF03C",
+   "main": "#6BCD18",
+   "shadow": "#00660D"
+  },
+  "rarity": {
+   "LteCommon": {
+    "highlight": "#DFF5FA",
+    "main": "#4E8FB1",
+    "shadow": "#054170",
+    "text": "#4E8FB1"
+   },
+   "LteRare": {
+    "highlight": "#8FEBB8",
+    "main": "#0EA56E",
+    "shadow": "#094660",
+    "text": "#0EA56E"
+   }
+  },
+  "root": {
+   "from": "mexico",
+   "highlight": "#FEECD6",
+   "main": "#F4B573",
+   "shadow": "#5C4756"
+  },
+  "secondary": {
+   "from": "mexico",
+   "highlight": "#ADF03C",
+   "main": "#6BCD18",
+   "shadow": "#00660F"
+  }
+ },
+ "ages:minidino": {
+  "primary": {
+   "from": "minidino",
+   "highlight": "#ADF03C",
+   "main": "#6BCD18",
+   "shadow": "#00660D"
+  },
+  "rarity": {
+   "LteCommon": {
+    "highlight": "#FFFFFF",
+    "main": "#FFEF47",
+    "shadow": "#330705",
+    "text": "#00B7A0"
+   },
+   "LteRare": {
+    "highlight": "#FFE3C2",
+    "main": "#FF4C00",
+    "shadow": "#080226",
+    "text": "#FF328B"
+   }
+  },
+  "root": {
+   "from": "minidino",
+   "highlight": "#DDDBE2",
+   "main": "#85584A",
+   "shadow": "#331406"
+  },
+  "secondary": {
+   "from": "minidino",
+   "highlight": "#ADF03C",
+   "main": "#6BCD18",
+   "shadow": "#00660F"
+  }
+ },
+ "ages:minisanta": {
+  "primary": {
+   "from": "minisanta",
+   "highlight": "#ADF03C",
+   "main": "#6BCD18",
+   "shadow": "#00660D"
+  },
+  "rarity": {
+   "LteCommon": {
+    "highlight": "#D9F6DA",
+    "main": "#00B668",
+    "shadow": "#002C17",
+    "text": "#18DBD0"
+   },
+   "LteRare": {
+    "highlight": "#F8D8E4",
+    "main": "#E7004C",
+    "shadow": "#8B0021",
+    "text": "#F4FF25"
+   }
+  },
+  "root": {
+   "from": "minisanta",
+   "highlight": "#DFF5FA",
+   "main": "#5274D1",
+   "shadow": "#1A2A56"
+  },
+  "secondary": {
+   "from": "minisanta",
+   "highlight": "#ADF03C",
+   "main": "#6BCD18",
+   "shadow": "#00660F"
+  }
+ },
+ "ages:monster": {
+  "primary": {
+   "from": "monster",
+   "highlight": "#ADF03C",
+   "main": "#6BCD18",
+   "shadow": "#00590B"
+  },
+  "rarity": {
+   "LteCommon": {
+    "highlight": "#42B7E7",
+    "main": "#225B73",
+    "shadow": "#233F5D",
+    "text": "#18DBD0"
+   },
+   "LteRare": {
+    "highlight": "#FFFF74",
+    "main": "#DB742A",
+    "shadow": "#941C00",
+    "text": "#F4FF25"
+   }
+  },
+  "root": {
+   "from": "monster",
+   "highlight": "#FFFFCA",
+   "main": "#4CB77E",
+   "shadow": "#234363"
+  },
+  "secondary": {
+   "from": "monster",
+   "highlight": "#ADF03C",
+   "main": "#6BCD18",
+   "shadow": "#00660D"
+  }
+ },
+ "ages:music": {
+  "primary": {
+   "from": "music",
+   "highlight": "#ADF03C",
+   "main": "#6BCD18",
+   "shadow": "#00660D"
+  },
+  "rarity": {
+   "LteCommon": {
+    "highlight": "#DDCFCC",
+    "main": "#786F6C",
+    "shadow": "#544B49",
+    "text": "#18DBD0"
+   },
+   "LteRare": {
+    "highlight": "#FCFEA9",
+    "main": "#FACA5D",
+    "shadow": "#8B4000",
+    "text": "#F4FF25"
+   }
+  },
+  "root": {
+   "from": "music",
+   "highlight": "#ECA6C6",
+   "main": "#A7396A",
+   "shadow": "#701735"
+  },
+  "secondary": {
+   "from": "music",
+   "highlight": "#ADF03C",
+   "main": "#6BCD18",
+   "shadow": "#00660F"
+  }
+ },
+ "ages:nature": {
+  "primary": {
+   "from": "nature",
+   "highlight": "#ADF03C",
+   "main": "#6BCD18",
+   "shadow": "#00590B"
+  },
+  "rarity": {
+   "LteCommon": {
+    "highlight": "#ABA1F0",
+    "main": "#7C6FE2",
+    "shadow": "#4925A2",
+    "text": "#D447FF"
+   },
+   "LteRare": {
+    "highlight": "#99ECF0",
+    "main": "#41C6D2",
+    "shadow": "#1A616A",
+    "text": "#1FF8DC"
+   }
+  },
+  "root": {
+   "from": "nature",
+   "highlight": "#1DC6FF",
+   "main": "#1D9AF5",
+   "shadow": "#0049C0"
+  },
+  "secondary": {
+   "from": "nature",
+   "highlight": "#ADF03C",
+   "main": "#6BCD18",
+   "shadow": "#005A0C"
+  }
+ },
+ "ages:scandinavia": {
+  "primary": {
+   "from": "scandinavia",
+   "highlight": "#ADF03C",
+   "main": "#6BCD18",
+   "shadow": "#00660D"
+  },
+  "rarity": {
+   "LteCommon": {
+    "highlight": "#FFFCED",
+    "main": "#F8DD5C",
+    "shadow": "#D66D05",
+    "text": "#18DBD0"
+   },
+   "LteRare": {
+    "highlight": "#AD9DE2",
+    "main": "#5C418E",
+    "shadow": "#392F5A",
+    "text": "#F4FF25"
+   }
+  },
+  "root": {
+   "from": "scandinavia",
+   "highlight": "#BDE2F3",
+   "main": "#2193CA",
+   "shadow": "#08619F"
+  },
+  "secondary": {
+   "from": "scandinavia",
+   "highlight": "#ADF03C",
+   "main": "#6BCD18",
+   "shadow": "#00660D"
+  }
+ },
+ "ages:timetravel": {
+  "primary": {
+   "from": "timetravel",
+   "highlight": "#ADF03C",
+   "main": "#6BCD18",
+   "shadow": "#00660D"
+  },
+  "rarity": {
+   "LteCommon": {
+    "highlight": "#BCF4E1",
+    "main": "#00B7A0",
+    "shadow": "#134368",
+    "text": "#00B7A0"
+   },
+   "LteRare": {
+    "highlight": "#FAE3D8",
+    "main": "#FF328B",
+    "shadow": "#6B133E",
+    "text": "#FF328B"
+   }
+  },
+  "root": {
+   "from": "timetravel",
+   "highlight": "#EFB5F4",
+   "main": "#5C2895",
+   "shadow": "#401759"
+  },
+  "secondary": {
+   "from": "timetravel",
+   "highlight": "#ADF03C",
+   "main": "#6BCD18",
+   "shadow": "#00660F"
+  }
+ }
+}

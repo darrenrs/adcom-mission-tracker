@@ -1,6 +1,7 @@
 import express from 'express';
 import 'dotenv/config';
 import { registerLeaderboardRoutes } from './server/leaderboard/routes.js';
+import { fetchPalettes } from './server/palettes.js';
 
 const app = express();
 
@@ -278,11 +279,14 @@ app.get('/api/data/:title', async (req, res) => {
       })
     );
     const balanceResult = Object.fromEntries(balanceEntries);
+    // Theme colours for the In-Game theme and card backgrounds. Balances without one are left out.
+    const palettes = await fetchPalettes(balanceAssetIdById, titleAssetServerBase);
 
     const responseBody = {
       Balance: balanceResult,
       Localization: Buffer.from(localizationRaw, 'utf8').toString('base64'),
-      LTESchedule: schedule
+      LTESchedule: schedule,
+      Palette: palettes
     };
 
     return res.json(responseBody);

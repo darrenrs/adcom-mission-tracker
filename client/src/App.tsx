@@ -1,4 +1,7 @@
-import { useEffect, useLayoutEffect, useSyncExternalStore } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useSyncExternalStore } from 'react';
+import { inGameColours, type InGameColours } from '@/domain/eventColours';
+import type { Palette } from '@/domain/palette';
+import type { TitleKey } from '@/domain/titles';
 import { GameViewPage } from '@/features/game/GameViewPage';
 import { MissionPage } from '@/features/mission/MissionPage';
 import { MissionsPage } from '@/features/missions/MissionsPage';
@@ -18,12 +21,20 @@ function subscribeToSystemTheme(listener: () => void) {
   return () => darkQuery.removeEventListener('change', listener);
 }
 
-function useResolvedTheme(setting: ThemeSetting): 'light' | 'dark' {
+/**
+ * The page's light or dark base, plus the In-Game theme's colours when it applies. In-Game takes its base from the
+ * balance's palette; without a palette it behaves like System.
+ */
+function usePageTheme(setting: ThemeSetting, palette: Palette | null, title: TitleKey | null): { theme: 'light' | 'dark'; colours: InGameColours | null } {
   const systemDark = useSyncExternalStore(subscribeToSystemTheme, () => darkQuery.matches);
-  if (setting === 'system') {
-    return systemDark ? 'dark' : 'light';
+  const colours = useMemo(
+    () => (setting === 'ingame' && palette && title ? inGameColours(palette, title) : null),
+    [setting, palette, title]
+  );
+  if (colours) {
+    return { theme: colours.base, colours };
   }
-  return setting;
+  return { theme: setting === 'light' || setting === 'dark' ? setting : systemDark ? 'dark' : 'light', colours: null };
 }
 
 function Page() {
@@ -56,12 +67,22 @@ export function App() {
   const error = useTracker((state) => state.error);
   const session = useTracker((state) => state.session);
   const themeSetting = useTracker((state) => state.settings.theme);
-  const theme = useResolvedTheme(themeSetting);
+  const { theme, colours } = usePageTheme(themeSetting, session?.palette ?? null, session?.title.key ?? null);
   const boot = useTracker((state) => state.boot);
+  const applied = useRef<string[]>([]);
 
   useLayoutEffect(() => {
-    document.documentElement.dataset['theme'] = theme;
-  }, [theme]);
+    const root = document.documentElement;
+    root.dataset['theme'] = theme;
+    // The In-Game colours replace the theme's own custom properties; anything set before is cleared first.
+    for (const name of applied.current) {
+      root.style.removeProperty(name);
+    }
+    applied.current = Object.keys(colours?.vars ?? {});
+    for (const [name, value] of Object.entries(colours?.vars ?? {})) {
+      root.style.setProperty(name, value);
+    }
+  }, [theme, colours]);
 
   useEffect(() => {
     void boot();

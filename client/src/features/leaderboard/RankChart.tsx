@@ -33,7 +33,7 @@ function useThemeTick(): number {
   const [tick, setTick] = useState(0);
   useEffect(() => {
     const observer = new MutationObserver(() => setTick((value) => value + 1));
-    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme', 'class'] });
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme', 'class', 'style'] });
     return () => observer.disconnect();
   }, []);
   return tick;

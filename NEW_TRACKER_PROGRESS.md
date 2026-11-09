@@ -179,6 +179,17 @@ The work:
 - Game View stocks: titles use the mission label style (`text-sm`, medium, normal colour), centred. On phones the icon moves into the title row so each field gets the whole box (98px instead of 70px), and the fields condense Inconsolata to 75% width so "999.99 AAAAA" fits; that needs the font's width axis (`inconsolata/wdth.css`, about 46KB more). On phones the whole comrade title row is the Trades shortcut, to keep a 44px tap target. The third stock uses the game's name for `gold`, so Ages shows "Gems".
 - Game View resources keep the game's industry order; the active one widens to hold its amount field.
 
+**Event colours (8 November)**
+- **adcom-assets** (uncommitted in that repo): `app/steps/palette.py` reads each balance bundle's colour MonoBehaviours and writes `palette.json`, which finalize copies to `data/<title>/<balance>/palette.json`. One palette per balance; the game has no light or dark variants. AdCom's fusion events take their panel colour from the shared `fusion` bundle, by name. Motherland's palette also carries the shared rarities from `common`. The VPS needs an adcom-assets deploy and a pipeline run before the beta gets palettes.
+- **Server:** `/api/data` adds `Palette` by balance id (`server/palettes.js`). A missing palette is skipped.
+- **In-Game theme:** the fourth Theme choice, saved as `StyleConfig = ingame`. `domain/eventColours.ts` derives the colours:
+  - The base comes from the panel colour: a dark panel gets the dark base, a light one (the fusion cream) the light base.
+  - The panel colour is mixed into the canvas, surface, raised and line colours in OKLab, each mix backing off until body text keeps 7:1 and muted and status text 4.5:1.
+  - The event accent (`Secondary`) is moved in lightness until it reads on every background and carries button text. It's skipped when it equals the standard button colour (all of Ages, the rank-up events, Motherland) or is nearly grey (Winter); then the tracker's accent stays.
+  - Without a palette, In-Game behaves like System.
+- **Researcher cards:** portrait backgrounds use the game's rarity colour whenever a palette exists, whatever the theme. Without one they keep the old Tailwind colours.
+- **Tests:** `tests/fixtures/palettes.json` holds all 48 exported palettes (AdCom 6.59, Ages 1.36), so the colour tests need no asset server. `tests/e2e/theme.spec.ts` needs palettes in the local asset data.
+
 **Auto-buy**
 - Fixed: auto-buy rounded up to the end of a 1-second or 1% step, so it read slower than plain online. It also never bought the mission's own generators, and spent them on deeper tiers.
 - Kept on purpose (owner, 4 November): for some Own missions, buying the deepest generators spends the shared resource and comrades the mission's generators cost, so auto-buy is genuinely slower (5 of 121 sampled missions, 1% to 2.6x). Auto-buy reports its own strategy's time, not the faster of the two.
@@ -252,7 +263,7 @@ npm run build
 
 `npm run golden` recaptures mission traces from `master`. Run it only when balance data changes. If the data has changed, the mission tests fail and tell you to run it. This command goes away in Phase 6.
 
-On 8 November, after round 4, all unit tests and 240 browser tests passed (18 more skip by design at one width), and `npm run build` succeeded. `density.spec.ts`'s rank-popover test is occasionally flaky: it failed once on each of two earlier runs and passed on rerun.
+On 8 November, after the event colours work, all 1,404 unit tests and 251 of 252 browser tests passed (18 more skip by design at one width), and `npm run build` succeeded. The one failure was `density.spec.ts`'s rank-popover test, which is flaky under the full parallel run: it has failed in about half of today's full runs and passes 10 times out of 10 on its own.
 
 ## Where things are
 

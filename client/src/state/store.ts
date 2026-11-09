@@ -21,13 +21,15 @@ import { TITLES, type TitleConfig } from '@/domain/titles';
 import type { LteInfo, GameBalance, TrackerMode } from '@/domain/types';
 import { entryAsLteInfo, reconcileEvents, scheduleEvents } from '@/domain/eventList';
 import type { LeaderboardEvent } from '@/domain/leaderboard';
+import type { Palette } from '@/domain/palette';
 import { parseStartupParams, resolveStartup, type Startup } from '@/domain/urlParams';
 import { emptyFormValues, type FormValues } from '@/engine/model';
 import { createTrackerStorage, type TrackerStorage } from '@/storage/storage';
 import { showInUrl, startupSearch } from './navigation';
 
 export type TitleKey = 'adcom' | 'ages';
-export type ThemeSetting = 'system' | 'light' | 'dark';
+/** `ingame` takes the page colours from the balance's palette (see domain/eventColours.ts). */
+export type ThemeSetting = 'system' | 'light' | 'dark' | 'ingame';
 
 export interface Settings {
   theme: ThemeSetting;
@@ -58,6 +60,8 @@ export interface Session {
   activeIndustry: string | null;
   /** The calculator's saved inputs for this mode, in the legacy `FormValues` shape. */
   form: FormValues;
+  /** The theme colours of the balance on screen (evergreen for Motherland), or null when the data has none. */
+  palette: Palette | null;
 }
 
 export type LeaderboardStatus = 'checking' | 'connected' | 'unavailable' | 'none';
@@ -158,7 +162,7 @@ function readSettings(storage: TrackerStorage, title: TitleConfig): Settings {
   }
 
   return {
-    theme: theme === 'light' || theme === 'dark' ? theme : 'system',
+    theme: theme === 'light' || theme === 'dark' || theme === 'ingame' ? theme : 'system',
     completedVisible: completedVisible === 'true',
     howToUseVisible: storage.get('HowToUseVisible') !== 'false',
     playerId: storage.get('PlayerId') ?? ''
@@ -228,6 +232,7 @@ function buildSession(deps: TrackerDeps, title: TitleConfig, data: GameData, eve
     completionTimes: {},
     etas: {},
     missionProgress: readJson(storage.get(modeKey(title, mode, lteInfo, 'MissionProgress')), {}),
+    palette: data.palettes?.[mode === 'evergreen' ? 'evergreen' : (lteInfo?.BalanceId ?? '')] ?? null,
     activeIndustry: storage.get(modeKey(title, mode, lteInfo, 'ActiveIndustry')),
     form: readForm(storage.get(modeKey(title, mode, lteInfo, 'FormValues')))
   };

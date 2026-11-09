@@ -17,7 +17,10 @@ import { InfoPopover } from '@/ui/InfoPopover';
 import { inputClass as fieldClass } from '@/ui/inputStyles';
 import { useResearcherActions } from './useResearcherActions';
 
-/** The game's rarity colours, which players know by heart. Event researchers had none in legacy. */
+/**
+ * Fallback rarity backgrounds, for game data without a palette. With one, the card uses the game's own rarity colour
+ * (`palette.rarity`), whatever the page theme.
+ */
 const RARITY_CLASS: Readonly<Record<string, string>> = {
   Common: 'bg-stone-300 dark:bg-stone-600',
   LteCommon: 'bg-stone-300 dark:bg-stone-600',
@@ -126,6 +129,7 @@ export function ResearcherCard({ researcher }: { researcher: Researcher }) {
   const targetIcon = getResearcherTargetIconUrl(ctx, assets, researcher);
   const effectIcon = EFFECT_ICON[researcher.ModType];
   const rarity = researcher.Rarity ?? '';
+  const gameRarityColour = session.palette?.rarity?.[rarity]?.main;
   const details = useMemo(() => researcherDetails(ctx, researcher, abGroups), [ctx, researcher, abGroups]);
   const guaranteed = firstGuaranteedText(ctx, details.firstGuaranteed, abGroups);
   const quote = ctx.title.isAges ? undefined : ctx.localization[`researcher.${researcher.Id}.flavor`];
@@ -137,7 +141,8 @@ export function ResearcherCard({ researcher }: { researcher: Researcher }) {
       className={`flex min-w-0 items-stretch gap-1.5 rounded-xl border-2 bg-surface p-1 ${RARITY_BORDER[rarity] ?? 'border-line'} ${highlighted ? 'ring-2 ring-accent' : ''}`}
     >
       <div
-        className={`relative aspect-[3/4] h-28 shrink-0 self-start overflow-hidden rounded-lg pointer-fine:h-24 ${RARITY_CLASS[rarity] ?? 'bg-raised'}`}
+        className={`relative aspect-[3/4] h-28 shrink-0 self-start overflow-hidden rounded-lg pointer-fine:h-24 ${gameRarityColour ? '' : (RARITY_CLASS[rarity] ?? 'bg-raised')}`}
+        style={gameRarityColour ? { backgroundColor: gameRarityColour } : undefined}
         data-testid="researcher-portrait"
       >
         {/* The art is stored square but drawn narrower in the game, so it is squeezed to 3:4, not cropped. */}
