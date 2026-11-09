@@ -74,6 +74,22 @@ test('Today sits between the month arrows, and is the only Today button', async 
   expect(Math.abs(box.y + box.height / 2 - (previous.y + previous.height / 2))).toBeLessThanOrEqual(2);
 });
 
+test('the list opens scrolled to the selected day, years into the schedule, without scrolling the page', async ({ page }) => {
+  await page.goto('?title=adcom&mode=evergreen&view=schedule');
+  const list = page.getByRole('list', { name: 'Events' });
+  const rows = list.getByRole('listitem');
+  // The whole schedule file is read, back to 2019, not just the last two years.
+  await expect(rows.first()).toContainText('2019');
+  const onDay = list.locator('[data-on-day="true"]').first();
+  await expect(onDay).toBeVisible();
+  await expect.poll(() => list.evaluate((node) => node.scrollTop)).toBeGreaterThan(0);
+  const box = (await list.boundingBox())!;
+  const row = (await onDay.boundingBox())!;
+  expect(row.y).toBeGreaterThanOrEqual(box.y - 1);
+  expect(row.y + row.height).toBeLessThanOrEqual(box.y + box.height + 1);
+  expect(await page.evaluate(() => window.scrollY)).toBe(0);
+});
+
 test('the event list shows the year', async ({ page }) => {
   await page.goto('?title=adcom&mode=evergreen&view=schedule');
   const rows = page.getByRole('list', { name: 'Events' }).getByRole('listitem');
@@ -199,4 +215,21 @@ test('no Leaderboard tab before the event starts', async ({ page }) => {
   await page.goto(`?title=adcom&mode=lte&at=${start + 3_600_000}`);
   await expect(page.getByRole('button', { name: 'Game View' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Leaderboard' })).toHaveCount(0);
+});
+
+test.describe('in a US time zone', () => {
+  test.use({ timezoneId: 'America/Los_Angeles' });
+
+  test('an event across the March 2025 clock change keeps its icon on every day', async ({ page }) => {
+    await page.goto('?title=adcom&mode=evergreen&view=schedule');
+    const winter = page.getByRole('list', { name: 'Events' }).getByRole('listitem').filter({ hasText: 'Winter Motherland' }).filter({ hasText: 'Mar 6, 2025' });
+    await winter.getByRole('button', { name: /^Winter Motherland/ }).click();
+    const grid = page.getByRole('grid');
+    await expect(grid).toHaveAccessibleName(/March 2025/);
+    // Clocks went forward on 9 March; Winter Motherland ran 6 to 10 March.
+    for (const day of ['6', '7', '8', '9', '10']) {
+      const cell = grid.getByRole('gridcell').filter({ has: page.getByText(day, { exact: true }) });
+      await expect(cell.locator('img'), `March ${day}`).toHaveCount(1);
+    }
+  });
 });

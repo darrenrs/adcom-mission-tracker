@@ -3,15 +3,12 @@ import { reconcileEvents, scheduleEvents, type EventEntry } from '@/domain/event
 import type { Session } from '@/state/store';
 import { useSession, useTracker } from '@/state/store';
 
-/** How far back the calendar reaches into the schedule file. */
-const HISTORY = 2 * 365 * 86_400_000;
-
 /** Every known event of the game, from the schedule file and the leaderboard API, in time order. */
 export function useEventEntries(): EventEntry[] {
   const { title, data } = useSession();
   const events = useTracker((state) => state.leaderboardEvents);
   return useMemo(() => {
-    const scheduled = scheduleEvents(data.schedule, title.isAges, Date.now() - HISTORY);
+    const scheduled = scheduleEvents(data.schedule, title.isAges);
     return reconcileEvents(scheduled, events ?? [], Object.keys(data.balances));
   }, [data, title.isAges, events]);
 }

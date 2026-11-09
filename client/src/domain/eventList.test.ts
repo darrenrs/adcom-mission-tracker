@@ -81,6 +81,42 @@ describe('entryAsLteInfo', () => {
 });
 
 describe('scheduleEvents', () => {
+  it('reads the whole file, years back, with no cap, so old leaderboard events find their entry', async () => {
+    const { reconcileEvents, scheduleEvents } = await import('./eventList');
+    const start = Date.UTC(2019, 4, 9, 16);
+    // One event a week for nine years: more than the old 400-event cap.
+    const end = Date.UTC(2028, 4, 9, 16);
+    const schedule = {
+      LteBalanceData: [
+        { BalanceId: 'a-bal-1', ThemeId: 'a', DurationHours: 72 },
+        { BalanceId: 'b-bal-1', ThemeId: 'b', DurationHours: 72 }
+      ],
+      LteOneOff: [],
+      LteSchedule: [
+        {
+          StartDayOfTheWeek: 'Thursday',
+          StartHourUTC: 16,
+          StartTime: new Date(start).toISOString(),
+          EndTime: new Date(end).toISOString(),
+          LteBalanceIds: ['a-bal-1', 'b-bal-1'],
+          LteRewardIds: ['r1'],
+          LteLeaderboardIds: [],
+          LteShortLeaderboardIds: []
+        }
+      ]
+    } as never;
+    const events = scheduleEvents(schedule, false);
+    expect(events.length).toBeGreaterThan(400);
+    expect(new Date(events[0]!.StartTimeMillis).getUTCFullYear()).toBe(2019);
+
+    // An API event from 2022, more than two years before the newest entries, matches its schedule entry.
+    const old = events.find((event) => new Date(event.StartTimeMillis).getUTCFullYear() === 2022)!;
+    const api = [{ guid: 'g', theme: old.ThemeId, start: new Date(old.StartTimeMillis).toISOString(), end: new Date(old.EndTimeMillis).toISOString() }];
+    const entries = reconcileEvents(events, api as never, []);
+    expect(entries.filter((entry) => entry.api && !entry.schedule)).toEqual([]);
+    expect(entries.find((entry) => entry.key === 'g')?.schedule).toBe(old);
+  });
+
   it('gives cycle events the leaderboard ids of their slot in the rotation', async () => {
     const { scheduleEvents } = await import('./eventList');
     const start = Date.UTC(2026, 0, 1);
@@ -105,10 +141,9 @@ describe('scheduleEvents', () => {
         ]
       } as never,
       false,
-      start,
-      4
+      start
     );
-    expect(events.map((event) => [event.ThemeId, event.GlobalLeaderboardId, event.LeaderboardId])).toEqual([
+    expect(events.slice(0, 4).map((event) => [event.ThemeId, event.GlobalLeaderboardId, event.LeaderboardId])).toEqual([
       ['a', 'leaderboard1', 'bucket1'],
       ['b', 'leaderboard2', 'bucket2'],
       ['a', 'leaderboard1', 'bucket1'],

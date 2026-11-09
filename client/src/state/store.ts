@@ -166,12 +166,11 @@ function readSettings(storage: TrackerStorage, title: TitleConfig): Settings {
 }
 
 /** Events only the leaderboard API knows about, so a link to one opens it. */
-function apiOnlyLtes(title: TitleConfig, data: GameData, events: readonly LeaderboardEvent[] | null, now: number): LteInfo[] {
+function apiOnlyLtes(title: TitleConfig, data: GameData, events: readonly LeaderboardEvent[] | null): LteInfo[] {
   if (!events?.length) {
     return [];
   }
-  const scheduled = scheduleEvents(data.schedule, title.isAges, now - 2 * 365 * 86_400_000);
-  return reconcileEvents(scheduled, events, Object.keys(data.balances))
+  return reconcileEvents(scheduleEvents(data.schedule, title.isAges), events, Object.keys(data.balances))
     .filter((entry) => !entry.schedule)
     .map(entryAsLteInfo);
 }
@@ -187,7 +186,7 @@ function buildSession(deps: TrackerDeps, title: TitleConfig, data: GameData, eve
     balances: data.balances,
     now: deps.now(),
     title,
-    extraLtes: apiOnlyLtes(title, data, events, deps.now())
+    extraLtes: apiOnlyLtes(title, data, events)
   });
 
   for (const write of startup.writes) {

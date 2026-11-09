@@ -24,9 +24,16 @@ const DAY = 86_400_000;
 /** A schedule entry and an API event are the same event when their themes match and they start this close together. */
 export const MATCH_WINDOW = DAY;
 
-/** Every schedule entry ending after `from`, in time order. Repeating cycles are expanded into single events. */
-export function scheduleEvents(schedule: LteScheduleData, isAges: boolean, from: number, limit = 400): LteInfo[] {
-  return getSoonestLteInfos(schedule, from, isAges, limit, limit);
+/**
+ * Every schedule entry ending after `from` (by default, the whole file back to its first event), in time order.
+ * Repeating cycles are expanded into single events. There is no cap: the AdCom file holds about 660 events since
+ * May 2019 and expands in a few milliseconds. A two-year window used to cut it off, so older leaderboard events
+ * found no schedule entry.
+ */
+export function scheduleEvents(schedule: LteScheduleData, isAges: boolean, from = 0): LteInfo[] {
+  // Infinity for both counts keeps every event; each cycle still stops at its own end date. (A queue size of 0 would
+  // also be unbounded, but the cycle expansion counts up to the queue size, so it would find nothing.)
+  return getSoonestLteInfos(schedule, from, isAges, Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY);
 }
 
 /** The newest balance of a theme, such as `crusade-bal-3` for `crusade`, or null when the data has none. */

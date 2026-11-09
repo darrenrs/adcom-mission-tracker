@@ -118,8 +118,10 @@ The work:
 
 **Schedule and events**
 - Events come from the schedule file and the leaderboard API, matched by theme with starts within 24 hours. Either source can add an event. Cycle events now carry leaderboard ids too.
+- The whole schedule file is read, with no history window or cap (8 November): AdCom has 659 events from May 2019, Ages 262 from November 2023. A two-year window had left 197 leaderboard events from August 2022 to November 2024 showing "Schedule file: not found". The event list opens scrolled to the selected day; only the list scrolls.
+- Calendar days step by date, not by 24 hours (`domain/calendarDays.ts`, 8 November). Across a daylight-saving change, adding 24 hours landed at 1:00 AM or 11:00 PM, so an event running over the change lost its icons on the days after it (Winter Motherland had none on 10 March 2025 in US time zones).
 - The mode menu has Motherland, the live event, Schedule (react-day-picker calendar with an event list) and All Events (every balance by name, opened as a preview). The Events tab is gone.
-- AdCom has no calendar icon in its assets; a plain icon stands in until the owner adds one. Event accent colours do not exist in the data; researcher card backgrounds wait for them.
+- AdCom has no calendar icon in its assets; a plain icon stands in until the owner adds one. Event colours now come from the game (see Event colours below).
 
 **Density pass (7 November, after beta feedback)**
 - Controls use a size token: 44px on touch screens, 32px with a mouse (`h-control`, `size-control` and so on in `styles.css`).

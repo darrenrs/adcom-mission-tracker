@@ -2,19 +2,12 @@ import { createContext, useContext, useEffect, useMemo, useRef, useState, type B
 import { DayPicker, UI, useDayPicker, type CalendarDay, type Modifiers, type NavProps } from 'react-day-picker';
 import 'react-day-picker/style.css';
 import type { AssetResolver } from '@/domain/assets';
+import { itemsByDay, overlapsDay, startOfDay } from '@/domain/calendarDays';
 import type { EventEntry } from '@/domain/eventList';
 import { navigateStartup } from '@/state/navigation';
 import { useSession, useTracker } from '@/state/store';
 import { dateRange, lteFullName } from './eventLabels';
 import { currentEntry, useEventEntries } from './useEventEntries';
-
-const DAY = 86_400_000;
-
-function startOfDay(time: number): number {
-  const date = new Date(time);
-  date.setHours(0, 0, 0, 0);
-  return date.getTime();
-}
 
 interface DayEvents {
   byDay: ReadonlyMap<number, readonly EventEntry[]>;
@@ -112,25 +105,23 @@ export function SchedulePage() {
   const [chosenKey, setChosenKey] = useState<string | undefined>(current?.key);
   const list = useRef<HTMLUListElement>(null);
 
-  const byDay = useMemo(() => {
-    const days = new Map<number, EventEntry[]>();
-    for (const entry of entries) {
-      for (let day = startOfDay(entry.start); day < entry.end; day += DAY) {
-        days.set(day, [...(days.get(day) ?? []), entry]);
-      }
-    }
-    return days;
-  }, [entries]);
+  // Stepped by calendar date, so events across a daylight-saving change keep their later days.
+  const byDay = useMemo(() => itemsByDay(entries, (entry) => entry), [entries]);
 
   const day = startOfDay(selected.getTime());
-  const onDay = (entry: EventEntry) => entry.start < day + DAY && entry.end > day;
+  const onDay = (entry: EventEntry) => overlapsDay(entry.start, entry.end, day);
   const chosen = entries.find((entry) => entry.key === chosenKey);
   const range = chosen ? { from: new Date(startOfDay(chosen.start)), to: new Date(startOfDay(Math.max(chosen.start, chosen.end - 1))) } : undefined;
 
-  // Picking a day brings its first event into view in the list.
+  // Opening the page or picking a day puts that day's first event at the top of the list. Only the list scrolls,
+  // never the page. It runs again when the leaderboard's events arrive, since they can change the rows.
   useEffect(() => {
-    list.current?.querySelector('[data-on-day="true"]')?.scrollIntoView({ block: 'nearest' });
-  }, [day]);
+    const box = list.current;
+    const row = box?.querySelector<HTMLElement>('[data-on-day="true"]');
+    if (box && row) {
+      box.scrollTop += row.getBoundingClientRect().top - box.getBoundingClientRect().top - 8;
+    }
+  }, [day, entries]);
 
   const pickDay = (date: Date) => {
     setSelected(date);
