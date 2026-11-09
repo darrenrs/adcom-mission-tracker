@@ -1,6 +1,6 @@
 # New Tracker: Progress and Handoff
 
-**Status:** A beta is live from this branch. Beta feedback rounds 1–4, the Leaderboard rework and freshness changes, the schedule history and daylight-saving fixes, and the In-Game theme are built and committed locally. Phases 4, 5 and 6 have not started.
+**Status:** A beta is live from this branch. Beta feedback rounds 1–5, the Leaderboard rework and freshness changes, the schedule history and daylight-saving fixes, and the In-Game theme are built and committed locally. Phases 4, 5 and 6 have not started.
 **Branch:** `new-tracker`. `origin/new-tracker` is at `632458a`, which is what the beta runs. Every commit after it, from the density pass to the In-Game theme (`c0684ae`), is local only. The owner said "not yet" to pushing each time; ask before pushing.
 **Beta:** https://azimuth.idlegametools.com/adcom-mission-tracker/, run from a separate VPS folder (see Beta deployment). The live tracker on `master` is untouched.
 **Last updated:** 8 November 2026.
@@ -11,7 +11,7 @@ Start here when picking the work up. The plan history is in `~/.claude/plans/ros
 
 1. The owner checks the reworked Leaderboard tab locally with their real PlayFab ID against the old leaderboard page: place, marker bracket, Shortboard avatars, rank distribution totals. Locally it needs only `npm run dev`, with the Docker container rebuilt from this branch (see Running it).
 2. The owner decides when to push, then redeploys the beta.
-3. For the In-Game theme on the beta, the owner merges or deploys the adcom-assets branch `palette-export` (`2d86cb1`, not pushed) and runs its pipeline on the VPS. Until then the beta gets no palettes, and In-Game behaves like System.
+3. For the In-Game theme on the beta, the owner runs the adcom-assets pipeline on the VPS once per title (`POST /update`, `6bf5` at 6.59 and `dc4bb` at 1.36). The palette export is on adcom-assets `main` (`ace326c`) and already deployed. Until the pipeline runs, the beta gets no palettes, and In-Game behaves like System.
 4. More owner feedback is expected. Plan each batch before coding.
 5. Phase 4 waits for the owner's go-ahead.
 
@@ -181,7 +181,7 @@ The work:
 - Game View resources keep the game's industry order; the active one widens to hold its amount field.
 
 **Event colours (8 November)**
-- **adcom-assets** (branch `palette-export`, commit `2d86cb1`, not pushed): `app/steps/palette.py` reads each balance bundle's colour MonoBehaviours and writes `palette.json`, which finalize copies to `data/<title>/<balance>/palette.json`. One palette per balance; the game has no light or dark variants. AdCom's fusion events take their panel colour from the shared `fusion` bundle, by name. Motherland's palette also carries the shared rarities from `common`. The VPS needs an adcom-assets deploy and a pipeline run before the beta gets palettes.
+- **adcom-assets** (on `main`, `2d86cb1` then `ace326c`, which dropped the unused `version` field; pushed and deployed): `app/steps/palette.py` reads each balance bundle's colour MonoBehaviours and writes `palette.json`, which finalize copies to `data/<title>/<balance>/palette.json`. One palette per balance; the game has no light or dark variants. AdCom's fusion events take their panel colour from the shared `fusion` bundle, by name. Motherland's palette also carries the shared rarities from `common`. The VPS needs an adcom-assets deploy and a pipeline run before the beta gets palettes.
 - **Server:** `/api/data` adds `Palette` by balance id (`server/palettes.js`). A missing palette is skipped.
 - **In-Game theme:** the fourth Theme choice, saved as `StyleConfig = ingame`. `domain/eventColours.ts` derives the colours:
   - The base comes from the panel colour: a dark panel gets the dark base, a light one (the fusion cream) the light base.
@@ -190,6 +190,39 @@ The work:
   - Without a palette, In-Game behaves like System.
 - **Researcher cards:** portrait backgrounds use the game's rarity colour whenever a palette exists, whatever the theme. Without one they keep the old Tailwind colours.
 - **Tests:** `tests/fixtures/palettes.json` holds all 48 exported palettes (AdCom 6.59, Ages 1.36), so the colour tests need no asset server. `tests/e2e/theme.spec.ts` needs palettes in the local asset data.
+
+**Round 5 (9 November)**
+- **Tabs:** they join the header only from 1280px; from 640px to 1279px they share the row under the header. Nothing scrolls. Before, the header copy scrolled from 1024px to about 1150px once the late Leaderboard tab loaded (AdCom needed 605px of 478px at 1024px).
+- **Fields:** 14px on every device and never condensed. `ui/iosZoom.ts` adds `maximum-scale=1` to the viewport tag on iOS only, which stops iOS zooming into fields under 16px but not pinch zoom; Android keeps the plain tag. The default side padding moved to `.field` in the base layer, so a `px-*` on a field now wins (as a utility, `px-2` beat any smaller padding).
+- **One number format** (`formatAmount`, `roundAmount`, `amountValue`, `settleAmount` in `domain/inputSteps.ts`), used by every amount field, the trade costs, researcher levels and the rank box:
+  - Whole numbers with separators under 1 M, then up to two decimals and the power.
+  - Fractions round (owner, 9 November): `12.5` saves and shows `13`, `1234567` saves `1,230,000` and shows `1.23 M`.
+  - Leaving a field or Enter always settles it. Junk and negatives stay red, except mission progress.
+  - Time-left fields are durations and keep their own format.
+  - Rounded trade costs still read back as the right trade count on all 17,926 AdCom trade levels.
+- **Mission text:** every amount uses the format ("Spend Dark Science (1,200)"). The legacy comparisons put legacy's text through it first (`missionAmountsInFormat` in `tests/legacy/harness.ts`), and the trades comparison does the same for saved costs.
+- **Game View:**
+  - Comrades per second sits muted under the comrade field; the three stock boxes share a subgrid, so titles, fields and footers line up even when "Dark Science" wraps.
+  - "999.99 AAAAA" fits at 360px.
+  - A "Generators" heading.
+  - Generator rows are a two-row grid: the picture and bar at the mission progress bar's height, then the count, name box and card button at one height, lined up under them.
+  - Every bar shows its timer on the left: running cycles from 1s count down in step with the fill, shorter ones show the cycle time, idle bars show the base time.
+  - Mission cards are 44px, so the capsule, its ring and the calculator badge fit.
+- **Missions:** rows are 44px with a mouse too (the capsule and ring are 40px), and the reward button keeps its own 48px width (`min-w-control` beat `min-w-12`). No line under "Upcoming".
+- **Researcher cards** (Production, the calculator and the Trades tab):
+  - 4:5 portrait with the industry icon top left (`multi-industry.png` for several) and the generator icon top right (`researcherCornerIcons`).
+  - The portrait opens the details; the (i) is gone.
+  - The level is an `x / y` bar under the portrait.
+  - Middle, top to bottom: name, rarity (`researcher.rarity.<id>.name`), effect, then "To next:" on the cost line.
+  - Right: plus, level field, minus.
+  - `getResearcherTargetIconUrl` is gone; its legacy comparison now checks the corner icons.
+- **Leaderboard:**
+  - The cards are centred, with a larger avatar and name, the trophy icon (`common/trophy.png`), "Player Rank 12 / 21", "Place 2 / 25" (owner's wording) and a "Timestamps" heading.
+  - Places are ordinals with raised suffixes, as on the old site (`ordinalSuffix`).
+  - Both tables highlight rows on hover, and the player's row uses the accent tint, which shows in both themes. Move-up rows have the old site's diagonal stripes (`.trophy-delta`).
+  - Shortboard: 40px rows with a 40px avatar and no wrapping, so on phones the table scrolls sideways in its box; a Rank column; "Global" became "Place", with the top percentage over the ordinal.
+  - Shortboard rewards of type `Researcher` (random cards of a rarity, places 10, 13, 15 and 17–23) now show as `5x` with the rarity's card icon. `describeReward` had no case for them.
+  - Rank distribution: axis titles "Rank" and "Player Count", column-wide hover, and the body font. From 1024px it sits in the left column under the Global table, so it no longer waits below 25 Shortboard rows.
 
 **Auto-buy**
 - Fixed: auto-buy rounded up to the end of a 1-second or 1% step, so it read slower than plain online. It also never bought the mission's own generators, and spent them on deeper tiers.
@@ -264,7 +297,7 @@ npm run build
 
 `npm run golden` recaptures mission traces from `master`. Run it only when balance data changes. If the data has changed, the mission tests fail and tell you to run it. This command goes away in Phase 6.
 
-On 8 November, after the event colours work, all 1,404 unit tests and 251 of 252 browser tests passed (18 more skip by design at one width), and `npm run build` succeeded. The one failure was `density.spec.ts`'s rank-popover test, which is flaky under the full parallel run: it has failed in about half of today's full runs and passes 10 times out of 10 on its own.
+On 9 November, after round 5, all 1,413 unit tests passed and `npm run build` succeeded. In the last full browser run 261 of 262 tests passed (22 more skip by design at one width). The one failure was a timing race in the new researcher-image test, which measured two boxes in separate calls while the page was still settling; it now measures both in one call and passed three runs of its spec in a row. `density.spec.ts`'s rank-popover test, flaky in earlier full runs, passed.
 
 ## Where things are
 

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { PlayerResult } from './leaderboard';
-import { avatarVisualKey, globalRows, markerLabel, markerPlacement, markerOffset, playerName, shortboardLabel, shortboardNumber, shortboardReward, topPercent, trophiesToMoveUp } from './leaderboardView';
+import { avatarVisualKey, globalRows, markerLabel, markerPlacement, markerOffset, playerName, shortboardLabel, shortboardNumber, shortboardReward, ordinalSuffix, topPercent, trophiesToMoveUp } from './leaderboardView';
 import type { LteScheduleData } from './types';
 
 const gacha = (id: string) => ({ Reward: 'Gacha', RewardId: id, Value: 1 });
@@ -148,5 +148,13 @@ describe('avatarVisualKey', () => {
     expect(avatarVisualKey(common, 'AV9')).toBeNull();
     expect(avatarVisualKey(common, null)).toBeNull();
     expect(avatarVisualKey(undefined, 'AV0001')).toBeNull();
+  });
+});
+
+describe('ordinalSuffix', () => {
+  it('follows the old leaderboard site', () => {
+    expect([1, 2, 3, 4, 10].map(ordinalSuffix)).toEqual(['st', 'nd', 'rd', 'th', 'th']);
+    expect([11, 12, 13, 111, 112, 1013].map(ordinalSuffix)).toEqual(['th', 'th', 'th', 'th', 'th', 'th']);
+    expect([21, 22, 23, 101, 1002].map(ordinalSuffix)).toEqual(['st', 'nd', 'rd', 'st', 'nd']);
   });
 });

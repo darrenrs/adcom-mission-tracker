@@ -182,3 +182,12 @@ export function shortboardReward(schedule: LteScheduleData, shortLeaderboardId: 
   const index = board?.Brackets.findIndex((bracket) => !bracket.IsPercentage && bracket.Value === place) ?? -1;
   return index === -1 ? null : (board?.BracketRewards[index] ?? null);
 }
+
+/** The ordinal suffix of a place, as the old leaderboard site wrote it: 11th, 12th, 13th (and 111th …), else by the last digit. */
+export function ordinalSuffix(place: number): string {
+  const whole = Math.abs(Math.trunc(place));
+  if (Math.floor(whole / 10) % 10 === 1) {
+    return 'th';
+  }
+  return ({ 1: 'st', 2: 'nd', 3: 'rd' } as Readonly<Record<number, string>>)[whole % 10] ?? 'th';
+}

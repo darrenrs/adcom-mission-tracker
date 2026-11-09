@@ -95,11 +95,17 @@ test('looks up a PlayFab ID, remembers it, and shows the results', async ({ page
 
   await expect(page.getByText('45,000', { exact: true }).first()).toHaveClass(/text-4xl/);
   await expect(page.getByText('2,001 / 100,000')).toBeVisible();
-  await expect(page.getByText('Top 2.00%')).toBeVisible();
+  await expect(page.getByText('Top 2.00%').first()).toBeVisible();
   await expect(page.getByText('$2–$99 lifetime spent')).toBeVisible();
-  await expect(page.getByText(/Shortboard 20/)).toBeVisible();
+  await expect(page.getByText(/Shortboard 20 · Place 2 \/ 3/)).toBeVisible();
+  await expect(page.getByTestId('player-rank')).toHaveText(/^12 \/ \d+$/);
+  await expect(page.getByText('Timestamps', { exact: true })).toBeVisible();
   await expect(page.getByText(/^Joined: /)).toBeVisible();
   await expect(page.getByText(/^Last updated: /)).toBeVisible();
+  // The trophy icon sits to the right of the trophy count.
+  const trophyCount = page.getByText('45,000', { exact: true }).first();
+  const trophy = trophyCount.locator('img');
+  await expect(trophy).toHaveAttribute('src', /trophy\.png/);
 
   const global = page.getByRole('region', { name: 'Global Leaderboard' });
   await expect(global.getByRole('row', { name: /Top 5%/ })).toHaveAttribute('aria-current', 'true');
@@ -107,8 +113,19 @@ test('looks up a PlayFab ID, remembers it, and shows the results', async ({ page
   await expect(global.getByLabel(/^Your place: /)).toHaveText(/2%/);
   await expect(global.getByRole('row', { name: /Champion/ }).getByRole('img').first()).toBeVisible();
 
+  // Places as the old site wrote them: ordinals with raised suffixes. The move-up row keeps its stripes.
+  await expect(global.getByRole('row').filter({ has: page.getByRole('cell', { name: 'Top 25', exact: true }) }).locator('sup')).toHaveText('th');
+  await expect(global.getByTestId('move-up')).toHaveClass(/trophy-delta/);
+
   const shortboard = page.getByRole('region', { name: 'Shortboard' });
-  await expect(shortboard.getByRole('row', { name: /Super Soldier I/ })).toHaveAttribute('aria-current', 'true');
+  await expect(shortboard.getByRole('columnheader')).toHaveText(['#', 'Avatar', 'Player', 'Trophies', 'Rank', 'Place', 'Reward']);
+  const me = shortboard.getByRole('row', { name: /Super Soldier I/ });
+  await expect(me).toHaveAttribute('aria-current', 'true');
+  await expect(me.getByTestId('shortboard-rank')).toHaveText('12');
+  // Place: the top percentage, with the ordinal place small and muted underneath.
+  await expect(me.getByTestId('shortboard-place')).toHaveText('Top 2.00%2,001st');
+  // Each row is exactly the 40px avatar's height (plus its 1px divider).
+  expect(Math.round((await me.boundingBox())?.height ?? 0)).toBe(41);
   await expect(shortboard.getByText('▲ 1,010 trophies needed to move up ▲')).toBeVisible();
 
   await page.reload();

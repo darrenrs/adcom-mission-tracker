@@ -1,6 +1,6 @@
 import { BarController, BarElement, CategoryScale, Chart, LinearScale, Tooltip } from 'chart.js';
 import { useEffect, useRef, useState } from 'react';
-import { bigNum } from '@/domain/format';
+import { formatAmount } from '@/domain/inputSteps';
 import type { EventStats } from '@/domain/leaderboard';
 import { useSession } from '@/state/store';
 
@@ -51,6 +51,9 @@ function Bars({ distribution, ranks, themeTick }: { distribution: number[]; rank
     }
     const style = getComputedStyle(document.documentElement);
     const color = (name: string) => style.getPropertyValue(name).trim();
+    // The page's body font, so the chart's labels match the text around it.
+    const font = { family: getComputedStyle(document.body).fontFamily };
+    const axisTitle = (text: string) => ({ display: true, text, color: color('--muted'), font: { ...font, weight: 600 } });
     const count = Math.max(ranks, distribution.length);
     const data = Array.from({ length: count }, (_, index) => distribution[index] ?? 0);
     const chart = new Chart(element, {
@@ -62,6 +65,9 @@ function Bars({ distribution, ranks, themeTick }: { distribution: number[]; rank
       options: {
         responsive: true,
         maintainAspectRatio: false,
+        // Hovering anywhere in a rank's column shows its count, as on the old leaderboard site.
+        interaction: { mode: 'index', intersect: false },
+        font,
         plugins: {
           legend: { display: false },
           tooltip: {
@@ -71,19 +77,27 @@ function Bars({ distribution, ranks, themeTick }: { distribution: number[]; rank
             borderColor: color('--line'),
             borderWidth: 1,
             displayColors: false,
+            titleFont: font,
+            bodyFont: font,
             callbacks: {
               title: () => '',
-              label: (item) => `Rank ${item.label}: ${bigNum(item.parsed.y ?? 0, powers)} players`
+              label: (item) => `Rank ${item.label}: ${formatAmount(item.parsed.y ?? 0, powers)} players`
             }
           }
         },
         scales: {
-          x: { grid: { display: false }, border: { color: color('--line') }, ticks: { color: color('--muted'), maxRotation: 0 } },
+          x: {
+            title: axisTitle('Rank'),
+            grid: { display: false },
+            border: { color: color('--line') },
+            ticks: { color: color('--muted'), maxRotation: 0, font }
+          },
           y: {
+            title: axisTitle('Player Count'),
             beginAtZero: true,
             grid: { color: color('--line') },
             border: { display: false },
-            ticks: { color: color('--muted'), callback: (value) => bigNum(Number(value), powers) }
+            ticks: { color: color('--muted'), font, callback: (value) => formatAmount(Number(value), powers) }
           }
         }
       }
@@ -112,7 +126,7 @@ export function RankDistribution({ guid, playerId, refreshKey }: { guid: string;
       <h2 id="rank-heading" className="text-base font-semibold">
         Rank Distribution
       </h2>
-      <p className="text-sm text-muted">Cumulative trophies: {bigNum(stats.trophySum, title.powers)}</p>
+      <p className="text-sm text-muted">Cumulative trophies: {formatAmount(stats.trophySum, title.powers)}</p>
       <div className="rounded-xl border border-line bg-surface p-3">
         <Bars distribution={stats.rankDistribution} ranks={balance.Ranks?.length ?? 0} themeTick={themeTick} />
       </div>

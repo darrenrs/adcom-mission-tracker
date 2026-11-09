@@ -121,6 +121,21 @@ a {
 }
 
 /* A generator's bar fills once per cycle. The duration comes from the generator. */
+/* The "trophies needed to move up" row: the old leaderboard site's diagonal stripes, in the theme's raised colour. */
+.trophy-delta {
+  background-image: linear-gradient(
+    315deg,
+    var(--raised) 25%,
+    transparent 25%,
+    transparent 50%,
+    var(--raised) 50%,
+    var(--raised) 75%,
+    transparent 75%,
+    transparent
+  );
+  background-size: 50px 50px;
+}
+
 @keyframes generator-cycle {
   from {
     transform: scaleX(0);

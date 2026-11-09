@@ -7,6 +7,7 @@ import {
   markerLabel,
   markerOffset,
   markerPlacement,
+  ordinalSuffix,
   playerName,
   shortboardLabel,
   shortboardNumber,
@@ -17,7 +18,7 @@ import {
 } from '@/domain/leaderboardView';
 import type { MissionReward } from '@/domain/types';
 import { partIconUrl } from '@/features/mission/MissionPage';
-import { bigNum } from '@/domain/format';
+import { formatAmount } from '@/domain/inputSteps';
 import { inputClass } from '@/ui/inputStyles';
 import { PLAYER_ID, useSession, useTracker } from '@/state/store';
 import { RankDistribution } from './RankChart';
@@ -157,6 +158,17 @@ function Reward({ reward }: { reward: MissionReward | null }) {
   if (!reward) {
     return null;
   }
+  // Random researcher cards of one rarity, such as 5 Epic cards. The game's reward text has no case for these.
+  if (reward.Reward === 'Researcher') {
+    const rarity = reward.RewardId.toLowerCase();
+    const name = `${ctx.localization[`researcher.rarity.${rarity}.name`] ?? reward.RewardId} cards`;
+    return (
+      <span className="inline-flex items-center gap-0.5 whitespace-nowrap" data-testid="card-reward">
+        {formatAmount(reward.Value ?? 1, ctx.title.powers)}x
+        <img src={assets.active(`shared/card/card-${rarity}.png`)} alt={name} title={name} width={24} height={24} loading="lazy" className="size-6 object-contain" />
+      </span>
+    );
+  }
   // Leaderboard capsules are not in the event's own capsule table, so they are drawn straight from their icon.
   const parts: RewardPart[] =
     reward.Reward === 'Gacha'
@@ -175,12 +187,24 @@ function Reward({ reward }: { reward: MissionReward | null }) {
   );
 }
 
-function Stat({ label, children }: { label: string; children: ReactNode }) {
+/** One of the big result cards: a heading and its value, both centred. */
+function Stat({ label, children, className = '' }: { label: string; children: ReactNode; className?: string }) {
   return (
-    <div className={`p-3 ${box}`}>
+    <div className={`flex flex-col items-center justify-center p-3 text-center ${box} ${className}`}>
       <p className="text-xs font-medium text-muted uppercase">{label}</p>
       <div className="mt-1">{children}</div>
     </div>
+  );
+}
+
+/** A place as the old leaderboard site wrote it: the number, then its ordinal suffix raised, such as 12,345th. */
+function Ordinal({ place }: { place: number }) {
+  const { title } = useSession();
+  return (
+    <span className="tabular-nums whitespace-nowrap">
+      {formatAmount(place, title.powers)}
+      <sup className="ml-px text-[0.65em]">{ordinalSuffix(place)}</sup>
+    </span>
   );
 }
 
@@ -191,8 +215,8 @@ function MoveUpRow({ trophies, columns }: { trophies: number | null; columns: nu
   }
   return (
     <tr>
-      <td colSpan={columns} className="py-1 text-center text-sm font-semibold text-accent">
-        ▲ {bigNum(trophies, title.powers)} trophies needed to move up ▲
+      <td colSpan={columns} data-testid="move-up" className="trophy-delta py-1 text-center text-sm font-semibold text-accent">
+        ▲ {formatAmount(trophies, title.powers)} trophies needed to move up ▲
       </td>
     </tr>
   );
@@ -270,12 +294,14 @@ function GlobalTable({ result, rows }: { result: PlayerResult; rows: GlobalRow[]
                     ref={(element) => {
                       rowRefs.current[index] = element;
                     }}
-                    className={`h-12 border-t border-line ${row.current ? 'bg-raised font-bold' : ''}`}
+                    className={`h-12 border-t border-line ${row.current ? 'bg-accent-soft font-bold hover:bg-accent/25' : 'hover:bg-accent/15'}`}
                     aria-current={row.current ? 'true' : undefined}
                   >
                     <td className="px-2">{row.name}</td>
-                    <td className="px-2 tabular-nums">{bigNum(row.position, powers)}</td>
-                    <td className="px-2 tabular-nums">{row.score === null ? '—' : bigNum(row.score, powers)}</td>
+                    <td className="px-2">
+                      <Ordinal place={row.position} />
+                    </td>
+                    <td className="px-2 tabular-nums">{row.score === null ? '—' : formatAmount(row.score, powers)}</td>
                     <td className="px-2">
                       <Reward reward={row.reward} />
                     </td>
@@ -320,35 +346,47 @@ function ShortboardTable({ result, shortLeaderboardId }: { result: PlayerResult;
           <thead>
             <tr className="h-10 text-left text-xs text-muted uppercase">
               <th className="px-2 font-medium">#</th>
-              <th className="w-10 px-1 font-medium">
+              <th className="w-10 p-0 font-medium">
                 <span className="sr-only">Avatar</span>
               </th>
               <th className="px-2 font-medium">Player</th>
               <th className="px-2 font-medium">Trophies</th>
-              <th className="px-2 font-medium">Global</th>
+              <th className="px-2 font-medium">Rank</th>
+              <th className="px-2 font-medium">Place</th>
               <th className="px-2 font-medium">Reward</th>
             </tr>
           </thead>
           <tbody>
             {division.entries.map((entry, index) => {
               const place = entry.position + 1;
-              const globalPlace = entry.globalPosition === null ? null : entry.globalPosition + 1;
-              const share = globalPlace !== null && count > 1 ? globalPlace / (count - 1) : null;
               const moveUp = entry.isPlayer && index > 0 ? trophiesToMoveUp(division.entries[index - 1]?.trophies ?? null, entry.trophies) : null;
               return (
-                <Rows key={`${entry.position}-${entry.ordinal ?? index}`} before={index === playerIndex ? <MoveUpRow trophies={moveUp} columns={6} /> : null}>
-                  <tr className={`h-12 border-t border-line ${entry.isPlayer ? 'bg-raised font-bold hover:bg-accent/25' : 'hover:bg-accent/15'}`} aria-current={entry.isPlayer ? 'true' : undefined}>
-                    <td className="px-2 tabular-nums">{bigNum(place, powers)}</td>
-                    <td className="px-1">
-                      <Avatar url={avatarUrl(entry.avatarId)} className="size-8" />
+                <Rows key={`${entry.position}-${entry.ordinal ?? index}`} before={index === playerIndex ? <MoveUpRow trophies={moveUp} columns={7} /> : null}>
+                  {/* Exactly as tall as the 40px avatar, with no padding above or below. Cells never wrap, so a long name
+                      cannot make a row taller; on phones the table scrolls sideways inside its box instead. */}
+                  <tr className={`h-10 border-t border-line whitespace-nowrap ${entry.isPlayer ? 'bg-accent-soft font-bold hover:bg-accent/25' : 'hover:bg-accent/15'}`} aria-current={entry.isPlayer ? 'true' : undefined}>
+                    <td className="px-2 py-0 tabular-nums">{formatAmount(place, powers)}</td>
+                    <td className="p-0">
+                      <Avatar url={avatarUrl(entry.avatarId)} className="size-10" />
                     </td>
-                    <td className="px-2">{playerName(entry.ordinal)}</td>
-                    <td className="px-2 tabular-nums">{bigNum(entry.trophies, powers)}</td>
-                    <td className="px-2 tabular-nums">
-                      {globalPlace === null ? '—' : bigNum(globalPlace, powers)}
-                      {share !== null && share >= 5e-4 && <span className="ml-1 text-muted">{(share * 100).toFixed(1)}%</span>}
+                    <td className="px-2 py-0">{playerName(entry.ordinal)}</td>
+                    <td className="px-2 py-0 tabular-nums">{formatAmount(entry.trophies, powers)}</td>
+                    <td className="px-2 py-0 tabular-nums" data-testid="shortboard-rank">
+                      {entry.lteRank === null ? '—' : formatAmount(entry.lteRank, powers)}
                     </td>
-                    <td className="px-2">
+                    <td className="px-2 py-0 leading-tight" data-testid="shortboard-place">
+                      {entry.globalPosition === null ? (
+                        '—'
+                      ) : (
+                        <>
+                          <span className="block">{topPercent(entry.globalPosition, count)}</span>
+                          <span className="block text-xs font-normal text-muted">
+                            <Ordinal place={entry.globalPosition + 1} />
+                          </span>
+                        </>
+                      )}
+                    </td>
+                    <td className="px-2 py-0">
                       <Reward reward={shortboardReward(data.schedule, shortLeaderboardId, place)} />
                     </td>
                   </tr>
@@ -380,12 +418,13 @@ function Results({
   globalLeaderboardId?: string;
   shortLeaderboardId?: string;
 }) {
-  const { data, title } = useSession();
+  const { data, title, balance, assets } = useSession();
   const avatarUrl = useAvatarUrl();
   const { powers } = title;
   const { player } = result;
   const number = shortboardNumber(player.segmentId);
   const rows = globalRows(result, data.schedule, globalLeaderboardId);
+  const ranks = balance.Ranks?.length ?? 0;
 
   return (
     <div className="space-y-4">
@@ -396,14 +435,14 @@ function Results({
       )}
       <div className="grid gap-2 sm:grid-cols-3">
         <div className={`flex flex-col items-center justify-center gap-3 p-4 text-center sm:row-span-3 ${box}`}>
-          <Avatar url={avatarUrl(player.avatarId)} className="size-32" />
-          <h2 className="text-lg font-semibold">{playerName(player.ordinal)}</h2>
+          <Avatar url={avatarUrl(player.avatarId)} className="size-40" />
+          <h2 className="text-2xl font-semibold">{playerName(player.ordinal)}</h2>
         </div>
         <Stat label="Global Position">
           {player.globalPosition !== null && player.globalCount ? (
             <>
               <p className="text-xl font-semibold tabular-nums">
-                {bigNum(player.globalPosition + 1, powers)} / {bigNum(player.globalCount, powers)}
+                {formatAmount(player.globalPosition + 1, powers)} / {formatAmount(player.globalCount, powers)}
               </p>
               <p className="text-sm text-muted">{topPercent(player.globalPosition, player.globalCount)}</p>
             </>
@@ -415,29 +454,49 @@ function Results({
           <p className="text-xl font-semibold">{shortboardLabel(player.shortboardCategory)}</p>
           <p className="text-sm text-muted">
             {number !== null && `Shortboard ${number}`}
-            {player.divisionPosition !== null && player.divisionCount ? ` · ${bigNum(player.divisionPosition + 1, powers)} of ${bigNum(player.divisionCount, powers)}` : ''}
+            {player.divisionPosition !== null && player.divisionCount
+              ? ` · Place ${formatAmount(player.divisionPosition + 1, powers)} / ${formatAmount(player.divisionCount, powers)}`
+              : ''}
           </p>
         </Stat>
         <Stat label="Trophies">
-          <p className="text-4xl font-bold tabular-nums">{player.trophies === null ? '—' : bigNum(player.trophies, powers)}</p>
+          <p className="flex items-center justify-center gap-2 text-4xl font-bold tabular-nums">
+            {player.trophies === null ? '—' : formatAmount(player.trophies, powers)}
+            <img src={assets.active('shared/trophy.png')} alt="" width={36} height={36} className="size-9 object-contain" />
+          </p>
         </Stat>
         <Stat label="Player Rank">
-          <p className="text-4xl font-bold tabular-nums">{live && player.lteRank !== null ? bigNum(player.lteRank, powers) : '—'}</p>
+          <p className="text-4xl font-bold tabular-nums" data-testid="player-rank">
+            {live && player.lteRank !== null ? `${formatAmount(player.lteRank, powers)} / ${formatAmount(ranks, powers)}` : '—'}
+          </p>
         </Stat>
-        <div className={`p-3 sm:col-span-2 ${box}`}>
+        <Stat label="Timestamps" className="sm:col-span-2">
           <p className="text-sm">Joined: {when(player.joined)}</p>
           <p className="text-sm">Last updated: {when(player.updated)}</p>
           <p className="mt-1 text-xs text-muted">
             Fetched at {at(result.fetchedAt)}
             {result.boardFetchedAt && <> · global positions as of {at(result.boardFetchedAt)}</>}
           </p>
+        </Stat>
+      </div>
+      {/*
+        From 1024px: the Global table and the rank chart share the left column, beside the taller Shortboard, so the
+        chart no longer waits below all 25 Shortboard rows. The second row takes any spare height, so the chart sits
+        right under the Global table. Phones and tablets keep one column in DOM order: Global, Shortboard, chart.
+      */}
+      <div className="grid items-start gap-4 lg:grid-cols-2 lg:grid-rows-[auto_1fr]">
+        {rows.length > 0 && (
+          <div className="min-w-0 lg:col-start-1 lg:row-start-1">
+            <GlobalTable result={result} rows={rows} />
+          </div>
+        )}
+        <div className="min-w-0 lg:col-start-2 lg:row-span-2 lg:row-start-1">
+          <ShortboardTable result={result} shortLeaderboardId={shortLeaderboardId} />
+        </div>
+        <div className="min-w-0 lg:col-start-1 lg:row-start-2">
+          <RankDistribution guid={guid} playerId={player.playerId} refreshKey={result.fetchedAt} />
         </div>
       </div>
-      <div className="grid items-start gap-4 lg:grid-cols-2">
-        {rows.length > 0 && <GlobalTable result={result} rows={rows} />}
-        <ShortboardTable result={result} shortLeaderboardId={shortLeaderboardId} />
-      </div>
-      <RankDistribution guid={guid} playerId={player.playerId} refreshKey={result.fetchedAt} />
     </div>
   );
 }
