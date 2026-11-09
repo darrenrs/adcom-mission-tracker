@@ -2,9 +2,11 @@
 // `balance.json`. Older asset data has none, so a missing or unreadable palette is skipped, never an error:
 // the page then keeps its own colours.
 
-/** Whether a parsed file looks like a palette. The page checks each colour itself. */
+const PALETTE_KEYS = ['root', 'secondary', 'primary', 'rarity'];
+
+/** Whether a parsed file looks like a palette: an object with at least one colour set. The page checks each colour itself. */
 const isPalette = (value) =>
-  typeof value === 'object' && value !== null && !Array.isArray(value) && Number.isInteger(value.version);
+  typeof value === 'object' && value !== null && !Array.isArray(value) && PALETTE_KEYS.some((key) => typeof value[key] === 'object' && value[key] !== null);
 
 /**
  * Fetches the palette of every balance, by balance id.
