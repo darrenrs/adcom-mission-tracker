@@ -59,13 +59,18 @@ test('opening a generator shows its info in the expanded area', async ({ page })
   await expect(item).not.toContainText(/x\S+ \/ x\S+ \/ x\S+/);
 });
 
-test('researcher cards show level out of max and the cost of the next level, with unlock, guaranteed rank and quote in a popover', async ({ page }) => {
+test('researcher cards show the level bar, rarity and next cost, with unlock, guaranteed rank and quote behind the portrait', async ({ page }) => {
   await page.goto('?view=production&tab=researchers');
   const ringo = card(page, 'Ringo Ringlet');
   const level = page.getByRole('textbox', { name: /^Level of Ringo Ringlet/ });
   const max = (await level.getAttribute('aria-label'))?.match(/0 to (\d+)/)?.[1] as string;
 
-  await expect(ringo.getByTestId('researcher-level')).toHaveText(`Level 0 / ${max}`);
+  await expect(ringo.getByTestId('researcher-level')).toHaveText(`0 / ${max}`);
+  await expect(ringo.getByTestId('researcher-rarity')).toHaveText('Common');
+  // Plus on top, the level field, minus at the bottom; no (i) button, the portrait opens the details.
+  const stepper = await ringo.locator(':scope > div').last().locator(':scope > *').evaluateAll((nodes) => nodes.map((node) => node.getAttribute('aria-label')?.split(' ')[0]));
+  expect(stepper).toEqual(['Raise', 'Level', 'Lower']);
+  await expect(ringo.getByTestId('researcher-portrait')).toHaveAccessibleName('Details for Ringo Ringlet');
   await ringo.getByRole('button', { name: 'Details for Ringo Ringlet' }).click();
   await expect(page.getByText(/^Unlocks at Rank \d+$/)).toBeVisible();
   await expect(page.getByText(/^First guaranteed: (Rank \d+|First free capsule)$/)).toBeVisible();
@@ -75,11 +80,12 @@ test('researcher cards show level out of max and the cost of the next level, wit
 
   // Level 1 to 2 costs the first entry of the rarity's cost table.
   await level.fill('1');
-  await expect(ringo.getByTestId('researcher-level')).toHaveText(`Level 1 / ${max}`);
+  await expect(ringo.getByTestId('researcher-level')).toHaveText(`1 / ${max}`);
   await expect(ringo.getByTestId('next-cost-cards')).toHaveText('2');
+  // "To next:" shares the line with the costs.
   const toNext = await ringo.getByText('To next:').boundingBox();
-  const cost = await ringo.getByLabel('Cost of the next level').boundingBox();
-  expect(toNext && cost && toNext.y + toNext.height <= cost.y + 1).toBe(true);
+  const cards = await ringo.getByTestId('next-cost-cards').boundingBox();
+  expect(Math.abs((toNext?.y ?? 0) + (toNext?.height ?? 0) / 2 - ((cards?.y ?? 0) + (cards?.height ?? 0) / 2))).toBeLessThan(4);
   await expect(ringo.getByTestId('next-cost-science')).toHaveText('50');
 
   await level.fill('2');
@@ -92,32 +98,45 @@ test('researcher cards show level out of max and the cost of the next level, wit
   await expect(ringo.getByText('To next:')).toHaveCount(0);
 });
 
-test('researcher portraits are tall, card shaped and have solid borders', async ({ page, isMobile }) => {
+test('researcher portraits are 4:5 with the industry icon top left, and cards have solid borders', async ({ page, isMobile }) => {
   await page.goto('?view=production&tab=researchers');
   const cards = page.getByRole('list', { name: 'Researchers' }).getByRole('listitem');
   await expect(cards.first()).toBeVisible();
   const portrait = await cards.first().getByTestId('researcher-portrait').boundingBox();
-  // Twice the earlier 56px (touch) or 48px (mouse) square, and about 3:4.
-  expect(portrait?.height).toBe(isMobile ? 112 : 96);
-  expect((portrait?.width ?? 0) / (portrait?.height ?? 1)).toBeCloseTo(0.76, 1);
+  expect(portrait?.height).toBeCloseTo(isMobile ? 112 : 96, 0);
+  expect((portrait?.width ?? 0) / (portrait?.height ?? 1)).toBeCloseTo(0.8, 2);
+  // The industry icon sits in the portrait's top-left corner and the level bar right under it. Measured in one go,
+  // so the page cannot move between the readings.
+  const layout = await cards.first().evaluate((card) => {
+    const box = (id: string) => card.querySelector(`[data-testid="${id}"]`)?.getBoundingClientRect();
+    const [picture, industry, bar] = [box('researcher-portrait'), box('industry-icon'), box('researcher-level')];
+    return picture && industry && bar ? { dx: industry.left - picture.left, dy: industry.top - picture.top, gap: bar.top - picture.bottom } : null;
+  });
+  expect(Math.abs(layout?.dx ?? 99)).toBeLessThan(1);
+  expect(Math.abs(layout?.dy ?? 99)).toBeLessThan(1);
+  expect(layout?.gap ?? 99).toBeLessThan(8);
   const styles = await cards.evaluateAll((elements) => elements.map((element) => getComputedStyle(element).borderTopStyle));
   expect(new Set(styles)).toEqual(new Set(['solid']));
 });
 
-test('researcher images stay inside their container at about 3:4', async ({ page }) => {
+test('researcher images stay inside their container at 4:5', async ({ page }) => {
   await page.goto('?view=production&tab=researchers');
   const card = page.getByRole('list', { name: 'Researchers' }).getByRole('listitem').first();
   const portrait = card.getByTestId('researcher-portrait');
   await expect(portrait).toBeVisible();
-  const container = await portrait.boundingBox();
-  const image = await portrait.locator('img').first().boundingBox();
+  // Both boxes in one reading, so the page cannot move between them while it is still loading.
+  const boxes = await portrait.evaluate((node) => {
+    const outer = node.getBoundingClientRect();
+    const inner = node.querySelector('img')!.getBoundingClientRect();
+    return { outer: { x: outer.x, y: outer.y, width: outer.width, height: outer.height }, inner: { x: inner.x, y: inner.y, width: inner.width, height: inner.height } };
+  });
+  const { outer: container, inner: image } = boxes;
   const slack = 0.5;
-  expect(image && container).toBeTruthy();
-  expect(image!.x).toBeGreaterThanOrEqual(container!.x - slack);
-  expect(image!.y).toBeGreaterThanOrEqual(container!.y - slack);
-  expect(image!.x + image!.width).toBeLessThanOrEqual(container!.x + container!.width + slack);
-  expect(image!.y + image!.height).toBeLessThanOrEqual(container!.y + container!.height + slack);
-  expect(image!.height / image!.width).toBeCloseTo(4 / 3, 1);
+  expect(image.x).toBeGreaterThanOrEqual(container.x - slack);
+  expect(image.y).toBeGreaterThanOrEqual(container.y - slack);
+  expect(image.x + image.width).toBeLessThanOrEqual(container.x + container.width + slack);
+  expect(image.y + image.height).toBeLessThanOrEqual(container.y + container.height + slack);
+  expect(image.height / image.width).toBeCloseTo(5 / 4, 1);
   // The square art is squeezed to the card shape, not cropped.
   expect(await portrait.locator('img').first().evaluate((img) => getComputedStyle(img).objectFit)).toBe('fill');
 });

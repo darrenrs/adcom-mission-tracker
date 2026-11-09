@@ -26,7 +26,8 @@ test.describe('desktop', () => {
     await calc.getByRole('tab', { name: 'Researchers' }).click();
     await expect(calc.getByRole('textbox', { name: /^Level of / }).first()).toBeVisible();
     const researchers = await calc.getByRole('tabpanel').boundingBox();
-    expect(researchers?.height).toBeLessThanOrEqual(700);
+    // The round 5 cards carry a level bar under the portrait and a three-button stepper, so they are taller.
+    expect(researchers?.height).toBeLessThanOrEqual(820);
   });
 
   test('Production researchers fit a few rows of cards on the first screen', async ({ page }) => {

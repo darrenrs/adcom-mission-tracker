@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { firstGuaranteedText, missionRank, nextLevelCost } from './researcherInfo';
+import type { AssetResolver } from './assets';
 import type { GameTextContext } from './gameText';
+import { researcherCornerIcons } from './researchers';
 import type { GameBalance, Mission, Researcher } from './types';
 
 const researcher = { Id: 'r1', Rarity: 'Common' } as Researcher;
@@ -35,5 +37,33 @@ describe('first guaranteed copy', () => {
     expect(firstGuaranteedText(ctx, { kind: 'mission', mission: noRank, text: 'Own Farmers' }, [])).toBe('First guaranteed: Own Farmers');
     expect(firstGuaranteedText(ctx, { kind: 'freeCapsule' }, [])).toBe('First guaranteed: First free capsule');
     expect(firstGuaranteedText(ctx, { kind: 'none' }, [])).toBeNull();
+  });
+});
+
+describe('researcherCornerIcons', () => {
+  const assets = { iconUrl: (file: string) => `icon/${file}` } as unknown as AssetResolver;
+  const ctx = {
+    balance: {
+      Industries: [{ Id: 'farming' }, { Id: 'mining' }],
+      Resources: [{ Id: 'potato' }, { Id: 'ore' }],
+      Generators: [{ Id: 'farmer', IndustryId: 'farming' }]
+    }
+  } as unknown as GameTextContext;
+  const researcher = (ModType: string, TargetIds: string[]) => ({ Id: 'r', ModType, TargetIds }) as unknown as Researcher;
+
+  it('puts the industry top left and the generator top right', () => {
+    expect(researcherCornerIcons(ctx, assets, researcher('GenManagerAndSpeedMult', ['farmer']))).toEqual({
+      industry: 'icon/potato.png',
+      generator: 'icon/farmer.png'
+    });
+  });
+
+  it('shows only the industry for an industry, a resource (trades) or several industries', () => {
+    expect(researcherCornerIcons(ctx, assets, researcher('GeneratorCritChance', ['Mining']))).toEqual({ industry: 'icon/ore.png', generator: null });
+    expect(researcherCornerIcons(ctx, assets, researcher('TradePayoutMultiplier', ['potato']))).toEqual({ industry: 'icon/potato.png', generator: null });
+    expect(researcherCornerIcons(ctx, assets, researcher('GeneratorPayoutMultiplier', ['Farming, Mining']))).toEqual({
+      industry: 'icon/multi-industry.png',
+      generator: null
+    });
   });
 });

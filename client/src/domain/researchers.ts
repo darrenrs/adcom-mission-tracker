@@ -6,6 +6,8 @@ import type { AssetResolver } from './assets';
 import { bigNum, getEta, shortBigNum } from './format';
 import {
   describeMission,
+  getGenerator,
+  getIndustryByResource,
   getResearcherBasicDetails,
   getResourceByIndustry,
   getValueForResearcherLevel,
@@ -127,37 +129,34 @@ export function researcherMaxLevel(balance: GameBalance, researcher: Researcher)
   return cost ? cost.Quantity.length + 1 : null;
 }
 
-/** The icon of what a researcher affects: a generator, a resource, an industry's resource or a generic one for several. */
-export function getResearcherTargetIconUrl(ctx: GameTextContext, assets: AssetResolver, researcher: Researcher): string | null {
+/**
+ * The two corner icons of a researcher card: the industry it works in (top left, `multi-industry.png` when it works in
+ * several) and the generator it works on (top right). Either is null when the researcher has none, such as a trade
+ * researcher, which works on a resource and so shows only its industry.
+ */
+export function researcherCornerIcons(
+  ctx: GameTextContext,
+  assets: AssetResolver,
+  researcher: Researcher
+): { industry: string | null; generator: string | null } {
   const targetId = researcher.TargetIds[0] ?? '';
-  const industryIcon = () => {
-    const resource = getResourceByIndustry(ctx, targetId);
+  if (researcher.TargetIds.length > 1 || targetId.includes(',')) {
+    return { industry: assets.iconUrl('multi-industry.png'), generator: null };
+  }
+  const industryIcon = (industryId: string | undefined) => {
+    const resource = industryId ? getResourceByIndustry(ctx, industryId) : undefined;
     return resource ? assets.iconUrl(`${resource.Id}.png`) : null;
   };
 
-  if (targetId.includes(',')) {
-    return assets.iconUrl('multi-industry.png');
+  const generator = getGenerator(ctx, targetId);
+  if (generator) {
+    return { industry: industryIcon(generator.IndustryId), generator: assets.iconUrl(`${generator.Id}.png`) };
   }
-
-  switch (researcher.ModType) {
-    case 'TradePayoutMultiplier':
-    case 'GenManagerAndSpeedMult':
-      return assets.iconUrl(`${targetId}.png`);
-
-    case 'GeneratorCostReduction':
-    case 'GeneratorCritChance':
-    case 'GeneratorCritPowerMult':
-      return industryIcon();
-
-    case 'GeneratorPayoutMultiplier': {
-      // The target is either an industry such as "Farming" or a generator such as "farmer".
-      const isIndustry = (ctx.balance.Industries ?? []).some((industry) => industry.Id.toLowerCase() === targetId.toLowerCase());
-      return isIndustry ? industryIcon() : assets.iconUrl(`${targetId}.png`);
-    }
-
-    default:
-      return null;
+  const industry = (ctx.balance.Industries ?? []).find((candidate) => candidate.Id.toLowerCase() === targetId.toLowerCase());
+  if (industry) {
+    return { industry: industryIcon(industry.Id), generator: null };
   }
+  return { industry: industryIcon(getIndustryByResource(ctx, targetId)?.Id), generator: null };
 }
 
 export interface ResearcherValueLabel {

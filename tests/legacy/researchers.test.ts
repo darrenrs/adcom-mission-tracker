@@ -8,7 +8,7 @@ import { parseLocalization } from '@/domain/localization';
 import {
   generatorDetails,
   getPropagandaBoost,
-  getResearcherTargetIconUrl,
+  researcherCornerIcons,
   getResearchersByIndustry,
   getTradeResearchers,
   researcherDetails,
@@ -182,7 +182,9 @@ describe.skipIf(!assetsAvailable).each(TITLE_KEYS)('researchers match legacy (%s
           }
           const resolved = raw === undefined ? null : legacy.call<string>('resolveAssetPathByLegacyPath', raw);
           tally.icons++;
-          expect(getResearcherTargetIconUrl(ctx, assets, researcher), label).toBe(resolved);
+          // The card now shows two corner icons; legacy's one icon is the generator's when there is one, else the industry's.
+          const corners = researcherCornerIcons(ctx, assets, researcher);
+          expect(corners.generator ?? corners.industry, label).toBe(resolved);
         }
       });
 
