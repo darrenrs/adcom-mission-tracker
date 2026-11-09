@@ -256,15 +256,23 @@ test('shows the generator notes only when they apply', async ({ page }) => {
   await expect(progress).toBeVisible();
 });
 
-test('titles each stock, with comrades per second in the comrade title, and the comrade icon opens Trades', async ({ page }) => {
+test('titles each stock, with comrades per second muted at the bottom of the comrade box, and the comrade icon opens Trades', async ({ page }) => {
   await openGame(page);
   // Comrades has a second title for the phone layout; only one of the two is displayed.
   const titles = stocks(page).getByTestId('stock-title').filter({ visible: true });
   await expect(titles).toHaveCount(3);
-  await expect(titles.nth(0)).toHaveText(/^Comrades • \S+\/sec$/);
+  await expect(titles.nth(0)).toHaveText('Comrades');
   await expect(titles.nth(1)).toHaveText('Science');
   await expect(titles.nth(2)).toHaveText('Gold');
   expect(await titles.first().evaluate((node) => getComputedStyle(node).textAlign)).toBe('center');
+  const footers = stocks(page).getByTestId('stock-footer');
+  await expect(footers.first()).toHaveText(/^\S+\/sec$/);
+  await expect(footers.first()).toHaveClass(/text-muted/);
+  // The three boxes are the same height, with their fields on one line, even when a title wraps.
+  const boxes = await stocks(page).locator(':scope > div').evaluateAll((nodes) => nodes.map((node) => Math.round(node.getBoundingClientRect().height)));
+  expect(new Set(boxes).size).toBe(1);
+  const fieldTops = await stocks(page).getByRole('textbox').evaluateAll((nodes) => nodes.map((node) => Math.round(node.getBoundingClientRect().top)));
+  expect(new Set(fieldTops).size).toBe(1);
   await expect(stocks(page).getByLabel('Comrades per second')).toHaveCount(0);
   await stocks(page).getByRole('button', { name: 'Open Trades' }).click();
   await expect(page).toHaveURL(/view=production/);
@@ -454,4 +462,31 @@ test('never scrolls sideways', async ({ page }) => {
   await openGame(page);
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
   expect(overflow).toBeLessThanOrEqual(0);
+});
+
+test('generator rows: picture and bar match the mission bar, the second row lines up, and the timer always shows', async ({ page }) => {
+  await openGame(page);
+  await expect(page.getByRole('heading', { level: 2, name: 'Generators' })).toBeVisible();
+  const missionBar = await page.getByRole('list', { name: 'Current missions' }).getByRole('button', { name: /^Edit progress/ }).first().boundingBox();
+  const farmers = generators(page).getByRole('listitem').filter({ hasText: 'Farmers' });
+  // Row one: picture and bar. Row two: count, name box and card button, one height and lined up.
+  const rows = await farmers.evaluate((row) => [...row.children].slice(0, 5).map((cell) => {
+    const box = cell.getBoundingClientRect();
+    return { top: Math.round(box.top), height: Math.round(box.height), left: Math.round(box.left) };
+  }));
+  const [picture, bar, count, name, card] = rows as { top: number; height: number; left: number }[];
+  expect(picture!.height).toBe(Math.round(missionBar!.height));
+  expect(bar!.height).toBe(picture!.height);
+  expect(new Set([count!.top, name!.top, card!.top]).size).toBe(1);
+  expect(new Set([count!.height, name!.height, card!.height]).size).toBe(1);
+  expect(count!.left).toBe(picture!.left);
+  expect(name!.left).toBe(bar!.left);
+
+  // An idle bar shows its cycle time; a running one keeps a timer on the left too.
+  const timer = farmers.getByTestId('generator-timer');
+  await expect(timer).not.toBeEmpty();
+  await farmers.getByRole('textbox', { name: /^number of/ }).fill('1');
+  await raiseFarmersCard(page);
+  await expect(farmers.getByTestId('generator-bar')).toBeVisible();
+  await expect(timer).not.toBeEmpty();
 });

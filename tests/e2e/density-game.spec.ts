@@ -63,7 +63,7 @@ test.describe('phone', () => {
     await page.goto(OPEN);
     const shortcut = page.getByRole('region', { name: 'Stocks' }).getByRole('button', { name: 'Open Trades' });
     await expect(shortcut).toHaveCount(1);
-    await expect(shortcut).toContainText('/sec');
+    await expect(shortcut).toContainText('Comrades');
     await shortcut.click();
     await expect(page).toHaveURL(/tab=trades/);
   });

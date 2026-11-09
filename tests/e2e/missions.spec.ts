@@ -62,6 +62,14 @@ test('groups missions into Completed, Current and Upcoming', async ({ page }) =>
   expect(ranks.length).toBeGreaterThan(1);
 });
 
+test('no line between the Upcoming heading and its first rank', async ({ page }) => {
+  await page.goto('?view=missions&mode=lte');
+  const groups = page.getByRole('region', { name: /^Upcoming in Rank \d+$/ });
+  await expect(groups.first()).toBeVisible();
+  expect(await groups.first().evaluate((node) => getComputedStyle(node).borderTopWidth)).toBe('0px');
+  expect(await groups.nth(1).evaluate((node) => getComputedStyle(node).borderTopWidth)).toBe('1px');
+});
+
 test('Motherland Upcoming has no rank subsections', async ({ page }) => {
   await page.goto('?view=missions&rank=5');
   await expect(page.getByRole('heading', { level: 2, name: 'Upcoming' })).toBeVisible();

@@ -2,6 +2,7 @@ import * as Popover from '@radix-ui/react-popover';
 import { Info, Minus, Plus } from 'lucide-react';
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { bigNum, shortBigNum } from '@/domain/format';
+import { formatAmount } from '@/domain/inputSteps';
 import { formatCycleTime, hasActiveResearcher } from '@/domain/generatorInfo';
 import { describeMission, getResourceByIndustry, resourceName } from '@/domain/gameText';
 import type { BoardMission } from '@/domain/missions';
@@ -47,19 +48,22 @@ const SCIENCE = 'science';
 const HEADING = 'mb-1 text-sm font-semibold tracking-wide text-muted uppercase';
 
 /**
- * One stock: its title, icon and amount. On phones the icon sits in the title row so the field gets the
- * whole box width; from 640px up it sits beside the field. With `open`, the icon is a shortcut: on phones
- * the whole title row is the button, so it keeps a 44px tap target.
+ * One stock: its title, icon, amount and a footer line. On phones the icon sits in the title row so the field gets the
+ * whole box width; from 640px up it sits beside the field. With `open`, the icon is a shortcut: on phones the whole
+ * title row is the button, so it keeps a 44px tap target. The three boxes share the section's three rows (a subgrid), so
+ * titles, fields and footers line up even when one title wraps.
  */
 function Stock({
   title,
   iconSrc,
   open,
+  footer,
   children
 }: {
   title: string;
   iconSrc: string;
   open?: { label: string; action: () => void };
+  footer?: ReactNode;
   children: ReactNode;
 }) {
   const text = (
@@ -71,15 +75,16 @@ function Stock({
   const shortcut = { type: 'button' as const, tabIndex: -1, 'aria-label': open?.label, title: open?.label, onClick: open?.action };
 
   return (
-    <div className={`flex min-w-0 flex-col justify-center gap-0.5 p-1.5 ${box}`}>
+    <div className={`row-span-3 grid min-w-0 grid-rows-subgrid items-center gap-y-0.5 p-1 sm:p-1.5 ${box}`}>
       {open ? (
-        <>
-          <button {...shortcut} className="flex min-h-control items-center justify-center gap-1 rounded-lg hover:bg-raised sm:hidden">
+        // One cell of the subgrid: the phone button and the wider screens' plain title take turns.
+        <div className="min-w-0">
+          <button {...shortcut} className="flex min-h-control w-full items-center justify-center gap-1 rounded-lg hover:bg-raised sm:hidden">
             {image('size-5')}
             {text}
           </button>
           <p className="hidden justify-center sm:flex">{text}</p>
-        </>
+        </div>
       ) : (
         <p className="flex items-center justify-center gap-1">
           <span className="flex shrink-0 sm:hidden">{image('size-5')}</span>
@@ -96,6 +101,9 @@ function Stock({
         )}
         {children}
       </div>
+      <p data-testid="stock-footer" className="min-h-4 text-center text-xs leading-4 text-muted tabular-nums">
+        {footer}
+      </p>
     </div>
   );
 }
@@ -109,14 +117,16 @@ function Stocks() {
   // AdCom calls it Gold, Ages calls it Gems; both use the `gold` resource.
   const gold = resourceName(ctx, 'gold') ?? 'Gold';
   const scienceIcon = assets.active(mode === 'evergreen' ? 'main/darkscience.png' : 'event/darkscience.png');
-  const input = 'w-full min-w-0 flex-1 text-center';
+  // Narrow side padding, so the longest amount ("999.99 AAAAA") fits the box on a 360px phone at the normal width.
+  const input = 'w-full min-w-0 flex-1 px-0.5 text-center sm:px-1';
 
   return (
-    <section aria-label="Stocks" className="grid grid-cols-3 gap-2">
+    <section aria-label="Stocks" className="grid grid-cols-3 grid-rows-[auto_auto_auto] gap-x-1 gap-y-0 sm:gap-x-2">
       <Stock
-        title={`${comrades} • ${shortBigNum(form.Trades.TotalComrades, powers)}/sec`}
+        title={comrades}
         iconSrc={assets.iconUrl('comrade.png')}
         open={{ label: 'Open Trades', action: () => navigate({ view: 'production', tab: 'trades' }) }}
+        footer={`${shortBigNum(form.Trades.TotalComrades, powers)}/sec`}
       >
         <AmountInput
           label={comrades}
@@ -183,7 +193,7 @@ function MissionCard({ mission }: { mission: BoardMission }) {
           type="button"
           onClick={() => clickMission(mission.Id)}
           tabIndex={-1}
-          className="flex min-h-control min-w-0 flex-1 items-center gap-2 rounded-lg px-2 py-1 text-left hover:bg-raised/60 active:bg-raised"
+          className="flex min-h-11 min-w-0 flex-1 items-center gap-2 rounded-lg px-2 py-1 text-left hover:bg-raised/60 active:bg-raised"
         >
           {iconUrl && <img src={iconUrl} alt="" width={32} height={32} loading="lazy" className="size-8 shrink-0 object-contain" />}
           <span className="min-w-0 flex-1 text-sm leading-snug font-medium break-words">
@@ -195,7 +205,7 @@ function MissionCard({ mission }: { mission: BoardMission }) {
           mission={mission}
           name={description.text}
           reward={reward}
-          className="flex min-h-control min-w-control shrink-0 items-center justify-center rounded-lg hover:bg-raised"
+          className="flex min-h-11 min-w-12 shrink-0 items-center justify-center rounded-lg pr-1 hover:bg-raised"
         />
       </div>
 
@@ -208,7 +218,7 @@ function MissionCard({ mission }: { mission: BoardMission }) {
           value={progress}
           onValue={setProgress}
           powers={powers}
-          shown={`${bigNum(progress, powers)} / ${bigNum(goal, powers)}`}
+          shown={`${formatAmount(progress, powers)} / ${formatAmount(goal, powers)}`}
           className="relative"
         />
       </div>
@@ -336,10 +346,47 @@ function BoostRow() {
 /** Under this cycle time the bar would only flicker, so it stays full and the rate shows per second, as in the game. */
 const FAST_CYCLE_SECONDS = 0.5;
 
+/** From this cycle time a running bar counts down each cycle; shorter ones show their cycle time, which would only blur. */
+const COUNTDOWN_FROM_SECONDS = 1;
+
 /** One run of the bar that the player started by tapping an idle generator. `id` restarts it on a second tap. */
 interface ManualRun {
   id: number;
   seconds: number;
+}
+
+/** Whole seconds left in the cycle, rounded up as a game timer does, so a 5s cycle reads 5s, 4s … 1s. */
+function secondsLeft(cycleSeconds: number, elapsedSeconds: number): number {
+  return Math.max(1, Math.ceil(cycleSeconds - (elapsedSeconds % cycleSeconds) - 1e-9));
+}
+
+/**
+ * Counts a timer down from `seconds`, once (a manual run) or every cycle (a running generator), in step with the bar's
+ * fill, which starts at the same moment. Null when nothing is counting.
+ */
+function useCountdown(seconds: number, active: boolean, repeat: boolean, restartKey: number, onDone: () => void): number | null {
+  const [left, setLeft] = useState<number | null>(null);
+  useEffect(() => {
+    if (!active || !(seconds > 0) || !Number.isFinite(seconds)) {
+      setLeft(null);
+      return;
+    }
+    const start = performance.now();
+    let frame = 0;
+    const tick = () => {
+      const elapsed = (performance.now() - start) / 1000;
+      if (!repeat && elapsed >= seconds) {
+        setLeft(null);
+        onDone();
+        return;
+      }
+      setLeft(secondsLeft(seconds, elapsed));
+      frame = requestAnimationFrame(tick);
+    };
+    tick();
+    return () => cancelAnimationFrame(frame);
+  }, [seconds, active, repeat, restartKey]);
+  return left;
 }
 
 function CycleBar({
@@ -358,47 +405,36 @@ function CycleBar({
   const { title } = useSession();
   const { powers } = title;
   const running = count > 0 && tier !== undefined && Number.isFinite(tier.cycleSeconds);
-  const fast = running && (tier?.cycleSeconds ?? 0) < FAST_CYCLE_SECONDS;
   const seconds = tier?.cycleSeconds ?? 0;
+  const fast = running && seconds < FAST_CYCLE_SECONDS;
   const perCycle = (tier?.outputPerCycle ?? 0) * count;
   const crits = (tier?.critChance ?? 0) > 0;
-  const idleText = formatCycleTime(details.output.cycleSeconds, powers);
-  const [countdown, setCountdown] = useState<string | null>(null);
-  const active = !running && manual !== null;
+  const manualRun = !running && manual !== null;
+  const countsDown = running && seconds >= COUNTDOWN_FROM_SECONDS;
+  const runningLeft = useCountdown(seconds, countsDown, true, 0, () => undefined);
+  const manualLeft = useCountdown(manual?.seconds ?? 0, manualRun, false, manual?.id ?? 0, onManualDone);
 
-  // Counts the label down over a manual run, then hands the bar back to idle.
-  useEffect(() => {
-    if (!active || !manual) {
-      setCountdown(null);
-      return;
-    }
-    const start = performance.now();
-    let frame = 0;
-    const tick = () => {
-      const elapsed = (performance.now() - start) / 1000;
-      if (elapsed >= manual.seconds) {
-        setCountdown(null);
-        onManualDone();
-        return;
-      }
-      setCountdown(formatCycleTime(manual.seconds - elapsed, powers));
-      frame = requestAnimationFrame(tick);
-    };
-    tick();
-    return () => cancelAnimationFrame(frame);
-  }, [active, manual?.id, manual?.seconds, powers]);
+  // The timer always shows: a countdown while a long cycle runs or a manual run is going, otherwise the cycle time.
+  let timer = formatCycleTime(running ? seconds : details.output.cycleSeconds, powers);
+  if (countsDown && runningLeft !== null) {
+    timer = formatCycleTime(runningLeft, powers);
+  } else if (manualRun && manualLeft !== null && (manual?.seconds ?? 0) >= COUNTDOWN_FROM_SECONDS) {
+    timer = formatCycleTime(manualLeft, powers);
+  }
 
   return (
-    <div className="relative flex h-8 items-center justify-between overflow-hidden rounded-lg bg-raised px-2 text-sm pointer-fine:h-6 font-semibold">
+    <div className="relative flex h-control min-w-0 items-center justify-between gap-2 overflow-hidden rounded-lg bg-raised px-2 text-sm font-semibold">
       {running && (
         <span
+          // A new cycle time restarts the fill, together with the countdown.
+          key={seconds}
           aria-hidden
           data-testid="generator-bar"
           className={`absolute inset-0 bg-success/30 ${fast ? '' : 'generator-bar'}`}
           style={fast ? undefined : { animationDuration: `${seconds}s` }}
         />
       )}
-      {!running && manual && (
+      {manualRun && manual && (
         <span
           key={manual.id}
           aria-hidden
@@ -407,7 +443,9 @@ function CycleBar({
           style={{ transformOrigin: 'left', animation: `generator-cycle ${manual.seconds}s linear 1 forwards` }}
         />
       )}
-      <span className="relative">{running ? '' : (countdown ?? idleText)}</span>
+      <span data-testid="generator-timer" className="relative tabular-nums">
+        {timer}
+      </span>
       <span className="relative flex items-center gap-1 tabular-nums">
         <img src={details.output.iconUrl} alt="" width={20} height={20} className="size-5 object-contain" />
         {shortBigNum(fast ? perCycle / seconds : perCycle, powers)}
@@ -453,7 +491,7 @@ function CardPopover({ researcherId, name }: { researcherId: string; name: strin
           aria-label={`${name} card`}
           className="z-50 flex w-52 max-w-[calc(100vw-1rem)] flex-col items-center gap-1.5 rounded-xl border border-line bg-surface p-2 text-center text-ink shadow-lg"
         >
-          <img src={assets.iconUrl(`${researcherId}.png`)} alt="" className="aspect-[3/4] h-20 rounded-lg object-fill" />
+          <img src={assets.iconUrl(`${researcherId}.png`)} alt="" className="aspect-[4/5] h-20 rounded-lg object-fill" />
           <p className="text-sm font-semibold">
             {name}
             <br />
@@ -510,45 +548,48 @@ function GeneratorRow({
     }
   };
 
+  // Two rows on one grid: the picture and its bar, then the count, the name box and the card button. Row one is the
+  // height of an active mission's progress bar; row two's three boxes share one height and line up under row one.
   return (
-    <li className={`mb-1.5 p-1.5 ${box}`}>
-      <div className="flex items-center gap-2">
-        <div className="flex w-32 shrink-0 flex-col items-center gap-0.5">
-          <button type="button" tabIndex={-1} aria-label={`Run ${name} once`} onClick={runOnce} className="flex size-11 shrink-0 items-center justify-center rounded-full pointer-fine:size-10">
-            <img src={details.iconUrl} alt="" width={40} height={40} className="size-10 rounded-full bg-raised object-contain p-0.5" />
-          </button>
-          <AmountInput
-            label={`number of ${name}`}
-            powers={title.powers}
-            value={count}
-            onValue={(value) => updateForm((next) => applyCount(next, resourceId, generatorKey(generator.Id), value, Date.now()))}
-            className="w-full px-1 text-center"
-          />
-        </div>
-
-        <div className="min-w-0 flex-1 space-y-1">
-          <CycleBar tier={tier} details={details} count={count} manual={manual} onManualDone={() => setManual(null)} />
-          <div className="flex items-stretch gap-1.5">
-            {/* The name box opens the details panel below; the (i) after the name says so. */}
-            <button
-              type="button"
-              tabIndex={-1}
-              aria-expanded={open}
-              onClick={() => setOpen((value) => !value)}
-              className="flex min-h-control min-w-0 flex-1 items-center justify-center gap-1.5 rounded-lg border border-success/30 bg-success-soft px-2 text-center text-sm leading-tight font-semibold break-words hover:border-success/60 aria-expanded:border-success/60"
-            >
-              <span className="min-w-0">
-                {name} - Tier {tierNumber}
-                <span className="sr-only"> details</span>
-              </span>
-              <Info aria-hidden size={16} className="shrink-0 text-muted" />
-            </button>
-            {automator && <CardPopover researcherId={automator.id} name={automator.name} />}
-          </div>
-        </div>
+    <li className={`mb-1.5 grid grid-cols-[7rem_minmax(0,1fr)_auto] items-stretch gap-x-2 gap-y-1 p-1.5 sm:grid-cols-[8rem_minmax(0,1fr)_auto] ${box}`}>
+      <button
+        type="button"
+        tabIndex={-1}
+        aria-label={`Run ${name} once`}
+        onClick={runOnce}
+        className="flex h-control items-center justify-center rounded-lg"
+      >
+        <img src={details.iconUrl} alt="" width={40} height={40} className="size-control rounded-full bg-raised object-contain p-0.5" />
+      </button>
+      <div className="col-span-2 min-w-0">
+        <CycleBar tier={tier} details={details} count={count} manual={manual} onManualDone={() => setManual(null)} />
       </div>
+
+      <AmountInput
+        label={`number of ${name}`}
+        powers={title.powers}
+        value={count}
+        onValue={(value) => updateForm((next) => applyCount(next, resourceId, generatorKey(generator.Id), value, Date.now()))}
+        className="h-auto! min-h-control w-full px-1 text-center"
+      />
+      {/* The name box opens the details panel below; the (i) after the name says so. */}
+      <button
+        type="button"
+        tabIndex={-1}
+        aria-expanded={open}
+        onClick={() => setOpen((value) => !value)}
+        className={`flex min-h-control min-w-0 items-center justify-center gap-1.5 rounded-lg border border-success/30 bg-success-soft px-2 text-center text-sm leading-tight font-semibold break-words hover:border-success/60 aria-expanded:border-success/60 ${automator ? '' : 'col-span-2'}`}
+      >
+        <span className="min-w-0">
+          {name} - Tier {tierNumber}
+          <span className="sr-only"> details</span>
+        </span>
+        <Info aria-hidden size={16} className="shrink-0 text-muted" />
+      </button>
+      {automator && <CardPopover researcherId={automator.id} name={automator.name} />}
+
       {open && (
-        <div className="mt-1.5 border-t border-line pt-1.5">
+        <div className="col-span-3 mt-0.5 border-t border-line pt-1.5">
           <GeneratorInfo generator={generator} />
         </div>
       )}
@@ -568,7 +609,10 @@ function Generators({ industryId }: { industryId: string }) {
   const anyCrits = tiers.some((tier) => tier.critChance > 0);
 
   return (
-    <div className="mt-3 space-y-1.5">
+    <section aria-labelledby="generators-heading" className="mt-3 space-y-1.5">
+      <h2 id="generators-heading" className={HEADING}>
+        Generators
+      </h2>
       {(researchersActive || anyCrits) && (
         <div className="space-y-1 text-xs text-muted">
           {researchersActive && <p>Generator progress bars do not update values; only manual updating is supported.</p>}
@@ -591,7 +635,7 @@ function Generators({ industryId }: { industryId: string }) {
           />
         ))}
       </ul>
-    </div>
+    </section>
   );
 }
 
