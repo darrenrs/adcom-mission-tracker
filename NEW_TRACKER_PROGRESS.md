@@ -1,7 +1,7 @@
 # New Tracker: Progress and Handoff
 
-**Status:** A beta is live from this branch. Beta feedback rounds 1–3 and the Leaderboard rework are built and committed locally. Phase 4 has not started.
-**Branch:** `new-tracker`. `origin/new-tracker` is at `632458a`, which is what the beta runs. Every commit after it, from the density pass on, is local only. The owner said "not yet" to pushing each time; ask before pushing.
+**Status:** A beta is live from this branch. Beta feedback rounds 1–4, the Leaderboard rework and freshness changes, the schedule history and daylight-saving fixes, and the In-Game theme are built and committed locally. Phases 4, 5 and 6 have not started.
+**Branch:** `new-tracker`. `origin/new-tracker` is at `632458a`, which is what the beta runs. Every commit after it, from the density pass to the In-Game theme (`c0684ae`), is local only. The owner said "not yet" to pushing each time; ask before pushing.
 **Beta:** https://azimuth.idlegametools.com/adcom-mission-tracker/, run from a separate VPS folder (see Beta deployment). The live tracker on `master` is untouched.
 **Last updated:** 8 November 2026.
 
@@ -11,8 +11,9 @@ Start here when picking the work up. The plan history is in `~/.claude/plans/ros
 
 1. The owner checks the reworked Leaderboard tab locally with their real PlayFab ID against the old leaderboard page: place, marker bracket, Shortboard avatars, rank distribution totals. Locally it needs only `npm run dev`, with the Docker container rebuilt from this branch (see Running it).
 2. The owner decides when to push, then redeploys the beta.
-3. More owner feedback is expected. Plan each batch before coding.
-4. Phase 4 waits for the owner's go-ahead.
+3. For the In-Game theme on the beta, the owner merges or deploys the adcom-assets branch `palette-export` (`2d86cb1`, not pushed) and runs its pipeline on the VPS. Until then the beta gets no palettes, and In-Game behaves like System.
+4. More owner feedback is expected. Plan each batch before coding.
+5. Phase 4 waits for the owner's go-ahead.
 
 **Waiting on the owner:** manual calculation test cases (see Calculation tests below), the in-game calendar icon, and restoring the removed help text by hand.
 
@@ -39,13 +40,13 @@ Start here when picking the work up. The plan history is in `~/.claude/plans/ros
 | 3. Calculators | Engine, calculator on mission pages, Production tab | Done. Owner found display issues still to fix |
 | 3b. Layout brief | URL scheme, rank in the top bar, Game View tab, Production rework | Built. Owner review pending |
 | 3c. Leaderboard brief | Leaderboard tab, Schedule and All Events pickers, Game View, Production, Trades and calculator polish | Built. Owner review pending |
-| 4. Parity | Events and Reference tabs, Docker build, remove legacy `public/` files | Not started. Owner review afterwards |
+| 4. Parity | Reference tab, balance information, remove legacy `public/` files (the Docker build is done) | Not started. Owner review afterwards |
 | 5. PDF features | See the list under Phase 5 | Not started. Each group reviewed separately |
 | 6. Test independence | Remove every test's dependency on legacy code | Not started. Must finish before any merge to `master` |
 
 ### Phase 4 scope
 
-- **Events tab:** schedule, all events, balance information. Their current placeholder is `client/src/features/events/EventsPage.tsx`.
+- **Events tab:** dropped. The Schedule and All Events pickers (Phase 3c) cover the schedule and every event. Balance information has no place yet; ask the owner where it should go.
 - **Reference tab:** airdrops, capsules, scripted capsules, avatar unlocks, help. Its placeholder is `client/src/features/reference/ReferencePage.tsx`.
 - **Build:** done 5 November for the beta. `app.js` serves `dist`, the Dockerfile builds the app in its own stage, and `admin.html`, `admin.js` and `missions_base.css` moved unchanged to `client/public/`. The legacy page is no longer served.
 - **Cleanup:** remove the legacy files in `public/`, but only after every feature has moved over. `npm run golden` reads legacy code from `master`, not from `public/`.
@@ -180,7 +181,7 @@ The work:
 - Game View resources keep the game's industry order; the active one widens to hold its amount field.
 
 **Event colours (8 November)**
-- **adcom-assets** (uncommitted in that repo): `app/steps/palette.py` reads each balance bundle's colour MonoBehaviours and writes `palette.json`, which finalize copies to `data/<title>/<balance>/palette.json`. One palette per balance; the game has no light or dark variants. AdCom's fusion events take their panel colour from the shared `fusion` bundle, by name. Motherland's palette also carries the shared rarities from `common`. The VPS needs an adcom-assets deploy and a pipeline run before the beta gets palettes.
+- **adcom-assets** (branch `palette-export`, commit `2d86cb1`, not pushed): `app/steps/palette.py` reads each balance bundle's colour MonoBehaviours and writes `palette.json`, which finalize copies to `data/<title>/<balance>/palette.json`. One palette per balance; the game has no light or dark variants. AdCom's fusion events take their panel colour from the shared `fusion` bundle, by name. Motherland's palette also carries the shared rarities from `common`. The VPS needs an adcom-assets deploy and a pipeline run before the beta gets palettes.
 - **Server:** `/api/data` adds `Palette` by balance id (`server/palettes.js`). A missing palette is skipped.
 - **In-Game theme:** the fourth Theme choice, saved as `StyleConfig = ingame`. `domain/eventColours.ts` derives the colours:
   - The base comes from the panel colour: a dark panel gets the dark base, a light one (the fusion cream) the light base.
@@ -230,7 +231,7 @@ The owner will supply real in-game cases; each becomes a test with its own expec
 
 ## Beta deployment
 
-The owner plans a beta on the VPS: a separate directory checked out at `new-tracker`, its own port, and a beta domain proxied to it. The live tracker is untouched.
+The beta runs on the VPS: a separate directory checked out at `new-tracker`, its own port, and a beta domain proxied to it. The live tracker is untouched.
 
 - The `.env` needs `PORT` (the beta port), `ASSET_SERVER`, `ASSET_PUBLIC_BASE`, the PlayFab settings, `API_URL_LEADERBOARD` and `API_GCLOUD_TOKEN`.
 - Build and start with `COMMIT_HASH=$(git rev-parse --short HEAD) docker compose -p adcom-mission-tracker-beta up -d --build`. The project name keeps it apart from the live container.
